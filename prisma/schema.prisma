@@ -1,0 +1,221 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String            @id @default(uuid())
+  email        String            @unique
+  phone        String?           @unique
+  name         String
+  passwordHash String
+  role         String            @default("CUSTOMER") // CUSTOMER, MERCHANT, ADMIN
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  addresses    CustomerAddress[]
+  stores       Store[]           @relation("UserStores")
+  orders       Order[]           @relation("CustomerOrders")
+  carts        Cart[]
+  reviews      Review[]
+  auditLogs    AuditLog[]
+}
+
+model Store {
+  id                String                 @id @default(uuid())
+  ownerId           String
+  owner             User                   @relation("UserStores", fields: [ownerId], references: [id], onDelete: Cascade)
+  name              String
+  slug              String                 @unique
+  description       String?
+  category          String                 @default("grocery") // grocery, produce, bakery, dairy, electronics, stationery, fashion, etc.
+  addressLine       String
+  city              String                 @default("Indore")
+  pincode           String
+  latitude          Float
+  longitude         Float
+  serviceRadiusKm   Float                  @default(3.0)
+  isOpen            Boolean                @default(true)
+  isVerified        Boolean                @default(false)
+  commissionRatePct Float                  @default(3.5) // Default 3.5%
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  products          Product[]
+  orders            Order[]
+  ledgerEntries     FinancialLedgerEntry[]
+  subscriptions     MerchantSubscription[]
+  reviews           Review[]
+  carts             Cart[]
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  storeId     String
+  store       Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  category    String
+  mrpPaise    Int         // Integer paise
+  pricePaise  Int         // Integer paise
+  stock       Int         @default(0)
+  isAvailable Boolean     @default(true)
+  imageUrl    String?
+  sku         String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+}
+
+model CustomerAddress {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label       String   @default("Home") // Home, Work, Other
+  addressLine String
+  landmark    String?
+  city        String   @default("Indore")
+  pincode     String
+  latitude    Float
+  longitude   Float
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storeId   String?
+  store     Store?     @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  items     CartItem[]
+}
+
+model CartItem {
+  id             String   @id @default(uuid())
+  cartId         String
+  cart           Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity       Int      @default(1)
+  unitPricePaise Int
+}
+
+model Order {
+  id                   String                 @id @default(uuid())
+  orderNumber          String                 @unique
+  customerId           String
+  customer             User                   @relation("CustomerOrders", fields: [customerId], references: [id])
+  storeId              String
+  store                Store                  @relation(fields: [storeId], references: [id])
+  status               String                 @default("PLACED") // PLACED, ACCEPTED, REJECTED, PREPARING, READY_FOR_PICKUP, OUT_FOR_DELIVERY, DELIVERED, COLLECTED, CANCELLED, REFUNDED
+  fulfillmentMode      String                 @default("PICKUP") // PICKUP, MERCHANT_DELIVERY, PLATFORM_DELIVERY
+  deliveryAddressId    String?
+  
+  // Financial Snapshot in Integer Paise
+  itemSubtotalPaise    Int
+  deliveryFeePaise     Int                    @default(0)
+  taxPaise             Int                    @default(0)
+  discountPaise        Int                    @default(0)
+  totalAmountPaise     Int
+  commissionPaise      Int
+  merchantPayablePaise Int
+  platformRevenuePaise Int
+  
+  idempotencyKey       String?                @unique
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  items                OrderItem[]
+  events               OrderEvent[]
+  ledgerEntries        FinancialLedgerEntry[]
+  reviews              Review[]
+}
+
+model OrderItem {
+  id             String  @id @default(uuid())
+  orderId        String
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String
+  product        Product @relation(fields: [productId], references: [id])
+  productName    String
+  quantity       Int
+  unitPricePaise Int
+  totalPricePaise Int
+}
+
+model OrderEvent {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    String
+  actorId   String?
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model FinancialLedgerEntry {
+  id                 String   @id @default(uuid())
+  orderId            String?
+  order              Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  storeId            String
+  store              Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  entryType          String   // ORDER_SALE, COMMISSION_FEE, REFUND_DEBIT, PAYOUT_SETTLEMENT
+  amountPaise        Int
+  runningBalancePaise Int     @default(0)
+  reference          String?
+  createdAt          DateTime @default(now())
+}
+
+model PlatformSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  valueJson   String
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action       String
+  resourceType String
+  resourceId   String?
+  detailsJson  String?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+}
+
+model MerchantSubscription {
+  id                String   @id @default(uuid())
+  storeId           String
+  store             Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  planName          String   // Basic, Growth, Pro
+  monthlyPricePaise Int
+  status            String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
+  startsAt          DateTime @default(now())
+  expiresAt         DateTime
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  storeId    String
+  store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  orderId    String?
+  order      Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  customerId String
+  customer   User     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  rating     Int      // 1 to 5
+  comment    String?
+  createdAt  DateTime @default(now())
+}
