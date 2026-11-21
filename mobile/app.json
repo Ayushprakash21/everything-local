@@ -57,7 +57,9 @@
         {
           "photosPermission": "Select photos from your gallery for visual product search."
         }
-      ]
+      ],
+      "expo-asset",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
