@@ -14,6 +14,7 @@ import { Product } from '../../src/types';
 import { request } from '../../src/api/client';
 import { formatPaise, formatDistance } from '../../src/utils/format';
 import { VisualSearchModal } from '../../src/components/VisualSearchModal';
+import { SafeImage } from '../../src/components/SafeImage';
 import { Search, Camera, Plus, Check, Store as StoreIcon, Sparkles } from 'lucide-react-native';
 
 export default function CustomerSearchScreen() {
@@ -133,7 +134,13 @@ export default function CustomerSearchScreen() {
             const isAdded = addedIds[item.id];
             return (
               <View style={styles.card}>
-                <View style={{ flex: 1, paddingRight: 12 }}>
+                <SafeImage
+                  uri={item.imageUrl}
+                  style={styles.cardThumb}
+                  resizeMode="contain"
+                  fallbackIconSize={20}
+                />
+                <View style={{ flex: 1, paddingHorizontal: 12 }}>
                   <Text style={styles.storeTag}>{item.store?.name} • {formatDistance(item.distanceKm)}</Text>
                   <Text style={styles.title}>{item.name}</Text>
                   <Text style={styles.price}>{formatPaise(item.pricePaise)}</Text>
@@ -259,6 +266,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  cardThumb: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: '#f8fafc',
   },
   storeTag: {
     fontSize: 10,

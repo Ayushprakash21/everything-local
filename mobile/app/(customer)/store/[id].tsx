@@ -14,6 +14,7 @@ import { request } from '../../../src/api/client';
 import { formatPaise, calculateDiscountPct } from '../../../src/utils/format';
 import { useCart } from '../../../src/context/CartContext';
 import { ArrowLeft, Star, MapPin, Clock, Plus, Check, ShoppingBag, ShieldCheck } from 'lucide-react-native';
+import { SafeImage } from '../../../src/components/SafeImage';
 
 export default function StorefrontDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -147,7 +148,13 @@ export default function StorefrontDetailScreen() {
 
           return (
             <View style={styles.productCard}>
-              <View style={{ flex: 1, paddingRight: 12 }}>
+              <SafeImage
+                uri={item.imageUrl}
+                style={styles.prodThumb}
+                resizeMode="contain"
+                fallbackIconSize={22}
+              />
+              <View style={{ flex: 1, paddingHorizontal: 12 }}>
                 <View style={styles.prodMetaRow}>
                   <Text style={styles.prodCategory}>{item.category.toUpperCase()}</Text>
                   {discountPct > 0 && (
@@ -406,6 +413,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  prodThumb: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
   },
   prodMetaRow: {
     flexDirection: 'row',

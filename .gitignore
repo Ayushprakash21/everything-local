@@ -6,3 +6,5 @@ test.db
 test.db-journal
 .env
 *.log
+uploads/*
+!uploads/.gitkeep

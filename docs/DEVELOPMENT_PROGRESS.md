@@ -13,48 +13,48 @@
 - **PHASE 4 (Checkout, Orders & Fulfillment):** COMPLETED & TESTED
 - **PHASE 5 (Admin & Financial Reconciliation):** COMPLETED & TESTED
 - **PHASE 6 (Genuine Native Mobile App - Android & iOS):** COMPLETED & TESTED
+- **PHASE 7 (Product Image Storage & Barcode Catalogue Engine):** COMPLETED & TESTED
 
 ---
 
-### Mobile Application Engineering Summary (`mobile/`)
-- **Framework & Toolchain:** React Native 0.76 + Expo SDK 52 + TypeScript.
-- **Navigation:** Expo Router v4 (typed file-based routes for `app/(customer)` and `app/(merchant)`).
-- **Customer Native Experience:**
-  - Hyperlocal 3.0 km discovery with GPS permission handling (`expo-location`) & Indore neighborhood switcher.
-  - Product catalog browsing, live stock badges, search and filters.
-  - Visual Camera Product Search (`expo-camera` & `expo-image-picker`).
-  - Single-store cart validation with dynamic ₹299 Minimum Order Value (MOV) progress bar.
-  - Pickup (₹0) and Store Delivery (₹25) fulfillment modes.
-  - Native checkout with UPI/COD and idempotent backend checkout.
-  - Real-time 5-step order tracking timeline with live polling and customer cancellation.
-  - Household OS (Ecosystem 4) with shared family list and Recipe-to-List AI assistant.
-  - Loyalty & Rewards (Ecosystem 6) with 450 points balance, Gold tier, and referral code sharing (`INDORE-AYUSH-100`).
-- **Seller (Merchant) Native Experience:**
-  - Order Dispatch Kan-ban with audio/vibration local push notifications (`expo-notifications`).
-  - Status transitions: Accept/Reject, Mark Preparing, Ready for Pickup, Dispatched, Handover Complete (Collected/Delivered).
-  - Real-time inventory manager with stock increment/decrement steppers and In-Stock/Out-of-Stock switches.
-  - Add Product with live camera photo capture.
-  - Daily/Weekly commission statements (3.5% take rate) and net payable in integer paise.
-  - Operating status toggle (OPEN/CLOSED) and service radius selector (3.0 km).
-- **Device Security & System Integrations:**
-  - Hardware KeyStore & Keychain credential encryption (`expo-secure-store`).
-  - NetInfo network connectivity listener with offline warning banner.
-  - Safe area insets & keyboard-safe layouts (`KeyboardAvoidingView`).
-  - Deep linking scheme: `everythinglocal://`.
-  - EAS build profiles: development, preview (installable APK), and production (signed AAB & iOS IPA).
+### Phase 7 Summary: Barcode Catalogue & Genuine Image Storage
+
+1. **Native Barcode Scanner (`mobile/src/components/BarcodeScannerModal.tsx`):**
+   - Built on `CameraView` with `expo-camera`.
+   - Supports: EAN-13, EAN-8, UPC-A, UPC-E, Code 128, and QR codes.
+   - Includes centered reticle, flashlight toggle, camera permission handler, duplicate scan debouncing, and manual barcode entry fallback.
+2. **Product Catalogue Engine (`server/src/core/catalogue.ts`):**
+   - Integrates Open Food Facts JSON API with custom `User-Agent` and timeout handling.
+   - Server-side caching (24-hour TTL) to protect external rate limits.
+   - Category normalizer maps external taxonomies into Everything Local's 5 core retail sectors.
+   - Keyword search endpoint (`/api/merchant/catalogue/search`) for products with damaged barcodes.
+3. **Genuine Multipart Image Storage (`server/src/routes/upload.ts`):**
+   - Authenticated `POST /api/upload/image` accepting `multipart/form-data`.
+   - Validates MIME types (`image/jpeg`, `image/png`, `image/webp`) and enforces 5MB size limit.
+   - Secure filename generator: `img-${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`.
+   - Ingest endpoint `POST /api/upload/ingest-url` downloads external catalogue images into our permanent storage.
+   - Cloud storage ready: extensible to Cloudflare R2, Cloudinary, or AWS S3 via environment variables.
+4. **Merchant Add Product Flow (`mobile/app/(merchant)/product/add.tsx`):**
+   - Quick Scan button auto-fills product title, brand, barcode, category, net quantity, and image.
+   - Commercial safeguard: External catalogue never dictates selling price; merchant must confirm MRP, selling price, and stock before saving.
+   - Photo picker immediately uploads to storage service and saves permanent HTTPS URL.
+5. **Customer Application Safe Images (`mobile/src/components/SafeImage.tsx`):**
+   - Displays permanent image URLs with loading placeholders, missing-image fallbacks, and error recovery on store detail and search screens.
 
 ---
 
 ### Test Execution Results
-- **Total Test Suites:** 7 passed (7 total)
+- **Total Test Suites:** 9 passed (9 total)
   - `tests/finance.test.ts` (6 tests)
   - `tests/geospatial.test.ts` (2 tests)
   - `tests/delivery.test.ts` (4 tests)
+  - `tests/catalogue.test.ts` (4 tests)
+  - `tests/upload.test.ts` (4 tests)
   - `tests/api-integration.test.ts` (7 tests)
   - `mobile/tests/mobile-navigation-state.test.ts` (4 tests)
   - `mobile/tests/mobile-household-ai.test.ts` (1 test)
   - `mobile/tests/mobile-loyalty.test.ts` (2 tests)
-- **Total Tests Passed:** **26 of 26 tests passing (100%)**
+- **Total Tests Passed:** **34 of 34 tests passing (100%)**
 - **Mobile TypeScript Verification (`tsc --noEmit`):** **0 errors**
-- **Vite Web Client Build:** **0 errors**
-- **TypeScript Server Build:** **0 errors**
+- **Vite Web Client Build (`npm run build:client`):** **0 errors**
+- **TypeScript Server Build (`node .../tsc`):** **0 errors**

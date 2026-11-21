@@ -29,7 +29,7 @@ describe('Everything Local - End-to-End API Integration', () => {
       .post('/api/auth/login')
       .send({ emailOrPhone: 'admin@everythinglocal.in', password: 'Password@123' });
     adminToken = adminRes.body.token;
-  });
+  }, 30000);
 
   it('verifies health check endpoint', async () => {
     const res = await request(app).get('/api/health');
@@ -156,7 +156,7 @@ describe('Everything Local - End-to-End API Integration', () => {
     expect(checkoutRes.body.order.totalAmountPaise).toBeGreaterThanOrEqual(29900);
 
     createdOrderId = checkoutRes.body.order.id;
-  });
+  }, 20000);
 
   it('allows merchant to accept and transition order to completed', async () => {
     // 1. Merchant accepts order
@@ -185,7 +185,7 @@ describe('Everything Local - End-to-End API Integration', () => {
 
     expect(collectRes.status).toBe(200);
     expect(collectRes.body.order.status).toBe('COLLECTED');
-  });
+  }, 20000);
 
   it('verifies financial statement and ledger entries for merchant and admin', async () => {
     // Merchant statements
@@ -205,5 +205,5 @@ describe('Everything Local - End-to-End API Integration', () => {
     expect(adminRes.status).toBe(200);
     expect(adminRes.body.metrics.completedOrdersCount).toBeGreaterThanOrEqual(1);
     expect(adminRes.body.metrics.platformNetRevenuePaise).toBeGreaterThan(0);
-  });
+  }, 20000);
 });

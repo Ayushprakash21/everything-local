@@ -4,6 +4,7 @@ import { prisma } from '../db';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import { requireMerchantTenant } from '../middleware/tenant';
 import { FinancialEngine } from '../core/finance';
+import { lookupBarcode, searchCatalogue } from '../core/catalogue';
 
 const router = Router();
 
@@ -125,6 +126,39 @@ router.get('/products', requireMerchantTenant, async (req: Request, res: Respons
   }
 });
 
+// 4b. Catalogue Barcode Lookup (External Open Food Facts with local caching)
+router.get('/catalogue/lookup', requireMerchantTenant, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { barcode } = req.query;
+    if (!barcode || typeof barcode !== 'string') {
+      res.status(400).json({ error: 'Barcode query parameter is required' });
+      return;
+    }
+
+    const result = await lookupBarcode(barcode);
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Catalogue lookup failed' });
+  }
+});
+
+// 4c. Catalogue Keyword Search
+router.get('/catalogue/search', requireMerchantTenant, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { query, limit } = req.query;
+    if (!query || typeof query !== 'string') {
+      res.status(400).json({ error: 'Search query parameter is required' });
+      return;
+    }
+
+    const pageSize = limit ? Math.min(parseInt(limit as string, 10) || 5, 20) : 5;
+    const results = await searchCatalogue(query, pageSize);
+    res.json({ results });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Catalogue search failed' });
+  }
+});
+
 // 5. Add Product
 const ProductSchema = z.object({
   name: z.string().min(2),
@@ -135,7 +169,10 @@ const ProductSchema = z.object({
   stock: z.number().int().min(0),
   isAvailable: z.boolean().default(true),
   imageUrl: z.string().optional(),
-  sku: z.string().optional()
+  sku: z.string().optional(),
+  barcode: z.string().optional(),
+  brand: z.string().optional(),
+  packageSize: z.string().optional()
 });
 
 router.post('/products', requireMerchantTenant, async (req: Request, res: Response): Promise<void> => {

@@ -66,6 +66,9 @@ model Product {
   isAvailable Boolean     @default(true)
   imageUrl    String?
   sku         String?
+  barcode     String?
+  brand       String?
+  packageSize String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
