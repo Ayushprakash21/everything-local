@@ -1,0 +1,74 @@
+{
+  "expo": {
+    "name": "Everything Local",
+    "slug": "everything-local",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "everythinglocal",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#059669"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "in.everythinglocal.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Everything Local needs camera access so you can search for products by taking photos.",
+        "NSPhotoLibraryUsageDescription": "Everything Local needs photo library access to upload product pictures and search with images.",
+        "NSLocationWhenInUseUsageDescription": "Everything Local needs your location to discover neighborhood stores within 3 km in Indore."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#059669"
+      },
+      "package": "in.everythinglocal.app",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.POST_NOTIFICATIONS"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Show neighborhood stores within your 3 km delivery radius in Indore."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Scan product packaging or barcodes for quick shopping."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Select photos from your gallery for visual product search."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "everything-local-indore-pilot"
+      }
+    }
+  }
+}
