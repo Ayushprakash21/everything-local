@@ -11,6 +11,9 @@
       },
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://localhost:4000/api"
       }
     },
     "preview": {
@@ -19,21 +22,25 @@
         "buildType": "apk"
       },
       "ios": {
-        "simulator": true
+        "simulator": false
       },
       "env": {
-        "API_URL": "http://10.0.2.2:4000/api"
+        "EXPO_PUBLIC_API_URL": "https://api.everythinglocal.in/api"
+      }
+    },
+    "preview-simulator": {
+      "extends": "preview",
+      "ios": {
+        "simulator": true
       }
     },
     "production": {
       "android": {
         "buildType": "app-bundle"
       },
-      "ios": {
-        "enterpriseProvisioning": false
-      },
+      "ios": {},
       "env": {
-        "API_URL": "https://api.everythinglocal.in/api"
+        "EXPO_PUBLIC_API_URL": "https://api.everythinglocal.in/api"
       }
     }
   },

@@ -1,16 +1,26 @@
 import { Platform } from 'react-native';
 import { SecureStorage } from '../utils/secureStore';
 
-// Default API URLs for different development and production environments
-const getBaseUrl = (): string => {
+/**
+ * Authoritative API URL Resolution
+ * 1. Always prioritize EXPO_PUBLIC_API_URL injected at build time or via .env
+ * 2. In release/standalone builds (!__DEV__), default to production HTTPS API
+ * 3. In local dev simulator (__DEV__), provide platform-specific loopback
+ */
+export const getBaseUrl = (): string => {
   if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
+    return process.env.EXPO_PUBLIC_API_URL.replace(/\/+$/, '');
   }
-  // Android Emulator accesses host loopback via 10.0.2.2
+
+  // Standalone release builds on physical phones must use HTTPS endpoint, never emulator loopback
+  if (!__DEV__) {
+    return 'https://api.everythinglocal.in/api';
+  }
+
+  // Local development simulator fallbacks
   if (Platform.OS === 'android') {
     return 'http://10.0.2.2:4000/api';
   }
-  // iOS Simulator / Web
   return 'http://localhost:4000/api';
 };
 
@@ -31,6 +41,7 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
   const token = await SecureStorage.getToken();
   const headers = new Headers(options.headers || {});
 
+  // Do not set Content-Type if body is FormData (let browser/runtime set multipart boundary)
   if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
   }
@@ -40,7 +51,8 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
   }
 
   try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    const url = `${BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+    const response = await fetch(url, {
       ...options,
       headers
     });
@@ -60,9 +72,12 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
     if (error instanceof ApiError) {
       throw error;
     }
-    // Network failure
-    throw new ApiError(0, 'Unable to connect to Everything Local network. Please check your internet connection.', {
-      networkError: true
-    });
+    // Network or offline failure
+    throw new ApiError(
+      0,
+      error.message === 'Network request failed'
+        ? `Unable to connect to Everything Local API server at ${BASE_URL}. Please check your internet connection.`
+        : error.message || 'Network communication error'
+    );
   }
 }

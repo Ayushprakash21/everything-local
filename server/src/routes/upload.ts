@@ -1,36 +1,16 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import crypto from 'crypto';
 import { authenticateToken } from '../middleware/auth';
+import { uploadImage } from '../core/storage';
 
 const router = Router();
-
-// Ensure uploads directory exists
-const UPLOADS_DIR = path.resolve(__dirname, '../../../uploads');
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-}
 
 // Approved MIME types
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, UPLOADS_DIR);
-  },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
-    const safeExt = ['.jpg', '.jpeg', '.png', '.webp'].includes(ext) ? ext : '.jpg';
-    const uniqueName = `img-${Date.now()}-${crypto.randomBytes(8).toString('hex')}${safeExt}`;
-    cb(null, uniqueName);
-  }
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: MAX_FILE_SIZE_BYTES
   },
@@ -43,13 +23,6 @@ const upload = multer({
   }
 });
 
-function getAbsoluteUrl(req: Request, filename: string): string {
-  // Respect forwarded headers or host
-  const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
-  const host = req.get('host') || 'localhost:4000';
-  return `${protocol}://${host}/uploads/${filename}`;
-}
-
 /**
  * POST /api/upload/image
  * Multipart/form-data upload for merchant & customer photos
@@ -58,7 +31,7 @@ router.post(
   '/image',
   authenticateToken,
   (req: Request, res: Response): void => {
-    upload.single('image')(req, res, (err: any) => {
+    upload.single('image')(req, res, async (err: any) => {
       if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
           res.status(400).json({ error: 'File too large. Maximum allowed size is 5MB.' });
@@ -71,27 +44,42 @@ router.post(
         return;
       }
 
-      if (!req.file) {
+      if (!req.file || !req.file.buffer) {
         res.status(400).json({ error: 'No image file provided. Form field name must be "image".' });
         return;
       }
 
-      const permanentUrl = getAbsoluteUrl(req, req.file.filename);
+      try {
+        const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
+        const host = req.get('host') || 'localhost:4000';
 
-      res.status(201).json({
-        success: true,
-        url: permanentUrl,
-        filename: req.file.filename,
-        mimetype: req.file.mimetype,
-        size: req.file.size
-      });
+        const result = await uploadImage({
+          buffer: req.file.buffer,
+          originalName: req.file.originalname,
+          mimeType: req.file.mimetype,
+          reqHost: host,
+          reqProtocol: protocol
+        });
+
+        res.status(201).json({
+          success: true,
+          url: result.url,
+          filename: result.key,
+          mimetype: result.mimeType,
+          size: result.size,
+          provider: result.provider
+        });
+      } catch (uploadErr: any) {
+        console.error('[Upload] Image storage error:', uploadErr);
+        res.status(500).json({ error: uploadErr.message || 'Failed to persist uploaded image' });
+      }
     });
   }
 );
 
 /**
  * POST /api/upload/ingest-url
- * Securely ingests an external catalogue image into our own storage
+ * Securely ingests an external catalogue image into our own storage infrastructure
  */
 router.post('/ingest-url', authenticateToken, async (req: Request, res: Response): Promise<void> => {
   try {
@@ -134,23 +122,28 @@ router.post('/ingest-url', authenticateToken, async (req: Request, res: Response
     if (cleanMime === 'image/png') ext = '.png';
     else if (cleanMime === 'image/webp') ext = '.webp';
 
-    const filename = `cat-${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`;
-    const filePath = path.join(UPLOADS_DIR, filename);
+    const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
+    const host = req.get('host') || 'localhost:4000';
 
-    fs.writeFileSync(filePath, buffer);
-
-    const permanentUrl = getAbsoluteUrl(req, filename);
+    const result = await uploadImage({
+      buffer,
+      originalName: `cat-${Date.now()}${ext}`,
+      mimeType: cleanMime,
+      reqHost: host,
+      reqProtocol: protocol
+    });
 
     res.status(201).json({
       success: true,
-      url: permanentUrl,
-      filename,
+      url: result.url,
+      filename: result.key,
       mimetype: cleanMime,
-      size: buffer.length,
-      sourceUrl: url
+      size: result.size,
+      sourceUrl: url,
+      provider: result.provider
     });
   } catch (error: any) {
-    console.error('Ingest image error:', error);
+    console.error('[Upload] Ingest image error:', error);
     res.status(500).json({ error: error.message || 'Failed to ingest external image' });
   }
 });

@@ -67,8 +67,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "everything-local-indore-pilot"
+        "projectId": "200c7dff-c8e6-48ec-b34f-9404950fe561"
       }
-    }
+    },
+    "owner": "ayushp0021"
   }
 }
