@@ -6,6 +6,9 @@
 **Deep Link Scheme:** `everythinglocal://`  
 **Expo SDK:** v52.0  
 **Navigation Engine:** Expo Router v4  
+**EAS Project ID:** `200c7dff-c8e6-48ec-b34f-9404950fe561`  
+**Expo Owner Account:** `ayushp0021`  
+**Active Preview APK Build:** [https://expo.dev/accounts/ayushp0021/projects/everything-local/builds/e6999b54-4f21-4e72-970c-ca5999c11336](https://expo.dev/accounts/ayushp0021/projects/everything-local/builds/e6999b54-4f21-4e72-970c-ca5999c11336)  
 
 ---
 
@@ -110,3 +113,27 @@ The application registers the URL scheme `everythinglocal://` in `mobile/app.jso
 2. **Zero Paid Services Incurred:** Build configs run under standard free-tier development profiles.
 3. **Backend & Data Preservation:** The backend database (`prisma/dev.db`), core financial engine (`server/src/core/finance.ts`), and geospatial engine remain authoritative and untouched.
 4. **Zero Secrets in Binary:** API keys, database URLs, and JWT secrets are kept strictly server-side; the mobile client only receives signed ephemeral tokens.
+
+---
+
+## 6. Physical Phone Installation & Verification Instructions
+
+### Step 1: Download the Preview APK
+1. Open the EAS Build Dashboard link on your Android device (or download to computer and transfer):  
+   👉 [https://expo.dev/accounts/ayushp0021/projects/everything-local/builds/e6999b54-4f21-4e72-970c-ca5999c11336](https://expo.dev/accounts/ayushp0021/projects/everything-local/builds/e6999b54-4f21-4e72-970c-ca5999c11336)
+2. Tap the **"Download"** button on the build page to download the standalone `.apk`.
+
+### Step 2: Install APK on Android Device
+1. Open the downloaded `.apk` file from the Downloads folder or notification bar.
+2. If prompted, toggle **"Allow from this source"** in your Android device Settings (standard for sideloaded internal APKs).
+3. Tap **Install**.
+4. Once installed, tap **Open**.
+
+### Step 3: Verify Real Phone Camera & Image Upload
+1. Log in with merchant credentials: `sharma.kirana@everythinglocal.in` / `Password@123`.
+2. Tap **Catalogue** tab, then tap **Add Product**.
+3. Tap **"Scan Barcode"**: verify that the live camera viewfinder opens, the reticle targets a barcode, and the flashlight toggle functions.
+4. Tap **"Take Photo"**: snap a real photo with your phone camera, tap **OK/Use Photo**.
+5. Observe the status: *"Saving to secure storage..."* while the image is uploaded via `POST /api/upload/image`.
+6. Confirm the product: tap **"Confirm & Add Product to Catalogue"**.
+7. Switch to the **Customer persona** (`ayush@example.com` / `Password@123`), search for the product or view Sharma Kirana Store, and confirm the uploaded photo renders crisply.
