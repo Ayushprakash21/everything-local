@@ -5,6 +5,8 @@ import { authenticateToken, requireRole } from '../middleware/auth';
 import { requireMerchantTenant } from '../middleware/tenant';
 import { FinancialEngine } from '../core/finance';
 import { lookupBarcode, searchCatalogue } from '../core/catalogue';
+import { MultiStoreOrderEngine } from '../core/multiStoreOrderEngine';
+import { MerchantSettlementEngine } from '../core/merchantSettlementEngine';
 
 const router = Router();
 
@@ -409,6 +411,149 @@ router.get('/finance/statements', requireMerchantTenant, async (req: Request, re
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch financial statements' });
+  }
+});
+
+// ============================================================
+// VERSION 1.0 MERCHANT CHILD ORDER & SETTLEMENT ENGINE
+// ============================================================
+
+// 12. List Merchant Child Orders
+router.get('/orders/child', requireMerchantTenant, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const storeId = req.user!.storeId!;
+    const childOrders = await prisma.merchantChildOrder.findMany({
+      where: { storeId },
+      include: {
+        items: true,
+        parentOrder: {
+          select: {
+            orderNumber: true,
+            deliveryAddress: true,
+            deliveryTier: true,
+            createdAt: true
+          }
+        },
+        deliveryTasks: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({ childOrders });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 13. Accept Merchant Child Order
+router.post('/orders/child/:id/accept', requireMerchantTenant, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const storeId = req.user!.storeId!;
+    const { id } = req.params;
+
+    const child = await prisma.merchantChildOrder.findFirst({
+      where: { id, storeId }
+    });
+
+    if (!child) {
+      res.status(404).json({ error: 'Child order not found for this merchant' });
+      return;
+    }
+
+    const updated = await prisma.merchantChildOrder.update({
+      where: { id },
+      data: {
+        status: 'ACCEPTED',
+        acceptedAt: new Date()
+      }
+    });
+
+    res.json({ success: true, childOrder: updated });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 14. Reject Merchant Child Order with Independent Partial Rejection Handling
+router.post('/orders/child/:id/reject', requireMerchantTenant, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const storeId = req.user!.storeId!;
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    const child = await prisma.merchantChildOrder.findFirst({
+      where: { id, storeId }
+    });
+
+    if (!child) {
+      res.status(404).json({ error: 'Child order not found for this merchant' });
+      return;
+    }
+
+    const rejectionResult = await MultiStoreOrderEngine.handlePartialMerchantRejection(
+      id,
+      reason || 'Merchant out of stock'
+    );
+
+    res.json({
+      success: true,
+      message: 'Child order rejected; remaining store orders preserved and customer refunded',
+      result: rejectionResult
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 15. Mark Child Order Ready For Pickup
+router.post('/orders/child/:id/ready', requireMerchantTenant, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const storeId = req.user!.storeId!;
+    const { id } = req.params;
+
+    const child = await prisma.merchantChildOrder.findFirst({
+      where: { id, storeId }
+    });
+
+    if (!child) {
+      res.status(404).json({ error: 'Child order not found for this merchant' });
+      return;
+    }
+
+    const updated = await prisma.merchantChildOrder.update({
+      where: { id },
+      data: {
+        status: 'READY_FOR_PICKUP',
+        readyAt: new Date()
+      }
+    });
+
+    res.json({ success: true, childOrder: updated });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 16. Merchant Settlement Statements
+router.get('/settlements/statements', requireMerchantTenant, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const storeId = req.user!.storeId!;
+    const statements = await prisma.merchantSettlementStatement.findMany({
+      where: { storeId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Calculate live current settlement
+    const now = new Date();
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
+    const liveCalc = await MerchantSettlementEngine.calculateSettlement(storeId, thirtyDaysAgo, now);
+
+    res.json({
+      currentUnsettled: liveCalc,
+      statements
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 });
 

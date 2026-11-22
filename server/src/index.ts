@@ -10,6 +10,10 @@ import uploadRouter from './routes/upload';
 import locationRouter from './routes/location';
 import servicesRouter from './routes/services';
 import pharmacyRouter from './routes/pharmacy';
+import { riderRouter } from './routes/rider';
+import { aiAssistantRouter } from './routes/aiAssistant';
+import { householdRouter } from './routes/household';
+import { communityRouter } from './routes/community';
 
 dotenv.config();
 
@@ -42,6 +46,10 @@ app.use('/api/upload', uploadRouter);
 app.use('/api/location', locationRouter);
 app.use('/api/services', servicesRouter);
 app.use('/api/pharmacy', pharmacyRouter);
+app.use('/api/rider', riderRouter);
+app.use('/api/ai', aiAssistantRouter);
+app.use('/api/household', householdRouter);
+app.use('/api/community', communityRouter);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {

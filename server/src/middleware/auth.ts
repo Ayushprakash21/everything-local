@@ -5,10 +5,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'everything_local_indore_secure_jwt
 
 export interface AuthUser {
   userId: string;
+  id?: string;
   email: string;
-  role: 'CUSTOMER' | 'MERCHANT' | 'ADMIN';
+  role: 'CUSTOMER' | 'MERCHANT' | 'ADMIN' | 'RIDER' | 'PHARMACIST' | string;
   storeId?: string;
 }
+
+export type AuthRequest = Request & { user?: AuthUser };
 
 declare global {
   namespace Express {
@@ -33,6 +36,9 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
+    if (decoded && decoded.userId && !decoded.id) {
+      decoded.id = decoded.userId;
+    }
     req.user = decoded;
     next();
   } catch (err) {
@@ -41,7 +47,30 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
   }
 }
 
-export function requireRole(...allowedRoles: Array<'CUSTOMER' | 'MERCHANT' | 'ADMIN'>) {
+export const requireAuth = authenticateToken;
+
+export function optionalAuthenticateToken(req: Request, _res: Response, next: NextFunction): void {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) {
+    next();
+    return;
+  }
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
+    if (decoded && decoded.userId && !decoded.id) {
+      decoded.id = decoded.userId;
+    }
+    req.user = decoded;
+  } catch (e) {
+    // optional token: ignore invalid
+  }
+  next();
+}
+
+export const optionalAuth = optionalAuthenticateToken;
+
+export function requireRole(...allowedRoles: string[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({ error: 'Authentication required' });

@@ -25,6 +25,12 @@ import { PharmacyPrescriptionUploadView } from './views/pharmacy/PharmacyPrescri
 import { CustomerPrescriptionsView } from './views/pharmacy/CustomerPrescriptionsView';
 import { PharmacistConsoleView } from './views/pharmacy/PharmacistConsoleView';
 
+// Version 1.0 Logistics & Lifestyle Views
+import { RiderAppView } from './views/rider/RiderAppView';
+import { HouseholdView } from './views/customer/HouseholdView';
+import { CommunityDealsView } from './views/customer/CommunityDealsView';
+import { AIAssistantModal } from './components/AIAssistantModal';
+
 import { request } from './api/client';
 import { Cart, Order, ServiceBooking } from './types';
 import {
@@ -46,8 +52,10 @@ function MainLayout() {
   const { user } = useAuth();
   const { selectedLocation, setIsLocationModalOpen } = useLocation();
 
-  // Primary Ecosystem Discovery Mode: 'shop' (retail) vs 'services' (service appointments) vs 'pharmacy' (medical)
-  const [discoveryMode, setDiscoveryMode] = useState<'shop' | 'services' | 'pharmacy'>('shop');
+  // Primary Ecosystem Discovery Mode: 'shop' vs 'services' vs 'pharmacy' vs 'rider'
+  const [discoveryMode, setDiscoveryMode] = useState<'shop' | 'services' | 'pharmacy' | 'rider'>('shop');
+  const [customerSubView, setCustomerSubView] = useState<'home' | 'household' | 'community'>('home');
+  const [isAIOpen, setIsAIOpen] = useState<boolean>(false);
 
   // Shop navigation
   const [currentTab, setCurrentTab] = useState<'customer' | 'merchant' | 'admin' | 'orders'>('customer');
@@ -145,6 +153,17 @@ function MainLayout() {
         cartCount={cartCount}
         openCart={() => setIsCartOpen(true)}
         openAuth={() => setIsAuthOpen(true)}
+        openAI={() => setIsAIOpen(true)}
+        openHousehold={() => {
+          setDiscoveryMode('shop');
+          setCurrentTab('customer');
+          setCustomerSubView('household');
+        }}
+        openCommunity={() => {
+          setDiscoveryMode('shop');
+          setCurrentTab('customer');
+          setCustomerSubView('community');
+        }}
         searchQuery={searchQuery}
         setSearchQuery={(q) => {
           setSearchQuery(q);
@@ -166,7 +185,17 @@ function MainLayout() {
           <>
             {currentTab === 'customer' && (
               <>
-                {selectedStoreId ? (
+                {customerSubView === 'household' ? (
+                  <HouseholdView
+                    onBack={() => setCustomerSubView('home')}
+                    openAuth={() => setIsAuthOpen(true)}
+                  />
+                ) : customerSubView === 'community' ? (
+                  <CommunityDealsView
+                    onBack={() => setCustomerSubView('home')}
+                    openAuth={() => setIsAuthOpen(true)}
+                  />
+                ) : selectedStoreId ? (
                   <StorefrontView
                     storeId={selectedStoreId}
                     onBack={() => setSelectedStoreId(null)}
@@ -299,7 +328,26 @@ function MainLayout() {
             )}
           </>
         )}
+
+        {/* ==================================================== */}
+        {/* 4. STANDALONE DELIVERY PARTNER (RIDER) APP          */}
+        {/* ==================================================== */}
+        {discoveryMode === 'rider' && (
+          <RiderAppView openAuth={() => setIsAuthOpen(true)} />
+        )}
       </main>
+
+      {/* Floating AI Shopping Copilot Button (Shop Mode) */}
+      {discoveryMode === 'shop' && currentTab === 'customer' && (
+        <button
+          onClick={() => setIsAIOpen(true)}
+          className="fixed bottom-20 md:bottom-6 right-5 z-40 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-black text-xs px-4 py-3 rounded-2xl shadow-float flex items-center gap-2 border border-amber-300 transition active:scale-95 group"
+          title="Open AI Smart Basket Optimizer"
+        >
+          <Sparkles className="w-4 h-4 text-slate-950 group-hover:rotate-12 transition-transform" />
+          <span className="hidden sm:inline">AI Shopping Copilot</span>
+        </button>
+      )}
 
       {/* Floating Bottom Cart Bar (Mobile) - only active in shop mode */}
       {cartCount > 0 && discoveryMode === 'shop' && currentTab === 'customer' && (
@@ -344,6 +392,13 @@ function MainLayout() {
 
       {/* Indore Location Modal */}
       <LocationModal />
+
+      {/* AI Assistant Modal */}
+      <AIAssistantModal
+        isOpen={isAIOpen}
+        onClose={() => setIsAIOpen(false)}
+        openAuth={() => setIsAuthOpen(true)}
+      />
     </div>
   );
 }

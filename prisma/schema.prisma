@@ -31,6 +31,12 @@ model User {
   pharmacies       Pharmacy[]         @relation("UserPharmacies")
   prescriptions    Prescription[]     @relation("CustomerPrescriptions")
   pharmacyOrders   PharmacyOrder[]    @relation("CustomerPharmacyOrders")
+
+  riderProfile     RiderProfile?
+  parentOrders     ParentOrder[]      @relation("CustomerParentOrders")
+  ownedHouseholds  Household[]        @relation("HouseholdOwner")
+  householdMemberships HouseholdMember[]
+  loyaltyAccount   LoyaltyAccount?
 }
 
 model Store {
@@ -59,6 +65,10 @@ model Store {
   subscriptions     MerchantSubscription[]
   reviews           Review[]
   carts             Cart[]
+
+  merchantChildOrders   MerchantChildOrder[]
+  settlementStatements  MerchantSettlementStatement[]
+  communityCampaigns    CommunityCampaign[]
 }
 
 model Product {
@@ -178,6 +188,8 @@ model FinancialLedgerEntry {
   id                 String   @id @default(uuid())
   orderId            String?
   order              Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  parentOrderId      String?
+  parentOrder        ParentOrder? @relation(fields: [parentOrderId], references: [id], onDelete: SetNull)
   storeId            String
   store              Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
   entryType          String   // ORDER_SALE, COMMISSION_FEE, REFUND_DEBIT, PAYOUT_SETTLEMENT
@@ -725,4 +737,304 @@ model PrescriptionAuditEvent {
   details        String?
   createdAt      DateTime     @default(now())
 }
+
+// ============================================================
+// EVERYTHING LOCAL VERSION 1.0 OPERATING SYSTEM EXTENSIONS
+// ============================================================
+
+// 1. Unified Multi-Store Parent-Child Order Model
+model ParentOrder {
+  id                     String                 @id @default(uuid())
+  orderNumber            String                 @unique // e.g. EL-ORD-2026-9812
+  customerId             String
+  customer               User                   @relation("CustomerParentOrders", fields: [customerId], references: [id])
+  status                 String                 @default("PLACED") // PLACED, CONFIRMED, PARTIALLY_FULFILLED, COMPLETED, CANCELLED
+  paymentStatus          String                 @default("PAID") // PENDING, PAID, PARTIALLY_REFUNDED, REFUNDED, FAILED
+  paymentMethod          String                 @default("ONLINE") // ONLINE, UPI, COD, CARD
+  deliveryTier           String                 @default("STANDARD_60") // EXPRESS_20, PRIORITY_40, STANDARD_60, SCHEDULED_120
+  deliveryAddress        String
+  deliveryLatitude       Float?
+  deliveryLongitude      Float?
+  deliveryEtaMinutes     Int                    @default(45)
+  totalItemSubtotalPaise Int
+  totalDeliveryFeePaise  Int                    @default(0)
+  totalDiscountPaise     Int                    @default(0)
+  totalTaxPaise          Int                    @default(0)
+  totalPaidPaise         Int
+  refundedAmountPaise    Int                    @default(0)
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+
+  childOrders            MerchantChildOrder[]
+  deliveryTasks          DeliveryTask[]
+  financialLedger        FinancialLedgerEntry[]
+}
+
+model MerchantChildOrder {
+  id                   String                   @id @default(uuid())
+  parentOrderId        String
+  parentOrder          ParentOrder              @relation(fields: [parentOrderId], references: [id], onDelete: Cascade)
+  storeId              String
+  store                Store                    @relation(fields: [storeId], references: [id])
+  childOrderNumber     String                   @unique // e.g. EL-ORD-2026-9812-M1
+  status               String                   @default("PENDING_ACCEPTANCE") // PENDING_ACCEPTANCE, ACCEPTED, REJECTED, PREPARING, READY_FOR_PICKUP, PICKED_UP, DELIVERED, CANCELLED
+  subtotalPaise        Int
+  commissionRatePct    Float                    @default(5.0)
+  commissionPaise      Int                      @default(0)
+  merchantPayablePaise Int                      @default(0)
+  rejectionReason      String?
+  acceptedAt           DateTime?
+  readyAt              DateTime?
+  deliveredAt          DateTime?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+
+  items                MerchantChildOrderItem[]
+  deliveryTasks        DeliveryTask[]
+}
+
+model MerchantChildOrderItem {
+  id              String             @id @default(uuid())
+  merchantOrderId String
+  merchantOrder   MerchantChildOrder @relation(fields: [merchantOrderId], references: [id], onDelete: Cascade)
+  productId       String
+  productName     String
+  quantity        Int
+  unitPricePaise  Int
+  totalPricePaise Int
+  isFulfilled     Boolean            @default(true)
+  rejectionReason String?
+}
+
+// 2. Standalone Delivery Partner Application Models
+model RiderProfile {
+  id                    String                @id @default(uuid())
+  userId                String                @unique
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  riderCode             String                @unique // e.g. EL-RIDER-IND-101
+  vehicleType           String                @default("MOTORCYCLE") // BICYCLE, MOTORCYCLE, SCOOTER, EV
+  vehicleNumber         String
+  drivingLicenceNumber  String
+  panNumber             String?
+  bankAccountNumber     String?
+  bankIfsc              String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  isVerified            Boolean               @default(true)
+  isActive              Boolean               @default(true)
+  isOnline              Boolean               @default(false)
+  currentLatitude       Float?
+  currentLongitude      Float?
+  rating                Float                 @default(4.9)
+  totalDeliveries       Int                   @default(0)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  tasks                 DeliveryTask[]
+  earnings              RiderEarningLedger[]
+  settlements           RiderSettlement[]
+}
+
+model DeliveryTask {
+  id                         String              @id @default(uuid())
+  taskNumber                 String              @unique // e.g. EL-TASK-84920
+  parentOrderId              String?
+  parentOrder                ParentOrder?        @relation(fields: [parentOrderId], references: [id], onDelete: SetNull)
+  merchantOrderId            String?
+  merchantOrder              MerchantChildOrder? @relation(fields: [merchantOrderId], references: [id], onDelete: SetNull)
+  riderId                    String?
+  rider                      RiderProfile?       @relation(fields: [riderId], references: [id], onDelete: SetNull)
+  status                     String              @default("AVAILABLE") // AVAILABLE, OFFERED, ACCEPTED, AT_STORE, PICKED_UP, EN_ROUTE, DELIVERED, REJECTED, EXPIRED, CANCELLED, REASSIGNED, FAILED_DELIVERY, RETURN_REQUIRED
+  priorityTier               String              @default("STANDARD_60") // EXPRESS_20, PRIORITY_40, STANDARD_60, SCHEDULED_120
+  pickupLocationName         String
+  pickupAddress              String
+  pickupLatitude             Float
+  pickupLongitude            Float
+  deliveryAddress            String
+  deliveryLatitude           Float
+  deliveryLongitude          Float
+  estimatedDistanceKm        Float               @default(2.5)
+  estimatedMinutes           Int                 @default(30)
+  riderBasePayoutPaise       Int                 @default(3000) // ₹30.00
+  additionalPickupPayoutPaise Int                @default(0)
+  waitingPayoutPaise         Int                 @default(0)
+  surgePayoutPaise           Int                 @default(0)
+  totalPayoutPaise           Int                 @default(3000)
+  pickupOtp                  String              // 4-digit code for merchant handover
+  deliveryOtp                String              // 4-digit code for customer handover
+  specialHandling            String?
+  acceptedAt                 DateTime?
+  atStoreAt                  DateTime?
+  pickedUpAt                 DateTime?
+  deliveredAt                DateTime?
+  createdAt                  DateTime            @default(now())
+  updatedAt                  DateTime            @updatedAt
+
+  earningEntries             RiderEarningLedger[]
+}
+
+model RiderEarningLedger {
+  id               String           @id @default(uuid())
+  riderId          String
+  rider            RiderProfile     @relation(fields: [riderId], references: [id], onDelete: Cascade)
+  deliveryTaskId   String?
+  deliveryTask     DeliveryTask?    @relation(fields: [deliveryTaskId], references: [id], onDelete: SetNull)
+  type             String           // BASE_PAYOUT, ADDITIONAL_PICKUP, WAITING_PAYOUT, PEAK_INCENTIVE, RAIN_INCENTIVE, DEDUCTION, ADJUSTMENT, SETTLEMENT_PAYOUT
+  amountPaise      Int
+  description      String
+  settlementStatus String           @default("UNSETTLED") // UNSETTLED, SETTLED, ON_HOLD
+  settlementId     String?
+  settlement       RiderSettlement? @relation(fields: [settlementId], references: [id], onDelete: SetNull)
+  createdAt        DateTime         @default(now())
+}
+
+model RiderSettlement {
+  id                 String               @id @default(uuid())
+  riderId            String
+  rider              RiderProfile         @relation(fields: [riderId], references: [id], onDelete: Cascade)
+  periodStart        DateTime
+  periodEnd          DateTime
+  totalEarningsPaise Int
+  deductionsPaise    Int                  @default(0)
+  netPayoutPaise     Int
+  payoutMethod       String               @default("BANK_TRANSFER")
+  payoutReference    String?
+  status             String               @default("PROCESSED") // PENDING, PROCESSED, COMPLETED
+  processedAt        DateTime             @default(now())
+
+  entries            RiderEarningLedger[]
+}
+
+// 3. Dynamic Delivery Pricing Rules
+model DeliveryPricingRule {
+  id                        String   @id @default(uuid())
+  tierCode                  String   @unique // EXPRESS_20, PRIORITY_40, STANDARD_60, SCHEDULED_120
+  displayName               String
+  targetMinutes             Int
+  baseDeliveryPaise         Int      // e.g. 3500 (₹35)
+  perKmPaise                Int      // e.g. 1000 (₹10/km after 1km)
+  prioritySurchargePaise    Int      // e.g. 2000 (₹20 for express)
+  maxRoadDistanceKm         Float    // e.g. 3.0
+  additionalPickupPaise     Int      @default(1500) // ₹15 per extra store
+  weightSurchargePaisePerKg Int      @default(500)  // ₹5 per kg above 5kg
+  peakMultiplier            Float    @default(1.0)
+  isActive                  Boolean  @default(true)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
+// 4. Merchant Commercials & Settlements
+model CategoryCommissionRule {
+  id                 String   @id @default(uuid())
+  categorySlug       String   @unique // grocery, general_retail, beauty, pet_supplies, electronics, local_services
+  categoryName       String
+  defaultCommissionPct Float  // 4.0, 5.0, 7.0, etc.
+  listingFeePct      Float    @default(2.0)
+  minOrderValuePaise Int      @default(19900) // ₹199
+  updatedAt          DateTime @updatedAt
+}
+
+model MerchantSettlementStatement {
+  id                     String    @id @default(uuid())
+  storeId                String
+  store                  Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  statementNumber        String    @unique // e.g. EL-STMT-2026-001
+  periodStart            DateTime
+  periodEnd              DateTime
+  grossSalesPaise        Int
+  commissionDeductedPaise Int
+  listingChargesPaise    Int       @default(0)
+  refundDeductionsPaise  Int       @default(0)
+  netMerchantPayablePaise Int
+  status                 String    @default("GENERATED") // GENERATED, APPROVED, SETTLED
+  bankReference          String?
+  settledAt              DateTime?
+  createdAt              DateTime  @default(now())
+}
+
+// 5. Household Operating System Models
+model Household {
+  id                 String                  @id @default(uuid())
+  name               String
+  ownerId            String
+  owner              User                    @relation("HouseholdOwner", fields: [ownerId], references: [id])
+  monthlyBudgetPaise Int                     @default(1500000) // ₹15,000
+  monthlySpendPaise  Int                     @default(0)
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+
+  members            HouseholdMember[]
+  shoppingItems      HouseholdShoppingItem[]
+}
+
+model HouseholdMember {
+  id                    String    @id @default(uuid())
+  householdId           String
+  household             Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  role                  String    @default("MEMBER") // ADMIN, MEMBER, VIEWER
+  canSpend              Boolean   @default(true)
+  monthlySpendLimitPaise Int?
+}
+
+model HouseholdShoppingItem {
+  id                    String    @id @default(uuid())
+  householdId           String
+  household             Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  productName           String
+  quantity              Int       @default(1)
+  unit                  String?
+  estimatedPricePaise   Int?
+  isPurchased           Boolean   @default(false)
+  priority              String    @default("MEDIUM") // LOW, MEDIUM, HIGH
+  recurringIntervalDays Int?
+  lastPurchasedAt       DateTime?
+  createdAt             DateTime  @default(now())
+}
+
+// 6. Community Buying Campaigns
+model CommunityCampaign {
+  id                   String   @id @default(uuid())
+  title                String
+  description          String
+  category             String
+  storeId              String
+  store                Store    @relation(fields: [storeId], references: [id])
+  productId            String?
+  targetQuantity       Int
+  currentPledged       Int      @default(0)
+  originalPricePaise   Int
+  discountedPricePaise Int
+  minParticipants      Int      @default(10)
+  currentParticipants  Int      @default(0)
+  endsAt               DateTime
+  status               String   @default("ACTIVE") // ACTIVE, SUCCESSFUL, EXPIRED, CANCELLED
+  createdAt            DateTime @default(now())
+}
+
+// 7. Rewards & Loyalty Engine
+model LoyaltyAccount {
+  id             String                @id @default(uuid())
+  userId         String                @unique
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pointsBalance  Int                   @default(100)
+  tier           String                @default("SILVER") // SILVER, GOLD, PLATINUM
+  lifetimePoints Int                   @default(100)
+  updatedAt      DateTime              @updatedAt
+
+  entries        LoyaltyLedgerEntry[]
+}
+
+model LoyaltyLedgerEntry {
+  id           String         @id @default(uuid())
+  accountId    String
+  account      LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  pointsChange Int
+  type         String         // EARN_PURCHASE, BONUS_SIGNUP, REDEEM_ORDER, EXPIRE
+  description  String
+  referenceId  String?
+  createdAt    DateTime       @default(now())
+}
+
 

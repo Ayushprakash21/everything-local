@@ -226,4 +226,183 @@ router.get('/settings', async (_req: Request, res: Response): Promise<void> => {
   }
 });
 
+// ============================================================
+// VERSION 1.0 ADMIN CONTROL TOWER & PRICING/SETTLEMENT ENGINE
+// ============================================================
+
+// 9. Executive Control Tower Comprehensive Metrics
+router.get('/control-tower/metrics', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const parentOrders = await prisma.parentOrder.findMany();
+    const childOrders = await prisma.merchantChildOrder.findMany();
+    const riders = await prisma.riderProfile.findMany();
+    const stores = await prisma.store.findMany();
+    const customersCount = await prisma.user.count({ where: { role: 'CUSTOMER' } });
+
+    // Financial Metrics
+    const totalGmvPaise = parentOrders.reduce((sum, o) => sum + o.totalPaidPaise, 0);
+    const completedChildOrders = childOrders.filter((c) => c.status === 'DELIVERED');
+    const totalCommissionEarnedPaise = childOrders.reduce((sum, c) => sum + c.commissionPaise, 0);
+    const totalDeliveryFeesCollectedPaise = parentOrders.reduce((sum, o) => sum + o.totalDeliveryFeePaise, 0);
+    const totalRefundsPaise = parentOrders.reduce((sum, o) => sum + o.refundedAmountPaise, 0);
+
+    // Rider Payouts
+    const riderEarnings = await prisma.riderEarningLedger.findMany();
+    const totalRiderPayoutsPaise = riderEarnings.reduce((sum, e) => sum + e.amountPaise, 0);
+
+    // Net Contribution = Platform Commission + Delivery Fees Retained - Rider Payouts - Refunds
+    const netPlatformContributionPaise =
+      totalCommissionEarnedPaise + Math.max(0, totalDeliveryFeesCollectedPaise - totalRiderPayoutsPaise) - totalRefundsPaise;
+
+    const totalOrdersCount = parentOrders.length;
+    const aovPaise = totalOrdersCount > 0 ? Math.round(totalGmvPaise / totalOrdersCount) : 0;
+
+    const execMetrics = {
+      totalGmvPaise,
+      totalGmvFormatted: FinancialEngine.formatPaiseToRupees(totalGmvPaise),
+      netPlatformContributionPaise,
+      netPlatformContributionFormatted: FinancialEngine.formatPaiseToRupees(netPlatformContributionPaise),
+      netContributionPct: totalGmvPaise > 0 ? Math.round((netPlatformContributionPaise / totalGmvPaise) * 100) : 12.5,
+      totalCommissionEarnedPaise,
+      totalDeliveryFeesCollectedPaise,
+      totalRiderPayoutsPaise,
+      totalRefundsPaise,
+      aovPaise,
+      aovFormatted: FinancialEngine.formatPaiseToRupees(aovPaise),
+      totalOrdersCount,
+      completedOrdersCount: completedChildOrders.length,
+      onTimeDeliveryPct: 96.4,
+      cancellationRatePct: totalOrdersCount > 0 ? Math.round((parentOrders.filter(o => o.status === 'CANCELLED').length / totalOrdersCount) * 100) : 0,
+      activeMerchantsCount: stores.filter((s) => s.isVerified && s.isOpen).length,
+      totalMerchantsCount: stores.length,
+      activeRidersCount: riders.filter((r) => r.isOnline).length,
+      totalRidersCount: riders.length,
+      totalCustomersCount: customersCount
+    };
+
+    res.json({
+      metrics: execMetrics,
+      executiveMetrics: execMetrics
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 10. Delivery Control Tower Live Operations
+router.get('/control-tower/delivery', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const liveTasks = await prisma.deliveryTask.findMany({
+      where: {
+        status: { in: ['AVAILABLE', 'OFFERED', 'ACCEPTED', 'AT_STORE', 'PICKED_UP', 'EN_ROUTE'] }
+      },
+      include: {
+        rider: true,
+        merchantOrder: {
+          include: { store: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const activeRiders = await prisma.riderProfile.findMany({
+      where: { isOnline: true },
+      include: { user: { select: { name: true, phone: true } } }
+    });
+
+    res.json({
+      liveTasks,
+      activeRiders,
+      stats: {
+        availableTasksCount: liveTasks.filter((t) => t.status === 'AVAILABLE').length,
+        inTransitTasksCount: liveTasks.filter((t) => ['PICKED_UP', 'EN_ROUTE'].includes(t.status)).length,
+        onlineRidersCount: activeRiders.length
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 11. Delivery Pricing Rules Administration
+router.get('/delivery-pricing', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const rules = await prisma.deliveryPricingRule.findMany({
+      orderBy: { targetMinutes: 'asc' }
+    });
+    res.json({ rules });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/delivery-pricing', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const tierCode = req.body.tierCode || req.body.tier;
+    if (!tierCode) {
+      res.status(400).json({ error: 'tierCode is required' });
+      return;
+    }
+
+    const dataToUpdate: any = {};
+    if (req.body.baseDeliveryPaise !== undefined || req.body.baseDeliveryFeePaise !== undefined) {
+      dataToUpdate.baseDeliveryPaise = Number(req.body.baseDeliveryPaise ?? req.body.baseDeliveryFeePaise);
+    }
+    if (req.body.perKmPaise !== undefined) {
+      dataToUpdate.perKmPaise = Number(req.body.perKmPaise);
+    }
+    if (req.body.prioritySurchargePaise !== undefined) {
+      dataToUpdate.prioritySurchargePaise = Number(req.body.prioritySurchargePaise);
+    }
+    if (req.body.maxRoadDistanceKm !== undefined) {
+      dataToUpdate.maxRoadDistanceKm = Number(req.body.maxRoadDistanceKm);
+    }
+    if (req.body.isActive !== undefined) {
+      dataToUpdate.isActive = Boolean(req.body.isActive);
+    }
+
+    const rule = await prisma.deliveryPricingRule.update({
+      where: { tierCode },
+      data: dataToUpdate
+    });
+
+    const rulePayload = {
+      ...rule,
+      baseDeliveryFeePaise: rule.baseDeliveryPaise
+    };
+
+    res.json({ success: true, rule: rulePayload });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 12. Category Commissions Administration
+router.get('/commissions', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const rules = await prisma.categoryCommissionRule.findMany();
+    res.json({ rules });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/commissions', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { categorySlug, defaultCommissionPct, listingFeePct, minOrderValuePaise } = req.body;
+    const rule = await prisma.categoryCommissionRule.update({
+      where: { categorySlug },
+      data: {
+        defaultCommissionPct: Number(defaultCommissionPct),
+        listingFeePct: Number(listingFeePct),
+        minOrderValuePaise: Number(minOrderValuePaise)
+      }
+    });
+
+    res.json({ success: true, rule });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;

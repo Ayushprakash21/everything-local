@@ -27,7 +27,12 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
   const [merchants, setMerchants] = useState<Store[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ledger, setLedger] = useState<FinancialLedgerEntry[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'merchants' | 'orders' | 'ledger' | 'services' | 'pharmacies'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'control_tower' | 'delivery_pricing' | 'settlements' | 'orders' | 'ledger' | 'services' | 'pharmacies'>('control_tower');
+  const [controlMetrics, setControlMetrics] = useState<any>(null);
+  const [liveTasks, setLiveTasks] = useState<any[]>([]);
+  const [onlineRiders, setOnlineRiders] = useState<any[]>([]);
+  const [deliveryPricingRules, setDeliveryPricingRules] = useState<any[]>([]);
+  const [categoryCommissions, setCategoryCommissions] = useState<any[]>([]);
   const [serviceProviders, setServiceProviders] = useState<any[]>([]);
   const [serviceBookings, setServiceBookings] = useState<any[]>([]);
   const [adminPharmacies, setAdminPharmacies] = useState<any[]>([]);
@@ -37,14 +42,18 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
     if (!user || user.role !== 'ADMIN') return;
     setLoading(true);
     try {
-      const [metRes, merchRes, ordRes, ledRes, srvProvRes, srvBkgRes, pharmRes] = await Promise.all([
+      const [metRes, merchRes, ordRes, ledRes, srvProvRes, srvBkgRes, pharmRes, ctMetRes, ctDelRes, dPriRes, commRes] = await Promise.all([
         request<any>('/admin/metrics'),
         request<{ stores: Store[] }>('/admin/merchants'),
         request<{ orders: Order[] }>('/admin/orders'),
         request<{ entries: FinancialLedgerEntry[] }>('/admin/finance/ledger'),
         request<{ providers: any[] }>('/services/admin/providers').catch(() => ({ providers: [] })),
         request<{ bookings: any[] }>('/services/admin/bookings').catch(() => ({ bookings: [] })),
-        request<{ pharmacies: any[] }>('/pharmacy/admin/pharmacies').catch(() => ({ pharmacies: [] }))
+        request<{ pharmacies: any[] }>('/pharmacy/admin/pharmacies').catch(() => ({ pharmacies: [] })),
+        request<any>('/admin/control-tower/metrics').catch(() => null),
+        request<any>('/admin/control-tower/delivery').catch(() => ({ activeTasks: [], onlineRiders: [] })),
+        request<{ rules: any[] }>('/admin/delivery-pricing').catch(() => ({ rules: [] })),
+        request<{ commissions: any[] }>('/admin/commissions').catch(() => ({ commissions: [] }))
       ]);
 
       setMetrics(metRes.metrics);
@@ -54,6 +63,13 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
       setServiceProviders(srvProvRes.providers || []);
       setServiceBookings(srvBkgRes.bookings || []);
       setAdminPharmacies(pharmRes.pharmacies || []);
+      if (ctMetRes) setControlMetrics(ctMetRes.metrics);
+      if (ctDelRes) {
+        setLiveTasks(ctDelRes.activeTasks || []);
+        setOnlineRiders(ctDelRes.onlineRiders || []);
+      }
+      setDeliveryPricingRules(dPriRes.rules || []);
+      setCategoryCommissions(commRes.commissions || []);
     } catch (err) {
       console.error('Failed to load admin data:', err);
     } finally {
@@ -217,10 +233,43 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
       )}
 
       {/* 3. Navigation Tabs */}
-      <div className="flex border-b border-slate-200 space-x-6 text-sm font-bold">
+      <div className="flex border-b border-slate-200 space-x-6 text-sm font-bold overflow-x-auto pb-0.5">
+        <button
+          onClick={() => setActiveTab('control_tower')}
+          className={`pb-3 border-b-2 transition whitespace-nowrap ${
+            activeTab === 'control_tower'
+              ? 'border-forest-900 text-forest-900 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          Dispatch Control Tower ({liveTasks.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('delivery_pricing')}
+          className={`pb-3 border-b-2 transition whitespace-nowrap ${
+            activeTab === 'delivery_pricing'
+              ? 'border-forest-900 text-forest-900 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          Delivery Pricing Rules ({deliveryPricingRules.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('settlements')}
+          className={`pb-3 border-b-2 transition whitespace-nowrap ${
+            activeTab === 'settlements'
+              ? 'border-forest-900 text-forest-900 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          Category Commissions & Settlements
+        </button>
+
         <button
           onClick={() => setActiveTab('overview')}
-          className={`pb-3 border-b-2 transition ${
+          className={`pb-3 border-b-2 transition whitespace-nowrap ${
             activeTab === 'overview'
               ? 'border-forest-900 text-forest-900 font-black'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -231,7 +280,7 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
 
         <button
           onClick={() => setActiveTab('orders')}
-          className={`pb-3 border-b-2 transition ${
+          className={`pb-3 border-b-2 transition whitespace-nowrap ${
             activeTab === 'orders'
               ? 'border-forest-900 text-forest-900 font-black'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -242,7 +291,7 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
 
         <button
           onClick={() => setActiveTab('ledger')}
-          className={`pb-3 border-b-2 transition ${
+          className={`pb-3 border-b-2 transition whitespace-nowrap ${
             activeTab === 'ledger'
               ? 'border-forest-900 text-forest-900 font-black'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -253,7 +302,7 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
 
         <button
           onClick={() => setActiveTab('services')}
-          className={`pb-3 border-b-2 transition ${
+          className={`pb-3 border-b-2 transition whitespace-nowrap ${
             activeTab === 'services'
               ? 'border-forest-900 text-forest-900 font-black'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -264,7 +313,7 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
 
         <button
           onClick={() => setActiveTab('pharmacies')}
-          className={`pb-3 border-b-2 transition ${
+          className={`pb-3 border-b-2 transition whitespace-nowrap ${
             activeTab === 'pharmacies'
               ? 'border-forest-900 text-forest-900 font-black'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -273,6 +322,214 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
           Licensed Pharmacies ({adminPharmacies.length})
         </button>
       </div>
+
+      {/* TAB: DISPATCH CONTROL TOWER */}
+      {activeTab === 'control_tower' && (
+        <div className="space-y-6">
+          {/* Executive Metrics */}
+          {controlMetrics && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-subtle space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Net Contribution Margin
+                </span>
+                <div className="text-2xl font-black text-emerald-700">
+                  {formatPaise(controlMetrics.netContributionMarginPaise)}
+                </div>
+                <span className="text-[11px] text-emerald-600 font-bold block">
+                  {controlMetrics.netContributionPct}% of GMV
+                </span>
+              </div>
+
+              <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-subtle space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Average Order Value (AOV)
+                </span>
+                <div className="text-2xl font-black text-slate-900">
+                  {formatPaise(controlMetrics.aovPaise)}
+                </div>
+                <span className="text-[11px] text-slate-500 font-medium block">
+                  Across all Indore zones
+                </span>
+              </div>
+
+              <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-subtle space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                  On-Time Delivery SLA
+                </span>
+                <div className="text-2xl font-black text-forest-800">
+                  {controlMetrics.onTimeDeliveryPct}%
+                </div>
+                <span className="text-[11px] text-forest-600 font-semibold block">
+                  Target: &gt; 96.0% SLA
+                </span>
+              </div>
+
+              <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-subtle space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Active Fleet (Online Riders)
+                </span>
+                <div className="text-2xl font-black text-amber-600">
+                  {onlineRiders.length}
+                </div>
+                <span className="text-[11px] text-slate-500 font-medium block">
+                  Ready for instant dispatch
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Live Delivery Dispatch Tower Table */}
+          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-card">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-black text-slate-900">Live Delivery Dispatch Tower</h3>
+                <p className="text-xs text-slate-500">Real-time status of all active hyperlocal trips, OTP handovers &amp; assigned riders</p>
+              </div>
+              <span className="text-xs font-bold bg-amber-100 text-amber-900 px-3 py-1 rounded-full">
+                {liveTasks.length} Active Tasks
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px] font-black">
+                  <tr>
+                    <th className="px-5 py-3.5">Task #</th>
+                    <th className="px-5 py-3.5">Tier</th>
+                    <th className="px-5 py-3.5">Pickup Location</th>
+                    <th className="px-5 py-3.5">Dropoff Address</th>
+                    <th className="px-5 py-3.5">Assigned Rider</th>
+                    <th className="px-5 py-3.5">Status</th>
+                    <th className="px-5 py-3.5">Handover OTPs</th>
+                    <th className="px-5 py-3.5 text-right">Rider Payout</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium">
+                  {liveTasks.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="px-5 py-8 text-center text-slate-400">
+                        No active delivery trips in dispatch right now.
+                      </td>
+                    </tr>
+                  ) : (
+                    liveTasks.map((t) => (
+                      <tr key={t.id} className="hover:bg-slate-50/80 transition">
+                        <td className="px-5 py-4 font-mono font-bold text-slate-900">{t.taskNumber}</td>
+                        <td className="px-5 py-4">
+                          <span className="text-[10px] font-black uppercase bg-slate-100 px-2 py-0.5 rounded-md">
+                            {t.deliveryPriorityTier?.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-slate-700 max-w-xs truncate">{t.pickupAddress}</td>
+                        <td className="px-5 py-4 text-slate-700 max-w-xs truncate">{t.deliveryAddress}</td>
+                        <td className="px-5 py-4 font-bold text-slate-900">
+                          {t.rider ? `${t.rider.fullName} (${t.rider.riderCode})` : <span className="text-amber-600 font-bold">Unassigned</span>}
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                            t.status === 'DELIVERED'
+                              ? 'bg-emerald-100 text-emerald-900'
+                              : t.status === 'AVAILABLE'
+                              ? 'bg-amber-100 text-amber-900'
+                              : 'bg-blue-100 text-blue-900'
+                          }`}>
+                            {t.status}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 font-mono text-[11px]">
+                          <span className="block text-slate-500">Pick: <strong className="text-slate-800">{t.merchantPickupOtp}</strong></span>
+                          <span className="block text-slate-500">Drop: <strong className="text-slate-800">{t.customerDeliveryOtp}</strong></span>
+                        </td>
+                        <td className="px-5 py-4 text-right font-black text-slate-900">
+                          {formatPaise(t.estimatedPayoutPaise)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: DELIVERY PRICING RULES */}
+      {activeTab === 'delivery_pricing' && (
+        <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-card space-y-4 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-black text-slate-900">4-Tier Delivery Priority Rules &amp; Dynamic Pricing</h3>
+              <p className="text-xs text-slate-500">Governs delivery SLAs, base fees, per-km rates, extra pickup stop surcharges, and weight surcharges in Indore</p>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px] font-black">
+                <tr>
+                  <th className="px-4 py-3">Tier Code</th>
+                  <th className="px-4 py-3">Tier Name</th>
+                  <th className="px-4 py-3">Promised SLA</th>
+                  <th className="px-4 py-3">Base Fee</th>
+                  <th className="px-4 py-3">Per KM Rate</th>
+                  <th className="px-4 py-3">Priority Surcharge</th>
+                  <th className="px-4 py-3">Extra Stop Surcharge</th>
+                  <th className="px-4 py-3">Max Radius</th>
+                  <th className="px-4 py-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium">
+                {deliveryPricingRules.map((rule) => (
+                  <tr key={rule.id} className="hover:bg-slate-50/80">
+                    <td className="px-4 py-3.5 font-mono font-bold text-slate-900">{rule.tier}</td>
+                    <td className="px-4 py-3.5 font-bold text-slate-800">{rule.tierName}</td>
+                    <td className="px-4 py-3.5 text-forest-800 font-black">{rule.promisedDeliveryMinutes} mins</td>
+                    <td className="px-4 py-3.5">{formatPaise(rule.baseDeliveryFeePaise)}</td>
+                    <td className="px-4 py-3.5">{formatPaise(rule.perKmRatePaise)}/km</td>
+                    <td className="px-4 py-3.5 font-bold text-amber-700">{formatPaise(rule.prioritySurchargePaise)}</td>
+                    <td className="px-4 py-3.5">{formatPaise(rule.extraPickupStopFeePaise)}/stop</td>
+                    <td className="px-4 py-3.5">{rule.maxDeliveryRadiusKm} km</td>
+                    <td className="px-4 py-3.5">
+                      <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                        ACTIVE
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: CATEGORY COMMISSIONS & SETTLEMENTS */}
+      {activeTab === 'settlements' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-card p-6 space-y-4">
+            <div>
+              <h3 className="text-base font-black text-slate-900">Commercial Category Commission Schedules</h3>
+              <p className="text-xs text-slate-500">Contractual take-rate applied during checkout and merchant settlement reconciliation</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {categoryCommissions.map((c) => (
+                <div key={c.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                    {c.category}
+                  </span>
+                  <div className="text-2xl font-black text-forest-900">
+                    {c.commissionRatePct}%
+                  </div>
+                  <span className="text-[10px] text-slate-400 block font-medium">
+                    Min MOV: {formatPaise(c.minOrderValuePaise)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TAB 1: Merchant Governance */}
       {activeTab === 'overview' && (

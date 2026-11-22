@@ -21,12 +21,15 @@ import {
   Briefcase,
   HeartPulse,
   Pill,
-  FileText
+  FileText,
+  Bike,
+  Users,
+  Tag
 } from 'lucide-react';
 
 interface NavbarProps {
-  discoveryMode: 'shop' | 'services' | 'pharmacy';
-  setDiscoveryMode: (mode: 'shop' | 'services' | 'pharmacy') => void;
+  discoveryMode: 'shop' | 'services' | 'pharmacy' | 'rider';
+  setDiscoveryMode: (mode: 'shop' | 'services' | 'pharmacy' | 'rider') => void;
   currentTab: 'customer' | 'merchant' | 'admin' | 'orders';
   setCurrentTab: (tab: 'customer' | 'merchant' | 'admin' | 'orders') => void;
   servicesTab: 'explore' | 'bookings' | 'provider';
@@ -38,6 +41,9 @@ interface NavbarProps {
   openAuth: () => void;
   searchQuery?: string;
   setSearchQuery?: (q: string) => void;
+  openAI?: () => void;
+  openHousehold?: () => void;
+  openCommunity?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -130,14 +136,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* 2. PRIMARY DISCOVERY MODE SELECTOR: [ 🛒 Shop | 🛠️ Services ] */}
-          <div className="bg-slate-100/90 p-1 rounded-2xl flex items-center border border-slate-200 shadow-2xs shrink-0">
+          {/* 2. PRIMARY DISCOVERY MODE SELECTOR: [ 🛒 Shop | 💊 Pharmacy | 🛠️ Services | 🛵 Rider ] */}
+          <div className="bg-slate-100/90 p-1 rounded-2xl flex items-center border border-slate-200 shadow-2xs shrink-0 overflow-x-auto">
             <button
               onClick={() => {
                 setDiscoveryMode('shop');
                 setCurrentTab('customer');
               }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition whitespace-nowrap ${
                 discoveryMode === 'shop'
                   ? 'bg-amber-400 text-slate-950 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -152,7 +158,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setDiscoveryMode('pharmacy');
                 if (setPharmacyTab) setPharmacyTab('explore');
               }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition whitespace-nowrap ${
                 discoveryMode === 'pharmacy'
                   ? 'bg-amber-400 text-slate-950 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -167,7 +173,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setDiscoveryMode('services');
                 setServicesTab('explore');
               }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition whitespace-nowrap ${
                 discoveryMode === 'services'
                   ? 'bg-amber-400 text-slate-950 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -175,6 +181,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Wrench className="w-3.5 h-3.5" />
               <span>Services</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setDiscoveryMode('rider');
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition whitespace-nowrap ${
+                discoveryMode === 'rider'
+                  ? 'bg-amber-400 text-slate-950 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Bike className="w-3.5 h-3.5" />
+              <span>Delivery Partner</span>
             </button>
           </div>
 
@@ -414,6 +434,44 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               )}
             </div>
+
+            {/* AI Assistant, Household & Community Shortcuts (Shop Mode) */}
+            {discoveryMode === 'shop' && (
+              <div className="hidden lg:flex items-center gap-1.5">
+                {openAI && (
+                  <button
+                    onClick={openAI}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-400/20 to-emerald-400/20 hover:from-amber-400/30 hover:to-emerald-400/30 border border-amber-300 rounded-2xl text-xs font-black text-slate-900 transition active:scale-95 shadow-2xs"
+                    title="AI Smart Basket Optimizer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                    <span>AI Copilot</span>
+                  </button>
+                )}
+
+                {openHousehold && (
+                  <button
+                    onClick={openHousehold}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200/80 border border-slate-200/60 rounded-2xl text-xs font-bold text-slate-700 transition"
+                    title="Household Pantry & Budget"
+                  >
+                    <Users className="w-3.5 h-3.5 text-forest-700" />
+                    <span>Household</span>
+                  </button>
+                )}
+
+                {openCommunity && (
+                  <button
+                    onClick={openCommunity}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200/80 border border-slate-200/60 rounded-2xl text-xs font-bold text-slate-700 transition"
+                    title="Community Group Deals"
+                  >
+                    <Tag className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Group Deals</span>
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Mode-Specific Action Button: Cart for Shop, My Bookings for Services */}
             {discoveryMode === 'shop' ? (

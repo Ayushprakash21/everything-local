@@ -5,6 +5,8 @@ import { authenticateToken } from '../middleware/auth';
 import { GeospatialEngine } from '../core/geospatial';
 import { FinancialEngine } from '../core/finance';
 import { DeliveryServiceAdapter } from '../core/deliveryAdapter';
+import { DeliveryPriorityEngine } from '../core/deliveryPriorityEngine';
+import { MultiStoreOrderEngine } from '../core/multiStoreOrderEngine';
 
 const router = Router();
 
@@ -668,6 +670,58 @@ router.get('/orders', authenticateToken, async (req: Request, res: Response): Pr
   }
 });
 
+// 19. List Customer Parent Multi-Store Orders
+router.get('/orders/multi-store', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const parentOrders = await prisma.parentOrder.findMany({
+      where: { customerId: userId },
+      include: {
+        childOrders: {
+          include: {
+            store: true,
+            items: true
+          }
+        },
+        deliveryTasks: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({ orders: parentOrders, parentOrders });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 20. Get Single Parent Multi-Store Order
+router.get('/orders/multi-store/:id', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const parentOrder = await prisma.parentOrder.findFirst({
+      where: { id: req.params.id, customerId: userId },
+      include: {
+        childOrders: {
+          include: {
+            store: true,
+            items: true
+          }
+        },
+        deliveryTasks: true
+      }
+    });
+
+    if (!parentOrder) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+
+    res.json({ order: parentOrder });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // 11. Get Order Details
 router.get('/orders/:id', authenticateToken, async (req: Request, res: Response): Promise<void> => {
   try {
@@ -856,6 +910,100 @@ router.delete('/addresses/:id', authenticateToken, async (req: Request, res: Res
     res.json({ message: 'Address removed successfully' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete address' });
+  }
+});
+
+// ============================================================
+// EVERYTHING LOCAL VERSION 1.0 MULTI-STORE & DELIVERY PRIORITY
+// ============================================================
+
+// 17. Calculate 4-Tier Delivery Priority & Dynamic Pricing Quote
+router.post('/delivery/quote', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const merchantIds = req.body.merchantIds || req.body.storeIds || [];
+    if (!Array.isArray(merchantIds) || merchantIds.length === 0) {
+      res.status(400).json({ error: 'Merchant IDs array is required' });
+      return;
+    }
+
+    const customerCoordinates = req.body.customerCoordinates || (
+      req.body.customerLat && req.body.customerLng
+        ? { latitude: Number(req.body.customerLat), longitude: Number(req.body.customerLng) }
+        : {
+            latitude: GeospatialEngine.INDORE_LANDMARKS.PALASIA.latitude,
+            longitude: GeospatialEngine.INDORE_LANDMARKS.PALASIA.longitude
+          }
+    );
+
+    const quotes = await DeliveryPriorityEngine.calculateAllTiers({
+      customerCoordinates,
+      merchantIds,
+      totalWeightKg: req.body.totalWeightKg ? Number(req.body.totalWeightKg) : 2.0
+    });
+
+    res.json({ quotes });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 18. Multi-Store Unified Cart Checkout
+router.post('/orders/multi-store', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const {
+      deliveryAddress,
+      deliveryLatitude,
+      deliveryLongitude,
+      customerLat,
+      customerLng,
+      deliveryTier,
+      deliveryPriorityTier,
+      paymentMethod,
+      items
+    } = req.body;
+
+    let orderItems = items;
+    if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
+      const cart = await prisma.cart.findFirst({
+        where: { userId },
+        include: { items: { include: { product: true } } }
+      });
+      if (cart && cart.items.length > 0) {
+        orderItems = cart.items.map((i) => ({
+          productId: i.productId,
+          merchantId: i.product.storeId,
+          quantity: i.quantity,
+          unitPricePaise: i.unitPricePaise
+        }));
+      }
+    }
+
+    if (!orderItems || orderItems.length === 0) {
+      res.status(400).json({ error: 'Cannot place order with empty items' });
+      return;
+    }
+
+    const orderResult = await MultiStoreOrderEngine.checkout({
+      customerId: userId,
+      deliveryAddress: deliveryAddress || 'Selected Address, Indore',
+      deliveryLatitude: deliveryLatitude || customerLat || GeospatialEngine.INDORE_LANDMARKS.PALASIA.latitude,
+      deliveryLongitude: deliveryLongitude || customerLng || GeospatialEngine.INDORE_LANDMARKS.PALASIA.longitude,
+      deliveryTier: deliveryTier || deliveryPriorityTier || 'STANDARD_60',
+      paymentMethod: paymentMethod || 'ONLINE',
+      items: orderItems
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Multi-store order successfully created',
+      order: orderResult.parentOrder,
+      parentOrder: orderResult.parentOrder,
+      merchantChildOrders: orderResult.childOrders,
+      childOrders: orderResult.childOrders
+    });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
   }
 });
 

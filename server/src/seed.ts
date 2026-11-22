@@ -7,6 +7,23 @@ async function seed() {
   console.log('🌱 Seeding Everything Local (Indore pilot data)...');
 
   // Clear existing data safely
+  await prisma.loyaltyLedgerEntry.deleteMany();
+  await prisma.loyaltyAccount.deleteMany();
+  await prisma.communityCampaign.deleteMany();
+  await prisma.householdShoppingItem.deleteMany();
+  await prisma.householdMember.deleteMany();
+  await prisma.household.deleteMany();
+  await prisma.merchantSettlementStatement.deleteMany();
+  await prisma.categoryCommissionRule.deleteMany();
+  await prisma.deliveryPricingRule.deleteMany();
+  await prisma.riderEarningLedger.deleteMany();
+  await prisma.riderSettlement.deleteMany();
+  await prisma.deliveryTask.deleteMany();
+  await prisma.riderProfile.deleteMany();
+  await prisma.merchantChildOrderItem.deleteMany();
+  await prisma.merchantChildOrder.deleteMany();
+  await prisma.parentOrder.deleteMany();
+
   await prisma.dispensingRecord.deleteMany();
   await prisma.prescriptionAuditEvent.deleteMany();
   await prisma.quotationItem.deleteMany();
@@ -178,7 +195,7 @@ async function seed() {
     }
   });
 
-  await prisma.store.create({
+  const store2 = await prisma.store.create({
     data: {
       ownerId: merchantUser2.id,
       name: 'Apna Fresh Fruits & Veg',
@@ -711,6 +728,332 @@ async function seed() {
   // Seed Services Marketplace
   console.log('Seeding Services Marketplace...');
   await seedServices();
+
+  // ============================================================
+  // EVERYTHING LOCAL VERSION 1.0 OPERATING SYSTEM SEEDING
+  // ============================================================
+  console.log('Seeding Version 1.0 Delivery Pricing Rules...');
+  await prisma.deliveryPricingRule.createMany({
+    data: [
+      {
+        tierCode: 'EXPRESS_20',
+        displayName: 'Express 20-Min Delivery',
+        targetMinutes: 20,
+        baseDeliveryPaise: 4500, // ₹45 base
+        perKmPaise: 1200,        // ₹12/km
+        prioritySurchargePaise: 2500, // ₹25 priority fee
+        maxRoadDistanceKm: 3.0,
+        additionalPickupPaise: 1500, // ₹15/extra store
+        weightSurchargePaisePerKg: 500,
+        peakMultiplier: 1.1,
+        isActive: true
+      },
+      {
+        tierCode: 'PRIORITY_40',
+        displayName: 'Priority 40-Min Delivery',
+        targetMinutes: 40,
+        baseDeliveryPaise: 3500, // ₹35 base
+        perKmPaise: 1000,        // ₹10/km
+        prioritySurchargePaise: 1500, // ₹15 priority fee
+        maxRoadDistanceKm: 4.5,
+        additionalPickupPaise: 1200,
+        weightSurchargePaisePerKg: 500,
+        peakMultiplier: 1.0,
+        isActive: true
+      },
+      {
+        tierCode: 'STANDARD_60',
+        displayName: 'Standard 60-Min Delivery',
+        targetMinutes: 60,
+        baseDeliveryPaise: 2500, // ₹25 base
+        perKmPaise: 800,         // ₹8/km
+        prioritySurchargePaise: 0,
+        maxRoadDistanceKm: 6.0,
+        additionalPickupPaise: 1000,
+        weightSurchargePaisePerKg: 400,
+        peakMultiplier: 1.0,
+        isActive: true
+      },
+      {
+        tierCode: 'SCHEDULED_120',
+        displayName: 'Scheduled 2-Hour Delivery',
+        targetMinutes: 120,
+        baseDeliveryPaise: 2000, // ₹20 base
+        perKmPaise: 600,         // ₹6/km
+        prioritySurchargePaise: 0,
+        maxRoadDistanceKm: 8.0,
+        additionalPickupPaise: 800,
+        weightSurchargePaisePerKg: 300,
+        peakMultiplier: 1.0,
+        isActive: true
+      }
+    ]
+  });
+
+  console.log('Seeding Category Commission Rules...');
+  await prisma.categoryCommissionRule.createMany({
+    data: [
+      {
+        categorySlug: 'grocery',
+        categoryName: 'Daily Groceries & Essentials',
+        defaultCommissionPct: 4.5,
+        listingFeePct: 2.0,
+        minOrderValuePaise: 19900
+      },
+      {
+        categorySlug: 'general_retail',
+        categoryName: 'General Retail & Household',
+        defaultCommissionPct: 6.5,
+        listingFeePct: 2.0,
+        minOrderValuePaise: 24900
+      },
+      {
+        categorySlug: 'beauty',
+        categoryName: 'Beauty & Personal Care',
+        defaultCommissionPct: 7.0,
+        listingFeePct: 2.5,
+        minOrderValuePaise: 29900
+      },
+      {
+        categorySlug: 'pet_supplies',
+        categoryName: 'Pet Care & Nutrition',
+        defaultCommissionPct: 6.0,
+        listingFeePct: 2.0,
+        minOrderValuePaise: 19900
+      },
+      {
+        categorySlug: 'electronics',
+        categoryName: 'Local Electronics & Gadgets',
+        defaultCommissionPct: 3.5,
+        listingFeePct: 1.5,
+        minOrderValuePaise: 49900
+      },
+      {
+        categorySlug: 'local_services',
+        categoryName: 'Local Services & Experts',
+        defaultCommissionPct: 9.0,
+        listingFeePct: 4.0,
+        minOrderValuePaise: 19900
+      }
+    ]
+  });
+
+  console.log('Seeding Standalone Delivery Partners (Riders)...');
+  const riderUser1 = await prisma.user.create({
+    data: {
+      email: 'rahul.rider@everythinglocal.in',
+      phone: '+919876543231',
+      name: 'Rahul Sharma',
+      passwordHash,
+      role: 'RIDER'
+    }
+  });
+
+  const riderProfile1 = await prisma.riderProfile.create({
+    data: {
+      userId: riderUser1.id,
+      riderCode: 'EL-RIDER-IND-101',
+      vehicleType: 'MOTORCYCLE',
+      vehicleNumber: 'MP-09-XY-4921',
+      drivingLicenceNumber: 'MP-09-2022-849120',
+      panNumber: 'ABCPS1294K',
+      bankAccountNumber: '918273645102',
+      bankIfsc: 'HDFC0001824',
+      emergencyContactName: 'Mukesh Sharma (Father)',
+      emergencyContactPhone: '+919876500112',
+      isVerified: true,
+      isActive: true,
+      isOnline: true,
+      currentLatitude: 22.7244,
+      currentLongitude: 75.8839,
+      rating: 4.92,
+      totalDeliveries: 148
+    }
+  });
+
+  const riderUser2 = await prisma.user.create({
+    data: {
+      email: 'vijay.rider@everythinglocal.in',
+      phone: '+919876543232',
+      name: 'Vijay Verma',
+      passwordHash,
+      role: 'RIDER'
+    }
+  });
+
+  const riderProfile2 = await prisma.riderProfile.create({
+    data: {
+      userId: riderUser2.id,
+      riderCode: 'EL-RIDER-IND-102',
+      vehicleType: 'SCOOTER',
+      vehicleNumber: 'MP-09-AB-7712',
+      drivingLicenceNumber: 'MP-09-2023-119283',
+      panNumber: 'VERMA8912P',
+      bankAccountNumber: '109283746501',
+      bankIfsc: 'SBIN0004921',
+      emergencyContactName: 'Sunita Verma (Mother)',
+      emergencyContactPhone: '+919876500223',
+      isVerified: true,
+      isActive: true,
+      isOnline: true,
+      currentLatitude: 22.7533,
+      currentLongitude: 75.8937,
+      rating: 4.88,
+      totalDeliveries: 94
+    }
+  });
+
+  // Seed sample active delivery task for Rahul
+  const sampleTask1 = await prisma.deliveryTask.create({
+    data: {
+      taskNumber: 'EL-TASK-84920',
+      riderId: riderProfile1.id,
+      status: 'AVAILABLE',
+      priorityTier: 'EXPRESS_20',
+      pickupLocationName: 'Sharma Kirana Store',
+      pickupAddress: 'Shop 12, Main Market, Palasia, Indore',
+      pickupLatitude: 22.7244,
+      pickupLongitude: 75.8839,
+      deliveryAddress: 'Flat 402, Royal Residency, New Palasia, Indore',
+      deliveryLatitude: 22.7289,
+      deliveryLongitude: 75.8885,
+      estimatedDistanceKm: 1.8,
+      estimatedMinutes: 18,
+      riderBasePayoutPaise: 3000,
+      additionalPickupPayoutPaise: 800,
+      waitingPayoutPaise: 0,
+      surgePayoutPaise: 500,
+      totalPayoutPaise: 4300, // ₹43.00
+      pickupOtp: '4821',
+      deliveryOtp: '7190',
+      specialHandling: 'Contains fragile glass bottle'
+    }
+  });
+
+  // Seed earnings ledger for rider 1
+  await prisma.riderEarningLedger.createMany({
+    data: [
+      {
+        riderId: riderProfile1.id,
+        deliveryTaskId: sampleTask1.id,
+        type: 'BASE_PAYOUT',
+        amountPaise: 3000,
+        description: 'Delivery Task #EL-TASK-84920 Base Payout',
+        settlementStatus: 'UNSETTLED'
+      },
+      {
+        riderId: riderProfile1.id,
+        deliveryTaskId: sampleTask1.id,
+        type: 'PEAK_INCENTIVE',
+        amountPaise: 500,
+        description: 'Evening Rush Hour Surge Incentive',
+        settlementStatus: 'UNSETTLED'
+      },
+      {
+        riderId: riderProfile1.id,
+        type: 'BASE_PAYOUT',
+        amountPaise: 3500,
+        description: 'Completed Delivery #EL-TASK-84918 to Old Palasia',
+        settlementStatus: 'SETTLED'
+      }
+    ]
+  });
+
+  // Seed Household for customer Ayush
+  console.log('Seeding Household Operating System...');
+  const household = await prisma.household.create({
+    data: {
+      name: 'Prakash Family Home',
+      ownerId: customer.id,
+      monthlyBudgetPaise: 2000000, // ₹20,000 monthly
+      monthlySpendPaise: 645000,   // ₹6,450 spent
+      members: {
+        create: [
+          {
+            userId: customer.id,
+            role: 'ADMIN',
+            canSpend: true,
+            monthlySpendLimitPaise: 2000000
+          }
+        ]
+      },
+      shoppingItems: {
+        create: [
+          {
+            productName: 'Aashirvaad Shudh Chakki Atta (5kg)',
+            quantity: 2,
+            unit: 'bag',
+            estimatedPricePaise: 54000,
+            priority: 'HIGH',
+            recurringIntervalDays: 15,
+            isPurchased: false
+          },
+          {
+            productName: 'Fortune Sunlite Refined Sunflower Oil (1L)',
+            quantity: 2,
+            unit: 'pouch',
+            estimatedPricePaise: 31000,
+            priority: 'HIGH',
+            recurringIntervalDays: 20,
+            isPurchased: false
+          },
+          {
+            productName: 'Amul Taaza Homogenised Toned Milk (1L)',
+            quantity: 4,
+            unit: 'carton',
+            estimatedPricePaise: 29600,
+            priority: 'MEDIUM',
+            recurringIntervalDays: 7,
+            isPurchased: true
+          }
+        ]
+      }
+    }
+  });
+
+  // Seed Community Buying Campaign
+  console.log('Seeding Community Buying Campaigns...');
+  await prisma.communityCampaign.create({
+    data: {
+      title: 'Indore Malwa Fresh Potato & Onion Bulk Harvest Pack (10kg)',
+      description: 'Direct farm aggregation for Palasia & Vijay Nagar residents. Huge group savings!',
+      category: 'produce',
+      storeId: store2.id, // Apna Fresh
+      targetQuantity: 50,
+      currentPledged: 34,
+      originalPricePaise: 42000, // ₹420
+      discountedPricePaise: 28000, // ₹280 (33% off)
+      minParticipants: 20,
+      currentParticipants: 28,
+      endsAt: new Date(Date.now() + 86400000 * 3), // 3 days remaining
+      status: 'ACTIVE'
+    }
+  });
+
+  // Seed Loyalty Account for customer Ayush
+  console.log('Seeding Loyalty & Rewards Engine...');
+  const loyaltyAcc = await prisma.loyaltyAccount.create({
+    data: {
+      userId: customer.id,
+      pointsBalance: 250,
+      tier: 'GOLD',
+      lifetimePoints: 500,
+      entries: {
+        create: [
+          {
+            pointsChange: 100,
+            type: 'BONUS_SIGNUP',
+            description: 'Welcome to Everything Local Indore!'
+          },
+          {
+            pointsChange: 150,
+            type: 'EARN_PURCHASE',
+            description: 'Order #ORD-1002 Cashback Points'
+          }
+        ]
+      }
+    }
+  });
 
   console.log('✅ Seed completed successfully:');
   console.log(' - Admin: admin@everythinglocal.in (Password@123)');
