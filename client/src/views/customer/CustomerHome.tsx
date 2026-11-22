@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Store, Product } from '../../types';
 import { request, formatPaise } from '../../api/client';
+import { useLocation } from '../../context/LocationContext';
 import { ProductCard } from '../../components/ProductCard';
 import { ProductDetailModal } from '../../components/ProductDetailModal';
 import {
@@ -39,12 +40,14 @@ import {
   Layers,
   Award,
   BadgePercent,
-  Check
+  Check,
+  AlertTriangle,
+  Navigation
 } from 'lucide-react';
 
 interface CustomerHomeProps {
   onSelectStore: (storeId: string) => void;
-  selectedLocation: string;
+  selectedLocation?: string;
   onAddToCart: (storeId: string, productId: string) => void;
   searchQuery?: string;
   setSearchQuery?: (q: string) => void;
@@ -177,12 +180,13 @@ export const SHOPPING_CATEGORIES = [
 
 export const CustomerHome: React.FC<CustomerHomeProps> = ({
   onSelectStore,
-  selectedLocation,
   onAddToCart,
   searchQuery = '',
   setSearchQuery,
   onOpenCategories
 }) => {
+  const { coords, selectedLocation, serviceability, setIsLocationModalOpen } = useLocation();
+
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -192,6 +196,10 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
   const [sortBy, setSortBy] = useState<'featured' | 'price_asc' | 'price_desc' | 'discount'>('featured');
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
   const [inStockOnly, setInStockOnly] = useState<boolean>(false);
+
+  const localityDisplayName = selectedLocation
+    ? selectedLocation.locality || selectedLocation.name
+    : 'Indore';
 
   // High-contrast, rich promotional banners
   const promoBanners = [
@@ -220,27 +228,20 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
       badge: 'FRESH HARVEST PROMISE',
       title: 'Morning Mandi Vegetables & Fruits',
       subtitle: 'Crisp country tomatoes, Malwa potatoes & seasonal fruits sourced fresh every morning.',
-      code: 'FARM DIRECT TO PALASIA',
+      code: `FARM DIRECT TO ${localityDisplayName.toUpperCase()}`,
       gradient: 'from-orange-700 via-amber-800 to-slate-900',
       badgeBg: 'bg-orange-300 text-slate-950',
       accentColor: 'text-orange-200'
     }
   ];
 
+  // Dynamic store fetch using detected GPS / selected Indore locality coordinates
   const fetchStores = async () => {
     setLoading(true);
     try {
-      const coords: Record<string, { lat: number; lng: number }> = {
-        'Palasia, Indore': { lat: 22.7244, lng: 75.8839 },
-        'Vijay Nagar, Indore': { lat: 22.7533, lng: 75.8937 },
-        'Saket, Indore': { lat: 22.7208, lng: 75.8942 },
-        'Bhawarkua, Indore': { lat: 22.6926, lng: 75.8676 },
-        'Rajwada, Indore': { lat: 22.7196, lng: 75.8577 },
-        'Annapurna, Indore': { lat: 22.7011, lng: 75.8341 }
-      };
-
-      const loc = coords[selectedLocation] || coords['Palasia, Indore'];
-      const res = await request<{ stores: Store[] }>(`/customer/stores?lat=${loc.lat}&lng=${loc.lng}`);
+      const res = await request<{ stores: Store[] }>(
+        `/customer/stores?lat=${coords.latitude}&lng=${coords.longitude}`
+      );
       setStores(res.stores || []);
     } catch (err) {
       console.error('Failed to load stores:', err);
@@ -251,7 +252,7 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
 
   useEffect(() => {
     fetchStores();
-  }, [selectedLocation]);
+  }, [coords.latitude, coords.longitude]);
 
   // Rotate banner every 6s
   useEffect(() => {
@@ -400,19 +401,43 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
   };
 
   const activeBanner = promoBanners[activeBannerIdx];
-
-  // If viewing a filtered category or search query, render dedicated Product Listing view
   const isFiltering = selectedCategory !== 'all' || searchQuery.trim().length > 0;
+  const isServiceable = serviceability ? serviceability.isAnyStoreServiceable : true;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-8">
-      {/* 1. COMPACT PROMOTIONAL BANNER CAROUSEL */}
-      <div className="relative rounded-2xl overflow-hidden shadow-subtle border border-amber-200/60">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 space-y-6 sm:space-y-8">
+      {/* SERVICEABILITY LIMITATION WARNING BANNER (If out of delivery zone) */}
+      {!isServiceable && (
+        <div className="bg-amber-50 border border-amber-300 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-subtle animate-in fade-in duration-200">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0 mt-0.5">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-slate-900">
+                Delivery Limited at {localityDisplayName}
+              </h3>
+              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                Currently, stores in your immediate vicinity are outside our 3.0 km direct delivery radius. You can still order for <strong>Free Store Pickup</strong> or choose another delivery address in Indore.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsLocationModalOpen(true)}
+            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-xs shrink-0 transition"
+          >
+            Change Address
+          </button>
+        </div>
+      )}
+
+      {/* 1. COMPACT RESPONSIVE PROMOTIONAL BANNER CAROUSEL (Text & Layout Fix) */}
+      <div className="relative rounded-3xl overflow-hidden shadow-subtle border border-amber-200/60">
         <div
-          className={`bg-gradient-to-r ${activeBanner.gradient} text-white p-5 sm:p-8 transition-all duration-500 relative flex flex-col justify-between min-h-[170px] sm:min-h-[200px]`}
+          className={`bg-gradient-to-r ${activeBanner.gradient} text-white p-4 sm:p-6 md:p-8 transition-all duration-500 relative flex flex-col justify-between min-h-[180px] sm:min-h-[210px]`}
         >
-          <div className="relative z-10 max-w-xl space-y-2">
-            <div className="flex items-center gap-2">
+          <div className="relative z-10 w-full max-w-2xl space-y-2.5">
+            <div className="flex flex-wrap items-center gap-2">
               <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full ${activeBanner.badgeBg}`}>
                 {activeBanner.badge}
               </span>
@@ -422,20 +447,20 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
               </span>
             </div>
 
-            <h1 className="text-xl sm:text-3xl font-black tracking-tight leading-snug text-white">
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-black tracking-tight leading-tight text-white break-words">
               {activeBanner.title}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-100 max-w-lg leading-relaxed line-clamp-2">
+            <p className="text-xs sm:text-sm text-slate-100 max-w-xl leading-relaxed">
               {activeBanner.subtitle}
             </p>
 
-            <div className="pt-1 flex items-center gap-3">
+            <div className="pt-1.5 flex flex-wrap items-center gap-3">
               <button
                 onClick={() => {
                   const el = document.getElementById('bestsellers-section');
                   el?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-xs transition active:scale-95 flex items-center gap-1.5"
+                className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-xs transition active:scale-95 flex items-center gap-1.5 shrink-0"
               >
                 <span>Shop Essentials</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -447,8 +472,8 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
             </div>
           </div>
 
-          {/* Dots Indicator */}
-          <div className="relative z-10 flex items-center justify-between pt-3 mt-1 border-t border-white/10">
+          {/* Dots Indicator & Navigation Controls */}
+          <div className="relative z-10 flex items-center justify-between pt-3 mt-2 border-t border-white/10">
             <div className="flex items-center gap-1.5">
               {promoBanners.map((b, idx) => (
                 <button
@@ -464,17 +489,17 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setActiveBannerIdx((prev) => (prev - 1 + promoBanners.length) % promoBanners.length)}
-                className="w-6 h-6 rounded-lg bg-black/20 hover:bg-black/40 flex items-center justify-center text-white transition"
+                className="w-7 h-7 rounded-xl bg-black/20 hover:bg-black/40 flex items-center justify-center text-white transition"
                 aria-label="Previous banner"
               >
-                <ChevronLeft className="w-3.5 h-3.5" />
+                <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setActiveBannerIdx((prev) => (prev + 1) % promoBanners.length)}
-                className="w-6 h-6 rounded-lg bg-black/20 hover:bg-black/40 flex items-center justify-center text-white transition"
+                className="w-7 h-7 rounded-xl bg-black/20 hover:bg-black/40 flex items-center justify-center text-white transition"
                 aria-label="Next banner"
               >
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -482,12 +507,12 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
       </div>
 
       {/* 2. 12 ILLUSTRATED SHOPPING CATEGORIES GRID */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
+      <section id="category-discovery-section">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
           <div>
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <h2 className="text-base sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
               <span>Shop by Category</span>
-              <span className="text-xs font-bold text-forest-700 bg-forest-50 px-2 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold text-forest-700 bg-forest-50 px-2 py-0.5 rounded-full">
                 12 Departments
               </span>
             </h2>
@@ -504,23 +529,23 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
           )}
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-2 sm:gap-2.5">
           {SHOPPING_CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id;
             return (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(isSelected ? 'all' : cat.id)}
-                className={`flex flex-col items-center p-2.5 rounded-2xl transition-all duration-150 text-center border group ${
+                className={`flex flex-col items-center p-2 sm:p-2.5 rounded-2xl transition-all duration-150 text-center border group ${
                   isSelected
-                    ? 'bg-amber-100/80 border-amber-500 shadow-xs ring-2 ring-amber-400/40 scale-102'
+                    ? 'bg-amber-100/90 border-amber-500 shadow-xs ring-2 ring-amber-400/40 scale-102'
                     : `${cat.bgColor} ${cat.borderColor} hover:shadow-subtle hover:scale-102`
                 }`}
               >
-                <div className="w-12 h-12 rounded-xl bg-white/90 shadow-2xs flex items-center justify-center text-2xl mb-1.5 group-hover:scale-110 transition-transform">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/90 shadow-2xs flex items-center justify-center text-xl sm:text-2xl mb-1.5 group-hover:scale-110 transition-transform">
                   {cat.icon}
                 </div>
-                <span className={`text-[11px] font-extrabold leading-tight line-clamp-2 ${cat.textColor}`}>
+                <span className={`text-[10px] sm:text-[11px] font-extrabold leading-tight line-clamp-2 ${cat.textColor}`}>
                   {cat.shortLabel}
                 </span>
               </button>
@@ -533,7 +558,7 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
       {isFiltering ? (
         <section className="space-y-4 pt-2">
           {/* Active Filter Bar & Controls */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-subtle flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-subtle flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
                 {selectedCategory !== 'all'
@@ -548,27 +573,27 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
             <div className="flex flex-wrap items-center gap-2 text-xs">
               {/* Sort by dropdown */}
               <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200">
-                <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
+                <span className="text-slate-500 font-bold">Sort:</span>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
+                  onChange={(e: any) => setSortBy(e.target.value)}
                   className="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer"
                 >
                   <option value="featured">Featured</option>
                   <option value="price_asc">Price: Low to High</option>
                   <option value="price_desc">Price: High to Low</option>
-                  <option value="discount">Biggest Discount</option>
+                  <option value="discount">Highest Savings</option>
                 </select>
               </div>
 
-              {/* Brand Filter */}
+              {/* Brand filter */}
               {availableBrands.length > 2 && (
                 <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200">
-                  <span className="text-slate-500 font-medium">Brand:</span>
+                  <span className="text-slate-500 font-bold">Brand:</span>
                   <select
                     value={selectedBrand}
                     onChange={(e) => setSelectedBrand(e.target.value)}
-                    className="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer"
+                    className="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer capitalize"
                   >
                     {availableBrands.map((b) => (
                       <option key={b} value={b}>
@@ -579,22 +604,22 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
                 </div>
               )}
 
-              {/* In-Stock Only Toggle */}
+              {/* In-stock toggle */}
               <button
                 onClick={() => setInStockOnly(!inStockOnly)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition border ${
+                className={`px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 ${
                   inStockOnly
-                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
                 }`}
               >
-                <Check className={`w-3.5 h-3.5 ${inStockOnly ? 'text-emerald-700' : 'text-slate-400'}`} />
+                {inStockOnly && <Check className="w-3.5 h-3.5" />}
                 <span>In Stock Only</span>
               </button>
             </div>
           </div>
 
-          {/* 2-column (mobile) / 4-column (desktop) Grid */}
+          {/* Product Grid */}
           {filteredProductsWithStore.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
               {filteredProductsWithStore.map(({ product, store }) => (
@@ -609,7 +634,7 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
+            <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-3">
               <Package className="w-12 h-12 text-slate-300 mx-auto" />
               <h3 className="text-base font-extrabold text-slate-800">No products matching your filters</h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -631,24 +656,24 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
         </section>
       ) : (
         /* 4. CURATED SHOPPING-FIRST DISCOVERY SECTIONS */
-        <div className="space-y-10">
+        <div className="space-y-8 sm:space-y-10">
           {/* Section A: BESTSELLERS */}
           {bestsellers.length > 0 && (
             <section id="bestsellers-section" className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-black">
+                  <div className="w-7 h-7 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black">
                     <Flame className="w-4 h-4 fill-slate-950 text-slate-950" />
                   </div>
                   <div>
                     <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-                      Bestsellers in Indore
+                      Bestsellers in {localityDisplayName}
                     </h2>
                     <p className="text-[11px] text-slate-500">Most reordered daily staples this week</p>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-forest-800 bg-forest-50 px-2.5 py-1 rounded-full">
-                  15-20 min delivery
+                  {serviceability?.deliveryEta || '15-20 min'}
                 </span>
               </div>
 
@@ -672,7 +697,7 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
             <section className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-forest-900 text-amber-300 flex items-center justify-center font-black">
+                  <div className="w-7 h-7 rounded-xl bg-forest-900 text-amber-300 flex items-center justify-center font-black">
                     <BadgePercent className="w-4 h-4 text-amber-300" />
                   </div>
                   <div>
@@ -707,7 +732,7 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
             <section className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-black">
+                  <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black">
                     <Apple className="w-4 h-4 text-white" />
                   </div>
                   <div>
@@ -742,7 +767,7 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
             <section className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black">
+                  <div className="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black">
                     <RotateCcw className="w-4 h-4 text-white" />
                   </div>
                   <div>
@@ -777,7 +802,7 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
             <section className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black">
+                  <div className="w-7 h-7 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black">
                     <Award className="w-4 h-4 text-white" />
                   </div>
                   <div>
@@ -812,7 +837,7 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
             <section className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black">
+                  <div className="w-7 h-7 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black">
                     <Layers className="w-4 h-4 text-white" />
                   </div>
                   <div>
@@ -847,7 +872,7 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
             <section className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-slate-700 text-white flex items-center justify-center font-black">
+                  <div className="w-7 h-7 rounded-xl bg-slate-700 text-white flex items-center justify-center font-black">
                     <Clock className="w-4 h-4 text-white" />
                   </div>
                   <div>
@@ -872,7 +897,7 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
             </section>
           )}
 
-          {/* 5. NEARBY LOCAL STORES SECTION (As required: separate discovery section at the bottom) */}
+          {/* 5. NEARBY LOCAL STORES SECTION */}
           <section className="pt-4 border-t border-slate-200/80 space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -881,7 +906,7 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
                   <span>Neighbourhood Stores Near You</span>
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Licensed local merchants servicing {selectedLocation} within 3 km
+                  Licensed local merchants servicing {localityDisplayName} within 3 km
                 </p>
               </div>
               <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
@@ -894,10 +919,10 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
                 <div
                   key={store.id}
                   onClick={() => onSelectStore(store.id)}
-                  className="bg-white p-4 rounded-2xl border border-slate-200/80 hover:border-amber-400 shadow-subtle hover:shadow-card transition-all cursor-pointer flex flex-col justify-between group"
+                  className="bg-white p-4 rounded-3xl border border-slate-200/80 hover:border-amber-400 shadow-subtle hover:shadow-card transition-all cursor-pointer flex flex-col justify-between group"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center font-black text-base shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center font-black text-base shrink-0 group-hover:scale-105 transition-transform">
                       {store.name.substring(0, 2).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">

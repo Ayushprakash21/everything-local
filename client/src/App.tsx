@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LocationProvider, useLocation } from './context/LocationContext';
 import { Navbar } from './components/Navbar';
+import { LocationModal } from './components/LocationModal';
 import { CustomerHome, SHOPPING_CATEGORIES } from './views/customer/CustomerHome';
 import { StorefrontView } from './views/customer/StorefrontView';
 import { CartCheckoutDrawer } from './views/customer/CartCheckoutDrawer';
@@ -25,8 +27,8 @@ import {
 
 function MainLayout() {
   const { user } = useAuth();
+  const { selectedLocation, setIsLocationModalOpen } = useLocation();
   const [currentTab, setCurrentTab] = useState<'customer' | 'merchant' | 'admin' | 'orders'>('customer');
-  const [selectedLocation, setSelectedLocation] = useState<string>('Palasia, Indore');
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
@@ -98,7 +100,6 @@ function MainLayout() {
     setIsCategoriesSheetOpen(false);
     setCurrentTab('customer');
     setSelectedStoreId(null);
-    // Find category keyword to trigger search or filter
     const cat = SHOPPING_CATEGORIES.find((c) => c.id === catId);
     if (cat) {
       setSearchQuery(cat.keywords[0]);
@@ -114,8 +115,6 @@ function MainLayout() {
           setSelectedStoreId(null);
           setSelectedOrder(null);
         }}
-        selectedLocation={selectedLocation}
-        setSelectedLocation={setSelectedLocation}
         cartCount={cartCount}
         openCart={() => setIsCartOpen(true)}
         openAuth={() => setIsAuthOpen(true)}
@@ -139,7 +138,6 @@ function MainLayout() {
             ) : (
               <CustomerHome
                 onSelectStore={(id) => setSelectedStoreId(id)}
-                selectedLocation={selectedLocation}
                 onAddToCart={handleAddToCart}
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
@@ -315,6 +313,9 @@ function MainLayout() {
         </div>
       )}
 
+      {/* Interactive Location Selector & Autocomplete Modal */}
+      <LocationModal />
+
       <CartCheckoutDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
@@ -345,7 +346,9 @@ function MainLayout() {
 export default function App() {
   return (
     <AuthProvider>
-      <MainLayout />
+      <LocationProvider>
+        <MainLayout />
+      </LocationProvider>
     </AuthProvider>
   );
 }

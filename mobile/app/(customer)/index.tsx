@@ -18,6 +18,7 @@ import { useCart } from '../../src/context/CartContext';
 import { useAuth } from '../../src/context/AuthContext';
 import { Store, Product } from '../../src/types';
 import { request } from '../../src/api/client';
+import { INDORE_NEIGHBORHOODS } from '../../src/utils/location';
 import { formatPaise, formatDistance } from '../../src/utils/format';
 import { ProductCard } from '../../src/components/ProductCard';
 import { CategoryTile, CategoryData } from '../../src/components/CategoryTile';
@@ -71,14 +72,17 @@ export default function CustomerHomeScreen() {
     { id: 'pet_supplies', label: 'Pet Care', icon: '🐾', bgColor: '#F1F5F9', accentColor: '#475569' }
   ];
 
-  const neighborhoods = [
-    'Palasia, Indore',
-    'Vijay Nagar, Indore',
-    'Saket, Indore',
-    'Bhawarkua, Indore',
-    'Rajwada, Indore',
-    'Annapurna, Indore'
-  ];
+  const [locationSearch, setLocationSearch] = useState('');
+
+  const allNeighborhoods = useMemo(() => {
+    return Object.values(INDORE_NEIGHBORHOODS).map((n) => n.neighborhood);
+  }, []);
+
+  const filteredNeighborhoods = useMemo(() => {
+    if (!locationSearch.trim()) return allNeighborhoods;
+    const q = locationSearch.toLowerCase().trim();
+    return allNeighborhoods.filter((n) => n.toLowerCase().includes(q));
+  }, [allNeighborhoods, locationSearch]);
 
   const promoBanners = [
     {
@@ -457,7 +461,7 @@ export default function CustomerHomeScreen() {
             <Text style={styles.modalSubtitle}>Currently serving Indore neighbourhoods within 3 km</Text>
 
             <FlatList
-              data={neighborhoods}
+              data={filteredNeighborhoods}
               keyExtractor={(item) => item}
               renderItem={({ item }) => {
                 const isSelected = selectedNeighborhood === item;

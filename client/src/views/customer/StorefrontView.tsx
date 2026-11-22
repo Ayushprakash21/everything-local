@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Store, Product } from '../../types';
 import { request, formatPaise } from '../../api/client';
+import { useLocation } from '../../context/LocationContext';
 import { ProductCard } from '../../components/ProductCard';
 import { ProductDetailModal } from '../../components/ProductDetailModal';
 import {
@@ -27,6 +28,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
   onBack,
   onAddToCart
 }) => {
+  const { coords } = useLocation();
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -36,7 +38,9 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
     const fetchStore = async () => {
       setLoading(true);
       try {
-        const res = await request<{ store: Store }>(`/customer/stores/${storeId}`);
+        const res = await request<{ store: Store }>(
+          `/customer/stores/${storeId}?lat=${coords.latitude}&lng=${coords.longitude}`
+        );
         setStore(res.store);
       } catch (err) {
         console.error('Failed to load store:', err);
@@ -45,7 +49,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
       }
     };
     fetchStore();
-  }, [storeId]);
+  }, [storeId, coords.latitude, coords.longitude]);
 
   if (loading || !store) {
     return (

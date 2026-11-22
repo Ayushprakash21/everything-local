@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Cart, Order } from '../../types';
 import { request, formatPaise } from '../../api/client';
+import { useLocation } from '../../context/LocationContext';
 import { ELLogo } from '../../components/ELLogo';
 import {
   X,
@@ -15,7 +16,8 @@ import {
   ArrowRight,
   Sparkles,
   Clock,
-  ShieldCheck
+  ShieldCheck,
+  MapPin
 } from 'lucide-react';
 
 interface CartCheckoutDrawerProps {
@@ -33,6 +35,7 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
   openAuth,
   isLoggedIn
 }) => {
+  const { coords, selectedLocation, setIsLocationModalOpen } = useLocation();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(false);
   const [subtotalPaise, setSubtotalPaise] = useState(0);
@@ -106,8 +109,9 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
         body: JSON.stringify({
           fulfillmentMode,
           idempotencyKey,
-          customerLat: 22.7244,
-          customerLng: 75.8839
+          customerLat: coords.latitude,
+          customerLng: coords.longitude,
+          deliveryAddressId: selectedLocation?.id.startsWith('saved-') ? selectedLocation.id.replace('saved-', '') : undefined
         })
       });
 
@@ -289,6 +293,27 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Delivery Address Status */}
+            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <MapPin className="w-4 h-4 text-forest-700 shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                    Delivering To
+                  </span>
+                  <span className="text-xs font-black text-slate-900 truncate block">
+                    {selectedLocation ? selectedLocation.name : 'Select Delivery Location'}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsLocationModalOpen(true)}
+                className="text-[11px] font-black text-amber-600 hover:text-amber-700 px-2 py-1 rounded-lg hover:bg-amber-50 shrink-0"
+              >
+                Change
+              </button>
             </div>
 
             {/* Fulfillment Mode Selection */}

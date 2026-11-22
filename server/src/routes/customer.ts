@@ -719,4 +719,118 @@ router.post('/orders/:id/cancel', authenticateToken, async (req: Request, res: R
   }
 });
 
+// 13. List Customer Saved Addresses
+router.get('/addresses', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const addresses = await prisma.customerAddress.findMany({
+      where: { userId: req.user!.userId },
+      orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }]
+    });
+    res.json({ addresses });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch saved addresses' });
+  }
+});
+
+// 14. Create Saved Customer Address
+const createAddressSchema = z.object({
+  label: z.string().default('Home'),
+  addressLine: z.string().min(3),
+  landmark: z.string().optional(),
+  city: z.string().default('Indore'),
+  pincode: z.string().min(6).max(6),
+  latitude: z.number(),
+  longitude: z.number(),
+  isDefault: z.boolean().optional().default(false)
+});
+
+router.post('/addresses', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const parsed = createAddressSchema.parse(req.body);
+
+    if (parsed.isDefault) {
+      // Unset previous defaults
+      await prisma.customerAddress.updateMany({
+        where: { userId: req.user!.userId, isDefault: true },
+        data: { isDefault: false }
+      });
+    }
+
+    const address = await prisma.customerAddress.create({
+      data: {
+        userId: req.user!.userId,
+        label: parsed.label,
+        addressLine: parsed.addressLine,
+        landmark: parsed.landmark,
+        city: parsed.city,
+        pincode: parsed.pincode,
+        latitude: parsed.latitude,
+        longitude: parsed.longitude,
+        isDefault: parsed.isDefault
+      }
+    });
+
+    res.status(201).json({ address });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message || 'Invalid address data' });
+  }
+});
+
+// 15. Set Address as Default
+router.put('/addresses/:id/default', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.userId;
+
+    const exists = await prisma.customerAddress.findFirst({
+      where: { id, userId }
+    });
+
+    if (!exists) {
+      res.status(404).json({ error: 'Address not found' });
+      return;
+    }
+
+    await prisma.$transaction([
+      prisma.customerAddress.updateMany({
+        where: { userId, isDefault: true },
+        data: { isDefault: false }
+      }),
+      prisma.customerAddress.update({
+        where: { id },
+        data: { isDefault: true }
+      })
+    ]);
+
+    res.json({ message: 'Default address updated' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to set default address' });
+  }
+});
+
+// 16. Delete Saved Address
+router.delete('/addresses/:id', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.userId;
+
+    const exists = await prisma.customerAddress.findFirst({
+      where: { id, userId }
+    });
+
+    if (!exists) {
+      res.status(404).json({ error: 'Address not found' });
+      return;
+    }
+
+    await prisma.customerAddress.delete({
+      where: { id }
+    });
+
+    res.json({ message: 'Address removed successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete address' });
+  }
+});
+
 export default router;

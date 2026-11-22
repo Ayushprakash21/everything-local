@@ -8,3 +8,5 @@ test.db-journal
 *.log
 uploads/*
 !uploads/.gitkeep
+
+.chrome_tmp/

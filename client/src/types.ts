@@ -115,3 +115,42 @@ export interface FinancialLedgerEntry {
   reference?: string;
   createdAt: string;
 }
+
+export interface CustomerAddress {
+  id: string;
+  userId: string;
+  label: string;
+  addressLine: string;
+  landmark?: string;
+  city: string;
+  pincode: string;
+  latitude: number;
+  longitude: number;
+  isDefault: boolean;
+  createdAt: string;
+}
+
+export interface GeocodedLocation {
+  id: string;
+  name: string;
+  locality: string;
+  subLocality?: string;
+  road?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  latitude: number;
+  longitude: number;
+  formattedAddress: string;
+  isServiceable?: boolean;
+}
+
+export interface ServiceabilityInfo {
+  customerLocation: { latitude: number; longitude: number };
+  isAnyStoreServiceable: boolean;
+  serviceableStoreCount: number;
+  totalStoreCount: number;
+  nearestStoreDistanceKm: number;
+  deliveryEta: string;
+}
+
