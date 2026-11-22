@@ -15,6 +15,7 @@ import { useLocation } from '../../src/context/LocationContext';
 import { request } from '../../src/api/client';
 import { formatPaise } from '../../src/utils/format';
 import { NotificationService } from '../../src/utils/notifications';
+import { ELLogo } from '../../src/components/ELLogo';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -107,7 +108,7 @@ export default function CheckoutScreen() {
             <Text style={styles.secureText}>100% Verified Merchant</Text>
           </View>
         </View>
-        <View style={{ width: 40 }} />
+        <ELLogo variant="dark" size={34} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>

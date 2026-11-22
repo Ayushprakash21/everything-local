@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/context/AuthContext';
 import { useLoyalty } from '../../src/context/LoyaltyContext';
 import { formatPaise } from '../../src/utils/format';
+import { ELLogo } from '../../src/components/ELLogo';
 import {
   User as UserIcon,
   Award,
@@ -48,7 +49,10 @@ export default function CustomerProfileScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Account & Rewards</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <ELLogo variant="dark" size={32} />
+          <Text style={styles.headerTitle}>Account & Rewards</Text>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>

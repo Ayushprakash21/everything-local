@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { ELLogo } from './ELLogo';
 import {
   MapPin,
   ShoppingBag,
@@ -67,9 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="flex items-center gap-3 cursor-pointer shrink-0"
             onClick={() => setCurrentTab('customer')}
           >
-            <div className="w-11 h-11 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl tracking-tighter shadow-sm border border-amber-400 group-hover:scale-105 transition-transform">
-              EL
-            </div>
+            <ELLogo variant="dark" size={44} className="group-hover:scale-105 transition-transform" />
             <div className="hidden sm:block">
               <div className="flex items-center gap-1.5">
                 <span className="font-black text-lg text-forest-900 tracking-tight">

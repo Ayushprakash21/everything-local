@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Cart, Order } from '../../types';
 import { request, formatPaise } from '../../api/client';
+import { ELLogo } from '../../components/ELLogo';
 import {
   X,
   Trash2,
@@ -127,9 +128,7 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
         {/* Drawer Header */}
         <div className="p-4 sm:p-5 border-b border-slate-200/90 flex items-center justify-between bg-slate-50/80">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-forest-900 text-amber-400 flex items-center justify-center shadow-xs">
-              <ShoppingBag className="w-4 h-4" />
-            </div>
+            <ELLogo variant="dark" size={34} className="shrink-0" />
             <div>
               <h3 className="font-black text-slate-900 text-base">Your Shopping Cart</h3>
               <p className="text-[11px] font-semibold text-slate-500">Everything Local • Indore</p>
@@ -168,9 +167,7 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
           </div>
         ) : !cart || cart.items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-3">
-            <div className="w-16 h-16 rounded-3xl bg-slate-100 text-slate-400 flex items-center justify-center">
-              <ShoppingBag className="w-8 h-8" />
-            </div>
+            <ELLogo variant="dark" size={60} className="mx-auto mb-2" />
             <h4 className="font-black text-slate-800 text-base">Your cart is empty</h4>
             <p className="text-xs text-slate-500 max-w-xs">
               Discover fresh staples and produce from neighbourhood stores within 3.0 km in Indore!

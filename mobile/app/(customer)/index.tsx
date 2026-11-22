@@ -24,6 +24,7 @@ import { CategoryTile, CategoryData } from '../../src/components/CategoryTile';
 import { FloatingCartBar } from '../../src/components/FloatingCartBar';
 import { VisualSearchModal } from '../../src/components/VisualSearchModal';
 import { SafeImage } from '../../src/components/SafeImage';
+import { ELLogo } from '../../src/components/ELLogo';
 import {
   MapPin,
   Search,
@@ -160,22 +161,25 @@ export default function CustomerHomeScreen() {
 
       {/* Top Blinkit-Style Brand & Location Header */}
       <View style={styles.topHeader}>
-        <View style={styles.headerLeft}>
-          <View style={styles.deliveryBadge}>
-            <Clock size={12} color="#064e3b" strokeWidth={2.5} />
-            <Text style={styles.deliveryBadgeText}>delivery in 15 minutes</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+          <ELLogo variant="dark" size={38} style={{ marginRight: 10 }} />
+          <View style={styles.headerLeft}>
+            <View style={styles.deliveryBadge}>
+              <Clock size={12} color="#064e3b" strokeWidth={2.5} />
+              <Text style={styles.deliveryBadgeText}>delivery in 15 minutes</Text>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setLocationModalVisible(true)}
+              style={styles.locationSelector}
+            >
+              <MapPin size={15} color="#047857" />
+              <Text style={styles.locationName} numberOfLines={1}>
+                {selectedNeighborhood}
+              </Text>
+              <ChevronDown size={14} color="#64748b" />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setLocationModalVisible(true)}
-            style={styles.locationSelector}
-          >
-            <MapPin size={15} color="#047857" />
-            <Text style={styles.locationName} numberOfLines={1}>
-              {selectedNeighborhood}
-            </Text>
-            <ChevronDown size={14} color="#64748b" />
-          </TouchableOpacity>
         </View>
 
         <View style={styles.headerRight}>

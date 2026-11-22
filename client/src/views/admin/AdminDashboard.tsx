@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Store, Order, FinancialLedgerEntry } from '../../types';
 import { request, formatPaise } from '../../api/client';
+import { ELLogo } from '../../components/ELLogo';
 import {
   Shield,
   TrendingUp,
@@ -106,10 +107,8 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
       {/* 1. Admin Header */}
       <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-card">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-forest-900 text-amber-400 flex items-center justify-center shadow-xs">
-              <Shield className="w-5 h-5" />
-            </div>
+          <div className="flex items-center gap-3">
+            <ELLogo variant="dark" size={44} className="shrink-0" />
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Order } from '../../types';
 import { request, formatPaise } from '../../api/client';
+import { ELLogo } from '../../components/ELLogo';
 import { Package, Clock, Store, ArrowRight, CheckCircle2, AlertCircle, ShoppingBag } from 'lucide-react';
 
 interface CustomerOrdersViewProps {
@@ -37,9 +38,7 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
   if (!isLoggedIn) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
-        <div className="w-16 h-16 rounded-3xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
-          <Package className="w-8 h-8" />
-        </div>
+        <ELLogo variant="dark" size={64} className="mx-auto" />
         <h3 className="font-black text-slate-900 text-xl">Sign in to view orders</h3>
         <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
           Track active orders, view past neighbourhood receipts and re-order your favourites.
@@ -74,7 +73,7 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
         </div>
       ) : orders.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 p-8 space-y-3 shadow-subtle">
-          <ShoppingBag className="w-12 h-12 text-slate-300 mx-auto" />
+          <ELLogo variant="dark" size={54} className="mx-auto" />
           <h3 className="font-bold text-slate-800 text-base">No orders yet</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
             Order fresh essentials from neighbourhood stores in Indore with ₹0 pickup or local 30-min delivery!

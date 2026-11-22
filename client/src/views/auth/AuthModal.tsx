@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { ELLogo } from '../../components/ELLogo';
 import { X, Lock, Mail, User as UserIcon, Phone, Store } from 'lucide-react';
 
 interface AuthModalProps {
@@ -58,13 +59,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultRo
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="bg-emerald-600 px-6 py-5 text-white flex items-center justify-between">
-          <div>
-            <h3 className="font-bold text-xl">
-              {isRegister ? 'Join Everything Local' : 'Welcome Back'}
-            </h3>
-            <p className="text-emerald-100 text-xs mt-0.5">
-              Indore's Neighbourhood Commerce Platform
-            </p>
+          <div className="flex items-center">
+            <ELLogo variant="light" size={44} className="mr-3 shrink-0" />
+            <div>
+              <h3 className="font-bold text-xl">
+                {isRegister ? 'Join Everything Local' : 'Welcome Back'}
+              </h3>
+              <p className="text-emerald-100 text-xs mt-0.5">
+                Indore's Neighbourhood Commerce Platform
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}

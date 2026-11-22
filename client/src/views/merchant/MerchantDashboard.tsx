@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Store, Order, Product } from '../../types';
 import { request, formatPaise } from '../../api/client';
+import { ELLogo } from '../../components/ELLogo';
 import {
   Store as StoreIcon,
   Package,
@@ -260,9 +261,7 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth
       {/* 1. Merchant Header & Operating Controls */}
       <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-card">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shadow-xs border border-amber-400">
-            <StoreIcon className="w-7 h-7" />
-          </div>
+          <ELLogo variant="dark" size={56} className="shrink-0" />
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">

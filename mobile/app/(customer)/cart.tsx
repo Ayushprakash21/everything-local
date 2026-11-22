@@ -14,6 +14,7 @@ import { useCart } from '../../src/context/CartContext';
 import { useAuth } from '../../src/context/AuthContext';
 import { formatPaise } from '../../src/utils/format';
 import { SafeImage } from '../../src/components/SafeImage';
+import { ELLogo } from '../../src/components/ELLogo';
 import {
   ShoppingBag,
   Plus,
@@ -76,9 +77,7 @@ export default function CartScreen() {
   if (!cart || cart.items.length === 0) {
     return (
       <View style={styles.centerBox}>
-        <View style={styles.emptyIconCircle}>
-          <ShoppingBag size={48} color="#94a3b8" />
-        </View>
+        <ELLogo variant="dark" size={72} style={{ marginBottom: 16 }} />
         <Text style={styles.centerTitle}>Your shopping cart is empty</Text>
         <Text style={styles.centerSub}>
           Discover fresh daily essentials from nearby stores within 3 km in Indore!

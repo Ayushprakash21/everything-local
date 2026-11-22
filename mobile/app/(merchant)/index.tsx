@@ -18,6 +18,7 @@ import { Store, Order } from '../../src/types';
 import { request } from '../../src/api/client';
 import { formatPaise } from '../../src/utils/format';
 import { NotificationService } from '../../src/utils/notifications';
+import { ELLogo } from '../../src/components/ELLogo';
 import {
   Package,
   Check,
@@ -158,12 +159,8 @@ export default function MerchantDispatchScreen() {
       {/* Top Merchant Navigation & Store Switch */}
       <View style={styles.header}>
         <View style={styles.storeRow}>
-          <View style={styles.storeAvatar}>
-            <Text style={styles.avatarText}>
-              {store?.name ? store.name.substring(0, 2).toUpperCase() : 'EL'}
-            </Text>
-          </View>
-          <View style={{ flex: 1, marginLeft: 10 }}>
+          <ELLogo variant="dark" size={44} style={{ marginRight: 10 }} />
+          <View style={{ flex: 1 }}>
             <View style={styles.badgeRow}>
               <Text style={styles.storeTitle} numberOfLines={1}>
                 {store?.name || 'Local Merchant'}
