@@ -21,6 +21,7 @@ function MainLayout() {
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
   const [cartCount, setCartCount] = useState<number>(0);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Fetch cart count
   const updateCartCount = async () => {
@@ -90,6 +91,12 @@ function MainLayout() {
         cartCount={cartCount}
         openCart={() => setIsCartOpen(true)}
         openAuth={() => setIsAuthOpen(true)}
+        searchQuery={searchQuery}
+        setSearchQuery={(q) => {
+          setSearchQuery(q);
+          if (currentTab !== 'customer') setCurrentTab('customer');
+          if (selectedStoreId) setSelectedStoreId(null);
+        }}
       />
 
       <main className="flex-1">
@@ -106,6 +113,8 @@ function MainLayout() {
                 onSelectStore={(id) => setSelectedStoreId(id)}
                 selectedLocation={selectedLocation}
                 onAddToCart={handleAddToCart}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
               />
             )}
           </>

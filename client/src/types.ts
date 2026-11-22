@@ -43,6 +43,9 @@ export interface Product {
   isAvailable: boolean;
   imageUrl?: string;
   sku?: string;
+  brand?: string;
+  packageSize?: string;
+  barcode?: string;
 }
 
 export interface CartItem {

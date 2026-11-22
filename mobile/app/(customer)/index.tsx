@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   heroBanner: {
-    backgroundColor: '#047857',
+    backgroundColor: '#064e3b',
     borderRadius: 24,
     padding: 20,
     marginBottom: 20,
@@ -386,8 +386,8 @@ const styles = StyleSheet.create({
     borderColor: '#e2e8f0',
   },
   catPillActive: {
-    backgroundColor: '#059669',
-    borderColor: '#059669',
+    backgroundColor: '#064e3b',
+    borderColor: '#064e3b',
   },
   catText: {
     fontSize: 12,

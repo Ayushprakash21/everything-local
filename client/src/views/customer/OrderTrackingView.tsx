@@ -79,14 +79,14 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ order: ini
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
       <button
         onClick={onBack}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-emerald-700 transition"
+        className="inline-flex items-center gap-1.5 text-xs font-black text-slate-600 hover:text-forest-900 transition bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>Back to Orders</span>
+        <span>Back to Order History</span>
       </button>
 
       {/* Order Status Header */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-4 shadow-xs">
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-4 shadow-card">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div>
             <div className="flex items-center gap-2">
@@ -98,95 +98,89 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ order: ini
                 {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
-            <h1 className="text-2xl font-black text-slate-900 mt-1">{order.store.name}</h1>
-            <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-              {order.store.addressLine}, {order.store.city}
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
+              Order Status: <span className="text-forest-800">{order.status.replace(/_/g, ' ')}</span>
+            </h1>
+            <p className="text-xs text-slate-500 font-medium">
+              Fulfilled by <strong className="text-slate-800">{order.store.name}</strong> • {order.store.addressLine}
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={reloadOrder}
-              className="p-2 border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-600 transition"
-              title="Refresh status"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-            <span
-              className={`px-3 py-1 text-xs font-bold uppercase rounded-full ${
-                isCancelled
-                  ? 'bg-red-100 text-red-800'
-                  : currentStep === 4
-                  ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-amber-100 text-amber-800 animate-pulse'
-              }`}
-            >
-              {order.status.replace(/_/g, ' ')}
+          <div className="text-left sm:text-right">
+            <span className="text-xs text-slate-400 font-medium block">Total Paid</span>
+            <span className="text-2xl font-black text-slate-900">
+              {formatPaise(order.totalAmountPaise)}
             </span>
           </div>
         </div>
 
-        {/* Live Timeline Steps */}
+        {/* Stepper Progress Bar */}
         {!isCancelled ? (
           <div className="py-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-4">
-              Live Order Progression
-            </span>
-            <div className="relative flex items-center justify-between">
-              {steps.map((step, idx) => {
-                const isPassed = currentStep >= idx;
-                const isCurrent = currentStep === idx;
+            <div className="grid grid-cols-5 gap-2 relative">
+              {steps.map((s, idx) => {
+                const isPassed = idx <= currentStep;
+                const isCurrent = idx === currentStep;
 
                 return (
-                  <div key={step.key} className="flex-1 flex flex-col items-center text-center relative group">
-                    {/* Connecting line */}
-                    {idx < steps.length - 1 && (
-                      <div
-                        className={`absolute top-4 left-1/2 w-full h-1 -z-0 ${
-                          currentStep > idx ? 'bg-emerald-500' : 'bg-slate-200'
-                        }`}
-                      ></div>
-                    )}
-
+                  <div key={s.key} className="flex flex-col items-center text-center space-y-2">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold z-10 transition ${
+                      className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition shadow-2xs ${
                         isPassed
-                          ? 'bg-emerald-600 text-white ring-4 ring-emerald-100'
-                          : 'bg-slate-200 text-slate-500'
-                      }`}
+                          ? 'bg-forest-800 text-white shadow-forest-800/30'
+                          : 'bg-slate-100 text-slate-400 border border-slate-200'
+                      } ${isCurrent ? 'ring-4 ring-forest-100' : ''}`}
                     >
                       {isPassed ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
                     </div>
-
-                    <span className={`text-[11px] font-bold mt-2 ${isCurrent ? 'text-emerald-700' : 'text-slate-700'}`}>
-                      {step.title}
-                    </span>
-                    <span className="text-[10px] text-slate-400 hidden sm:block">{step.desc}</span>
+                    <div>
+                      <h4
+                        className={`text-[11px] font-bold leading-tight ${
+                          isPassed ? 'text-slate-900' : 'text-slate-400'
+                        }`}
+                      >
+                        {s.title}
+                      </h4>
+                      <p className="text-[10px] text-slate-400 hidden sm:block mt-0.5">{s.desc}</p>
+                    </div>
                   </div>
                 );
               })}
             </div>
           </div>
         ) : (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-800">
-            <XCircle className="w-6 h-6 text-red-600 shrink-0" />
+          <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-3 text-rose-800">
+            <XCircle className="w-6 h-6 text-rose-600 shrink-0" />
             <div>
-              <h4 className="font-bold text-sm">Order Cancelled or Rejected</h4>
-              <p className="text-xs text-red-600 mt-0.5">
-                This order was cancelled. Any inventory reservation has been re-released.
-              </p>
+              <h4 className="font-black text-sm">Order {order.status}</h4>
+              <p className="text-xs text-rose-600">This order could not be fulfilled or was cancelled.</p>
             </div>
           </div>
         )}
 
-        {/* Customer Cancel Button (if still in PLACED state) */}
+        {/* Order Items Summary */}
+        <div className="pt-4 border-t border-slate-100 space-y-3">
+          <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Order Items</h3>
+          <div className="divide-y divide-slate-100 bg-slate-50 rounded-2xl p-4 border border-slate-100">
+            {order.items.map((i) => (
+              <div key={i.id} className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-bold text-slate-800">{i.productName}</span>
+                  <span className="text-slate-400 font-semibold ml-2">× {i.quantity}</span>
+                </div>
+                <span className="font-black text-slate-900">{formatPaise(i.totalPricePaise)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Actions (Cancel button if placed) */}
         {order.status === 'PLACED' && (
-          <div className="pt-2 flex justify-end">
+          <div className="pt-4 flex justify-end">
             <button
               onClick={handleCancel}
               disabled={cancelling}
-              className="text-xs font-bold text-red-600 hover:text-red-800 border border-red-200 hover:bg-red-50 px-3.5 py-1.5 rounded-xl transition"
+              className="px-4 py-2 border border-rose-200 text-rose-700 hover:bg-rose-50 rounded-xl text-xs font-bold transition"
             >
               {cancelling ? 'Cancelling...' : 'Cancel Order'}
             </button>
@@ -194,42 +188,8 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ order: ini
         )}
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
-            {error}
-          </div>
+          <p className="text-xs text-rose-600 font-medium text-right">{error}</p>
         )}
-      </div>
-
-      {/* Order Itemized Invoice */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4">
-        <h3 className="font-bold text-base text-slate-900">Itemized Invoice</h3>
-
-        <div className="divide-y divide-slate-100 text-xs">
-          {order.items.map((item) => (
-            <div key={item.id} className="py-2.5 flex items-center justify-between">
-              <div>
-                <span className="font-bold text-slate-800">{item.productName}</span>
-                <span className="text-slate-400 ml-2">x {item.quantity}</span>
-              </div>
-              <span className="font-bold text-slate-900">{formatPaise(item.totalPricePaise)}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="pt-3 border-t border-slate-200 space-y-1.5 text-xs">
-          <div className="flex justify-between text-slate-600">
-            <span>Item Subtotal</span>
-            <span>{formatPaise(order.itemSubtotalPaise)}</span>
-          </div>
-          <div className="flex justify-between text-slate-600">
-            <span>Fulfillment ({order.fulfillmentMode})</span>
-            <span>{formatPaise(order.deliveryFeePaise)}</span>
-          </div>
-          <div className="pt-2 border-t border-slate-200 flex justify-between font-extrabold text-sm text-slate-900">
-            <span>Total Paid</span>
-            <span className="text-emerald-700">{formatPaise(order.totalAmountPaise)}</span>
-          </div>
-        </div>
       </div>
     </div>
   );
