@@ -1,36 +1,41 @@
 import React from 'react';
+import { BrandLogo, BrandLogoProps } from './BrandLogo';
 
-interface ELLogoProps {
-  variant?: 'dark' | 'light' | 'full' | 'icon';
-  size?: number | string;
+export interface ELLogoProps {
+  variant?: 'dark' | 'light' | 'full' | 'icon' | 'horizontal' | 'symbol';
+  size?: number | 'small' | 'medium' | 'large';
   className?: string;
   alt?: string;
+  onClick?: () => void;
 }
 
 export const ELLogo: React.FC<ELLogoProps> = ({
-  variant = 'dark',
+  variant = 'horizontal',
   size = 40,
   className = '',
-  alt = 'Everything Local Monogram'
+  alt = 'Everything Local',
+  onClick
 }) => {
-  const src =
-    variant === 'light'
-      ? '/branding/logo-light.png'
-      : variant === 'dark'
-      ? '/branding/logo-dark.png'
-      : variant === 'icon'
-      ? '/branding/logo-icon.png'
-      : '/branding/logo-full.png';
-
-  const dimension = typeof size === 'number' ? `${size}px` : size;
+  let mappedVariant: BrandLogoProps['variant'] = 'horizontal';
+  if (variant === 'icon' || variant === 'symbol') {
+    mappedVariant = 'symbol';
+  } else if (variant === 'light') {
+    mappedVariant = 'light';
+  } else if (variant === 'dark') {
+    mappedVariant = 'dark';
+  } else {
+    mappedVariant = 'horizontal';
+  }
 
   return (
-    <img
-      src={src}
+    <BrandLogo
+      variant={mappedVariant}
+      size={size}
+      className={className}
       alt={alt}
-      style={{ width: dimension, height: dimension }}
-      className={`object-contain shrink-0 select-none ${className}`}
-      loading="eager"
+      onClick={onClick}
     />
   );
 };
+
+export default ELLogo;

@@ -30,6 +30,7 @@ import { RiderAppView } from './views/rider/RiderAppView';
 import { HouseholdView } from './views/customer/HouseholdView';
 import { CommunityDealsView } from './views/customer/CommunityDealsView';
 import { AIAssistantModal } from './components/AIAssistantModal';
+import { BrandLogo } from './components/BrandLogo';
 
 import { request } from './api/client';
 import { Cart, Order, ServiceBooking } from './types';
@@ -331,6 +332,24 @@ function MainLayout() {
           <RiderAppView openAuth={() => setIsAuthOpen(true)} />
         )}
       </main>
+
+      {/* Global Application Footer with Brand Identity */}
+      <footer className="mt-16 border-t border-slate-200 bg-white py-12 px-4 sm:px-6 lg:px-8 pb-24 md:pb-12">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+            <BrandLogo variant="horizontal" size="medium" className="h-10 w-auto" />
+            <div className="sm:border-l sm:border-slate-200 sm:pl-4">
+              <p className="text-xs font-black text-slate-900">Hyperlocal Commerce &amp; Local Services Platform</p>
+              <p className="text-[11px] text-slate-500">Initial Pilot: Indore, Madhya Pradesh • Palasia, Vijay Nagar, Bhawarkua &amp; 40+ localities</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-slate-500">
+            <span>© {new Date().getFullYear()} Everything Local</span>
+            <span className="hidden sm:inline">•</span>
+            <span>Shop more. Save more. Live better.</span>
+          </div>
+        </div>
+      </footer>
 
       {/* Floating AI Shopping Copilot Button (Shop Mode) */}
       {discoveryMode === 'shop' && currentTab === 'customer' && (

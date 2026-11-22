@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { request, formatPaise } from '../../api/client';
 import { useCart } from '../../context/CartContext';
+import { BrandLogo } from '../../components/BrandLogo';
 import { ELLogo } from '../../components/ELLogo';
 import {
   Users,
@@ -129,7 +130,7 @@ export const HouseholdView: React.FC<{ openAuth: () => void; onBack: () => void 
   if (!user) {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center space-y-4">
-        <ELLogo variant="dark" size={60} className="mx-auto" />
+        <BrandLogo variant="horizontal" size="large" className="mx-auto" />
         <h3 className="font-black text-slate-900 text-xl">Household Operating System</h3>
         <p className="text-xs text-slate-500 max-w-sm mx-auto">
           Share grocery lists, manage monthly family budgets, and automate recurring pantry staples with your family in Indore.

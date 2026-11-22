@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { ELLogo } from '../../components/ELLogo';
+import { BrandLogo } from '../../components/BrandLogo';
 import { X, Lock, Mail, User as UserIcon, Phone, Store } from 'lucide-react';
 
 interface AuthModalProps {
@@ -58,14 +58,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultRo
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="bg-emerald-600 px-6 py-5 text-white flex items-center justify-between">
+        <div className="bg-[#0B1F3A] px-6 py-5 text-white flex items-center justify-between">
           <div className="flex items-center">
-            <ELLogo variant="light" size={44} className="mr-3 shrink-0" />
+            <BrandLogo variant="symbol" size="medium" className="mr-3 shrink-0" />
             <div>
-              <h3 className="font-bold text-xl">
+              <h3 className="font-black text-xl text-white tracking-tight">
                 {isRegister ? 'Join Everything Local' : 'Welcome Back'}
               </h3>
-              <p className="text-emerald-100 text-xs mt-0.5">
+              <p className="text-amber-300 text-xs mt-0.5 font-medium">
                 Indore's Neighbourhood Commerce Platform
               </p>
             </div>

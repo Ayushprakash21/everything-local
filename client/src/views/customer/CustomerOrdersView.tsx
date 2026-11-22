@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Order } from '../../types';
 import { request, formatPaise } from '../../api/client';
+import { BrandLogo } from '../../components/BrandLogo';
 import { ELLogo } from '../../components/ELLogo';
 import {
   Package,
@@ -90,7 +91,7 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
   if (!isLoggedIn) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
-        <ELLogo variant="dark" size={64} className="mx-auto" />
+        <BrandLogo variant="horizontal" size="large" className="mx-auto" />
         <h3 className="font-black text-slate-900 text-xl">Sign in to view orders</h3>
         <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
           Track active orders, view past neighbourhood receipts and verify delivery OTPs.

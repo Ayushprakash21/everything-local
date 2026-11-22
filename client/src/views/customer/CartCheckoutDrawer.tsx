@@ -3,6 +3,7 @@ import { Cart, Order } from '../../types';
 import { request, formatPaise } from '../../api/client';
 import { useLocation } from '../../context/LocationContext';
 import { useCart } from '../../context/CartContext';
+import { BrandLogo } from '../../components/BrandLogo';
 import { ELLogo } from '../../components/ELLogo';
 import { ImageWithFallback } from '../../components/common/ImageWithFallback';
 import {
@@ -189,7 +190,7 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
         {/* Drawer Header */}
         <div className="p-4 sm:p-5 border-b border-slate-200/90 flex items-center justify-between bg-slate-50/80">
           <div className="flex items-center gap-2.5">
-            <ELLogo variant="dark" size={34} className="shrink-0" />
+            <BrandLogo variant="symbol" size="small" className="shrink-0" />
             <div>
               <h3 className="font-black text-slate-900 text-base">Your Hyperlocal Cart</h3>
               <p className="text-[11px] font-semibold text-slate-500">
@@ -229,7 +230,7 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
           </div>
         ) : !cart || cart.items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-3">
-            <ELLogo variant="dark" size={60} className="mx-auto mb-2" />
+            <BrandLogo variant="horizontal" size="large" className="mx-auto mb-2" />
             <h4 className="font-black text-slate-800 text-base">Your cart is empty</h4>
             <p className="text-xs text-slate-500 max-w-xs">
               Discover fresh staples and produce from neighbourhood stores in Indore!

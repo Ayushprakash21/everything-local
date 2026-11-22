@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
+import { BrandLogo } from './BrandLogo';
+import { AppSectionIcon } from './AppSectionIcon';
 import { ELLogo } from './ELLogo';
 import {
   MapPin,
@@ -133,26 +135,36 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* --- LEFT: LOGO, BRAND & INDORE BADGE --- */}
           <div className="flex items-center gap-3 shrink-0">
             <div
-              className="flex items-center gap-2.5 cursor-pointer group"
+              className="flex items-center gap-2 cursor-pointer group"
               onClick={() => {
                 if (discoveryMode === 'shop') setCurrentTab('customer');
                 else if (discoveryMode === 'pharmacy' && setPharmacyTab) setPharmacyTab('explore');
                 else setServicesTab('explore');
               }}
+              title="Everything Local — Indore"
             >
-              <ELLogo variant="dark" size={38} className="group-hover:scale-105 transition-transform shrink-0" />
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-black text-base sm:text-lg text-slate-900 tracking-tight">
-                    Everything Local
-                  </span>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs">
-                    Indore
-                  </span>
-                </div>
-                <p className="text-[11px] font-medium text-slate-500 hidden sm:block">
-                  Shop more. Save more. Live better.
-                </p>
+              {/* Desktop / Large Screen: Clean Horizontal Logo */}
+              <div className="hidden sm:flex items-center gap-2">
+                <BrandLogo
+                  variant="horizontal"
+                  size="medium"
+                  className="h-10 sm:h-11 w-auto max-w-[215px] group-hover:scale-[1.02] transition-transform"
+                />
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs self-center">
+                  Indore
+                </span>
+              </div>
+
+              {/* Mobile: Compact Standalone Symbol with Indore Badge */}
+              <div className="flex sm:hidden items-center gap-1.5">
+                <BrandLogo
+                  variant="symbol"
+                  size="small"
+                  className="h-9 w-auto group-hover:scale-105 transition-transform"
+                />
+                <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-300">
+                  Indore
+                </span>
               </div>
             </div>
           </div>

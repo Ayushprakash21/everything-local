@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { request, formatPaise } from '../api/client';
 import { useLocation } from '../context/LocationContext';
 import { useCart } from '../context/CartContext';
+import { BrandLogo } from './BrandLogo';
 import { ELLogo } from './ELLogo';
 import {
   Sparkles,
@@ -382,8 +383,8 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                   className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {m.role === 'assistant' && (
-                    <div className="w-7 h-7 rounded-full bg-forest-900 text-white flex items-center justify-center shrink-0 text-xs">
-                      <Bot className="w-4 h-4" />
+                    <div className="w-7 h-7 rounded-full bg-[#0B1F3A] flex items-center justify-center shrink-0 p-1 shadow-2xs">
+                      <BrandLogo variant="symbol" size="small" />
                     </div>
                   )}
 

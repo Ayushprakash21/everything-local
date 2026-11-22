@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { request, formatPaise } from '../../api/client';
+import { BrandLogo } from '../../components/BrandLogo';
 import { ELLogo } from '../../components/ELLogo';
 import {
   Bike,
@@ -279,14 +280,14 @@ export const RiderAppView: React.FC<{ openAuth: () => void }> = ({ openAuth }) =
   if (!user) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
-        <ELLogo variant="dark" size={64} className="mx-auto" />
+        <BrandLogo variant="horizontal" size="large" className="mx-auto" />
         <h3 className="font-black text-slate-900 text-xl">Everything Local Delivery Partner App</h3>
         <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
           Sign in or register as a delivery rider in Indore to accept neighbourhood deliveries, earn per-trip payouts and get weekly settlements.
         </p>
         <button
           onClick={openAuth}
-          className="px-6 py-3 bg-forest-900 hover:bg-forest-950 text-white rounded-2xl text-xs font-black shadow-md transition active:scale-95"
+          className="px-6 py-3 bg-[#0B1F3A] hover:bg-[#071324] text-white rounded-2xl text-xs font-black shadow-md transition active:scale-95"
         >
           Partner Sign In
         </button>

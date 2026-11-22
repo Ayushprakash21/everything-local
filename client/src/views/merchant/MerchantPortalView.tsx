@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Store } from '../../types';
+import { BrandLogo } from '../../components/BrandLogo';
 import { ELLogo } from '../../components/ELLogo';
 import {
   Store as StoreIcon,
@@ -101,7 +102,7 @@ export const MerchantPortalView: React.FC<MerchantPortalViewProps> = ({
             <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/10 rounded-full blur-2xl" />
             <div className="relative z-10 flex flex-col items-center">
               <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl mb-3 shadow-inner">
-                <ELLogo variant="light" size={48} />
+                <BrandLogo variant="symbol" size="large" />
               </div>
               <span className="text-xs uppercase tracking-widest font-black bg-white/20 px-3 py-1 rounded-full mb-2">
                 Merchant Verification Pending
@@ -289,7 +290,7 @@ export const MerchantPortalView: React.FC<MerchantPortalViewProps> = ({
       <div className="text-center mb-8 space-y-3">
         <div className="flex justify-center mb-2">
           <div className="p-3 bg-white rounded-3xl shadow-sm border border-slate-200">
-            <ELLogo variant="dark" size={54} />
+            <BrandLogo variant="horizontal" size="large" />
           </div>
         </div>
         <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-900 border border-amber-200 px-3 py-1 rounded-full text-xs font-bold">
