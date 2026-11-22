@@ -1,39 +1,73 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
   Modal,
-  ScrollView
+  FlatList,
+  Platform,
+  StatusBar
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useLocation } from '../../src/context/LocationContext';
 import { useCart } from '../../src/context/CartContext';
-import { Store } from '../../src/types';
+import { useAuth } from '../../src/context/AuthContext';
+import { Store, Product } from '../../src/types';
 import { request } from '../../src/api/client';
 import { formatPaise, formatDistance } from '../../src/utils/format';
-import { MapPin, Navigation, Star, Clock, Plus, Store as StoreIcon, ShieldCheck, ChevronDown, Check } from 'lucide-react-native';
+import { ProductCard } from '../../src/components/ProductCard';
+import { CategoryTile, CategoryData } from '../../src/components/CategoryTile';
+import { FloatingCartBar } from '../../src/components/FloatingCartBar';
+import { VisualSearchModal } from '../../src/components/VisualSearchModal';
+import { SafeImage } from '../../src/components/SafeImage';
+import {
+  MapPin,
+  Search,
+  Camera,
+  Star,
+  Clock,
+  ChevronDown,
+  Navigation,
+  ShieldCheck,
+  Check,
+  Sparkles,
+  ArrowRight,
+  User as UserIcon,
+  Store as StoreIcon,
+  Tag
+} from 'lucide-react-native';
 
 export default function CustomerHomeScreen() {
   const router = useRouter();
   const { coords, selectedNeighborhood, setSelectedNeighborhood, refreshLocation, isGpsActive } = useLocation();
-  const { addItem } = useCart();
+  const { addItem, cart } = useCart();
+  const { user } = useAuth();
+
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [locationModalVisible, setLocationModalVisible] = useState(false);
-  const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
+  const [visualSearchVisible, setVisualSearchVisible] = useState(false);
+  const [activePromoIndex, setActivePromoIndex] = useState(0);
 
-  const categories = [
-    { id: 'all', label: 'All Stores' },
-    { id: 'grocery', label: 'Kirana & Grocery' },
-    { id: 'produce', label: 'Fruits & Veg' },
-    { id: 'bakery', label: 'Bakery & Dairy' }
+  const categories: CategoryData[] = [
+    { id: 'all', label: 'All Items', icon: '🛒', bgColor: '#FEF3C7', accentColor: '#D97706' },
+    { id: 'produce', label: 'Fruits & Veg', icon: '🥬', bgColor: '#DCFCE7', accentColor: '#059669' },
+    { id: 'bakery', label: 'Dairy & Bread', icon: '🥛', bgColor: '#FEF9C3', accentColor: '#CA8A04' },
+    { id: 'snacks', label: 'Snacks', icon: '🍟', bgColor: '#FCE7F3', accentColor: '#DB2777' },
+    { id: 'grocery', label: 'Atta & Dal', icon: '🌾', bgColor: '#FFEDD5', accentColor: '#EA580C' },
+    { id: 'drinks', label: 'Drinks & Juices', icon: '🧃', bgColor: '#E0F2FE', accentColor: '#0284C7' },
+    { id: 'medicines', label: 'Pharmacy', icon: '💊', bgColor: '#E0E7FF', accentColor: '#4F46E5' },
+    { id: 'personal_care', label: 'Personal Care', icon: '🧴', bgColor: '#F3E8FF', accentColor: '#9333EA' },
+    { id: 'household', label: 'Home Clean', icon: '🧹', bgColor: '#ECFDF5', accentColor: '#059669' },
+    { id: 'meat', label: 'Meat & Fish', icon: '🍗', bgColor: '#FFE4E6', accentColor: '#E11D48' },
+    { id: 'sweet_tooth', label: 'Chocolates', icon: '🍫', bgColor: '#FEF3C7', accentColor: '#B45309' },
+    { id: 'pet_supplies', label: 'Pet Care', icon: '🐾', bgColor: '#F1F5F9', accentColor: '#475569' }
   ];
 
   const neighborhoods = [
@@ -45,13 +79,40 @@ export default function CustomerHomeScreen() {
     'Annapurna, Indore'
   ];
 
+  const promoBanners = [
+    {
+      badge: 'EVERYDAY ESSENTIALS',
+      title: 'Fresh Vegetables & Kirana',
+      subtitle: 'Direct from neighborhood shops in 15-20 min',
+      code: 'FREE DELIVERY > ₹299',
+      bgColor: '#064e3b',
+      accentColor: '#f59e0b'
+    },
+    {
+      badge: 'LOCAL OFFERS',
+      title: 'Flat 15% OFF on Dairy & Bakery',
+      subtitle: 'Fresh milk, artisanal breads and organic eggs',
+      code: 'USE CODE: LOCAL15',
+      bgColor: '#d97706',
+      accentColor: '#fef3c7'
+    },
+    {
+      badge: 'COMMUNITY STORES',
+      title: 'Support Your Local Kirana',
+      subtitle: 'Genuine MRP pricing, verified local merchants',
+      code: '3 KM DIRECT RADIUS',
+      bgColor: '#0f172a',
+      accentColor: '#10b981'
+    }
+  ];
+
   const fetchStores = async () => {
     try {
       const catParam = selectedCategory !== 'all' ? `&category=${selectedCategory}` : '';
       const res = await request<{ stores: Store[] }>(
         `/customer/stores?lat=${coords.latitude}&lng=${coords.longitude}${catParam}`
       );
-      setStores(res.stores);
+      setStores(res.stores || []);
     } catch (e) {
       console.error('Failed to load stores:', e);
     } finally {
@@ -69,177 +130,316 @@ export default function CustomerHomeScreen() {
     fetchStores();
   };
 
-  const handleQuickAdd = async (storeId: string, productId: string) => {
-    const result = await addItem(storeId, productId, 1);
-    if (result.success) {
-      setRecentlyAddedId(productId);
-      setTimeout(() => setRecentlyAddedId(null), 1200);
-    } else if (result.conflictMessage) {
-      alert(result.conflictMessage);
-    }
-  };
+  // Extract products across stores for Blinkit-style discovery carousels
+  const allProducts = useMemo(() => {
+    const list: Product[] = [];
+    stores.forEach((store) => {
+      (store.sampleProducts || []).forEach((prod) => {
+        list.push({ ...prod, storeId: store.id, store });
+      });
+    });
+    return list;
+  }, [stores]);
+
+  const everydayEssentials = useMemo(() => {
+    return allProducts.slice(0, 8);
+  }, [allProducts]);
+
+  const fruitsAndVeggies = useMemo(() => {
+    const matched = allProducts.filter((p) => p.category === 'produce' || p.category === 'grocery');
+    return (matched.length > 0 ? matched : allProducts).slice(0, 8);
+  }, [allProducts]);
+
+  const specialOffers = useMemo(() => {
+    return allProducts.filter((p) => p.mrpPaise > p.pricePaise).slice(0, 8);
+  }, [allProducts]);
 
   return (
     <View style={styles.container}>
-      {/* Top Bar with Location Selector */}
-      <View style={styles.topBar}>
-        <TouchableOpacity
-          onPress={() => setLocationModalVisible(true)}
-          style={styles.locationPill}
-        >
-          <MapPin size={16} color="#059669" />
-          <View>
-            <Text style={styles.deliveringTo}>Deliver to</Text>
-            <View style={styles.locationRow}>
-              <Text style={styles.neighborhoodText} numberOfLines={1}>
-                {selectedNeighborhood}
-              </Text>
-              <ChevronDown size={14} color="#64748b" />
-            </View>
-          </View>
-        </TouchableOpacity>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
-        <TouchableOpacity onPress={refreshLocation} style={styles.gpsBtn}>
-          <Navigation size={18} color={isGpsActive ? '#059669' : '#64748b'} />
+      {/* Top Blinkit-Style Brand & Location Header */}
+      <View style={styles.topHeader}>
+        <View style={styles.headerLeft}>
+          <View style={styles.deliveryBadge}>
+            <Clock size={12} color="#064e3b" strokeWidth={2.5} />
+            <Text style={styles.deliveryBadgeText}>delivery in 15 minutes</Text>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setLocationModalVisible(true)}
+            style={styles.locationSelector}
+          >
+            <MapPin size={15} color="#047857" />
+            <Text style={styles.locationName} numberOfLines={1}>
+              {selectedNeighborhood}
+            </Text>
+            <ChevronDown size={14} color="#64748b" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            onPress={refreshLocation}
+            style={[styles.headerBtn, isGpsActive && styles.headerBtnActive]}
+          >
+            <Navigation size={16} color={isGpsActive ? '#047857' : '#64748b'} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push('/(customer)/profile')}
+            style={styles.avatarBtn}
+          >
+            <UserIcon size={18} color="#064e3b" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Large Rounded Search Bar with Visual & Voice Shortcuts */}
+      <View style={styles.searchBarWrapper}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => router.push('/(customer)/search')}
+          style={styles.searchBar}
+        >
+          <Search size={18} color="#94a3b8" />
+          <Text style={styles.searchPlaceholder} numberOfLines={1}>
+            Search "milk, atta, banana, chips..."
+          </Text>
+          <View style={styles.searchShortcuts}>
+            <TouchableOpacity
+              onPress={() => setVisualSearchVisible(true)}
+              style={styles.shortcutBtn}
+            >
+              <Camera size={18} color="#047857" />
+            </TouchableOpacity>
+          </View>
         </TouchableOpacity>
       </View>
 
-      {/* Main Stores List */}
-      <FlatList
-        data={stores}
-        keyExtractor={(item) => item.id}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#059669']} />}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={
-          <>
-            {/* Hyperlocal Value Banner */}
-            <View style={styles.heroBanner}>
-              <View style={styles.heroBadge}>
-                <ShieldCheck size={14} color="#a7f3d0" />
-                <Text style={styles.heroBadgeText}>Indore 3 km Direct Radius</Text>
+      {/* Scrollable Commerce Feeds */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#047857']} />}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Promotional Campaign Banner Carousel */}
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(e) => {
+            const index = Math.round(e.nativeEvent.contentOffset.x / (e.nativeEvent.layoutMeasurement.width || 1));
+            setActivePromoIndex(index);
+          }}
+          style={styles.promoCarousel}
+        >
+          {promoBanners.map((promo, idx) => (
+            <View key={idx} style={[styles.promoCard, { backgroundColor: promo.bgColor }]}>
+              <View style={styles.promoBadge}>
+                <Sparkles size={11} color="#0f172a" />
+                <Text style={styles.promoBadgeText}>{promo.badge}</Text>
               </View>
-              <Text style={styles.heroTitle}>Shop from your neighbourhood stores.</Text>
-              <Text style={styles.heroSub}>
-                Pure local Kirana, Bakeries and Fresh Mandi produce.
-              </Text>
-              <View style={styles.heroStats}>
-                <Text style={styles.statPill}>Pickup: ₹0 FREE</Text>
-                <Text style={styles.statPill}>Min Order: ₹299</Text>
-                <Text style={styles.statPill}>30-min Delivery</Text>
+              <Text style={styles.promoTitle}>{promo.title}</Text>
+              <Text style={styles.promoSubtitle}>{promo.subtitle}</Text>
+              <View style={styles.promoCodeRow}>
+                <Tag size={13} color={promo.accentColor} />
+                <Text style={[styles.promoCodeText, { color: promo.accentColor }]}>{promo.code}</Text>
               </View>
             </View>
+          ))}
+        </ScrollView>
 
-            {/* Category Filter Pills */}
+        {/* Promo Indicators */}
+        <View style={styles.indicatorRow}>
+          {promoBanners.map((_, i) => (
+            <View
+              key={i}
+              style={[styles.indicatorDot, activePromoIndex === i && styles.indicatorDotActive]}
+            />
+          ))}
+        </View>
+
+        {/* Category Discovery Grid (Blinkit 4x3 style) */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Shop by Category</Text>
+          <TouchableOpacity onPress={() => router.push('/(customer)/search')}>
+            <Text style={styles.sectionAction}>View all ➔</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesRow}
+        >
+          {categories.map((cat) => (
+            <CategoryTile
+              key={cat.id}
+              category={cat}
+              isSelected={selectedCategory === cat.id}
+              onPress={() => setSelectedCategory(cat.id === selectedCategory ? 'all' : cat.id)}
+            />
+          ))}
+        </ScrollView>
+
+        {/* Everyday Essentials Horizontal Carousel */}
+        {everydayEssentials.length > 0 && (
+          <View style={styles.carouselSection}>
+            <View style={styles.sectionHeader}>
+              <View>
+                <Text style={styles.sectionTitle}>Everyday Essentials</Text>
+                <Text style={styles.sectionSubtitle}>Daily household staples delivered fast</Text>
+              </View>
+            </View>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.catScroll}
+              contentContainerStyle={styles.productCarouselRow}
             >
-              {categories.map((cat) => (
-                <TouchableOpacity
-                  key={cat.id}
-                  onPress={() => setSelectedCategory(cat.id)}
-                  style={[styles.catPill, selectedCategory === cat.id && styles.catPillActive]}
-                >
-                  <Text style={[styles.catText, selectedCategory === cat.id && styles.catTextActive]}>
-                    {cat.label}
-                  </Text>
-                </TouchableOpacity>
+              {everydayEssentials.map((item) => (
+                <ProductCard
+                  key={item.id}
+                  product={item}
+                  onPress={() => item.storeId && router.push(`/(customer)/store/${item.storeId}`)}
+                  width={150}
+                />
               ))}
             </ScrollView>
+          </View>
+        )}
 
+        {/* Best Offers & Deals Section */}
+        {specialOffers.length > 0 && (
+          <View style={styles.carouselSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Nearby Independent Retailers</Text>
-              <Text style={styles.sectionSub}>within 3.0 km of your location</Text>
+              <View>
+                <Text style={styles.sectionTitle}>Best Offers Near You</Text>
+                <Text style={styles.sectionSubtitle}>Save big on neighborhood discounts</Text>
+              </View>
             </View>
-          </>
-        }
-        renderItem={({ item }) => (
-          <View style={styles.storeCard}>
-            <TouchableOpacity
-              onPress={() => router.push(`/(customer)/store/${item.id}`)}
-              style={styles.storeCardTop}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.productCarouselRow}
             >
-              <View style={styles.storeHeaderRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.storeCategory}>{item.category.toUpperCase()}</Text>
-                  <Text style={styles.storeName}>{item.name}</Text>
-                  <Text style={styles.storeAddress} numberOfLines={1}>{item.addressLine}</Text>
-                </View>
+              {specialOffers.map((item) => (
+                <ProductCard
+                  key={item.id}
+                  product={item}
+                  onPress={() => item.storeId && router.push(`/(customer)/store/${item.storeId}`)}
+                  width={150}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
+        {/* Fruits & Vegetables Carousel */}
+        {fruitsAndVeggies.length > 0 && (
+          <View style={styles.carouselSection}>
+            <View style={styles.sectionHeader}>
+              <View>
+                <Text style={styles.sectionTitle}>Fresh Fruits & Vegetables</Text>
+                <Text style={styles.sectionSubtitle}>Farm-fresh produce sourced daily</Text>
+              </View>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.productCarouselRow}
+            >
+              {fruitsAndVeggies.map((item) => (
+                <ProductCard
+                  key={item.id}
+                  product={item}
+                  onPress={() => item.storeId && router.push(`/(customer)/store/${item.storeId}`)}
+                  width={150}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Popular Neighbourhood Stores */}
+        <View style={styles.storesSection}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Neighborhood Stores ({stores.length})</Text>
+              <Text style={styles.sectionSubtitle}>Local merchants within 3.0 km</Text>
+            </View>
+          </View>
+
+          {stores.map((store) => (
+            <TouchableOpacity
+              key={store.id}
+              activeOpacity={0.88}
+              onPress={() => router.push(`/(customer)/store/${store.id}`)}
+              style={styles.storeCard}
+            >
+              <View style={styles.storeCardHeader}>
+                <View style={styles.storeLogoBox}>
+                  <StoreIcon size={24} color="#047857" />
+                </View>
+                <View style={styles.storeInfo}>
+                  <View style={styles.storeNameRow}>
+                    <Text style={styles.storeName} numberOfLines={1}>{store.name}</Text>
+                    {store.isVerified && (
+                      <ShieldCheck size={16} color="#047857" style={{ marginLeft: 4 }} />
+                    )}
+                  </View>
+                  <Text style={styles.storeCategory} numberOfLines={1}>
+                    {store.category.toUpperCase()} • {store.addressLine}
+                  </Text>
+                </View>
                 <View style={styles.ratingBadge}>
-                  <Star size={12} color="#f59e0b" fill="#f59e0b" />
-                  <Text style={styles.ratingText}>{item.rating || 4.8}</Text>
+                  <Star size={12} color="#d97706" fill="#d97706" />
+                  <Text style={styles.ratingText}>{store.rating || 4.8}</Text>
                 </View>
               </View>
 
               <View style={styles.storeMetaRow}>
                 <View style={styles.metaItem}>
-                  <MapPin size={12} color="#059669" />
-                  <Text style={styles.metaText}>{formatDistance(item.distanceKm)}</Text>
+                  <Clock size={13} color="#047857" />
+                  <Text style={styles.metaText}>15-20 min</Text>
                 </View>
-                <Text style={styles.metaDot}>•</Text>
+                <Text style={styles.metaDivider}>•</Text>
                 <View style={styles.metaItem}>
-                  <Clock size={12} color="#94a3b8" />
-                  <Text style={styles.metaText}>15-30 mins</Text>
+                  <MapPin size={13} color="#64748b" />
+                  <Text style={styles.metaText}>{formatDistance(store.distanceKm || 1.2)}</Text>
                 </View>
-                <Text style={styles.metaDot}>•</Text>
-                <Text style={styles.pickupPill}>Pickup ₹0</Text>
+                <Text style={styles.metaDivider}>•</Text>
+                <View style={styles.metaItem}>
+                  <Text style={styles.freeDelText}>Free delivery &gt; ₹299</Text>
+                </View>
               </View>
-            </TouchableOpacity>
 
-            {/* Popular Essentials Sub-List */}
-            {item.sampleProducts && item.sampleProducts.length > 0 && (
-              <View style={styles.sampleBox}>
-                <Text style={styles.sampleTitle}>DAILY ESSENTIALS</Text>
-                {item.sampleProducts.slice(0, 3).map((prod) => (
-                  <View key={prod.id} style={styles.productRow}>
-                    <Text style={styles.prodName} numberOfLines={1}>{prod.name}</Text>
-                    <View style={styles.priceRow}>
-                      <Text style={styles.prodPrice}>{formatPaise(prod.pricePaise)}</Text>
-                      <TouchableOpacity
-                        onPress={() => handleQuickAdd(item.id, prod.id)}
-                        style={[
-                          styles.addBtn,
-                          recentlyAddedId === prod.id && styles.addBtnSuccess
-                        ]}
-                      >
-                        {recentlyAddedId === prod.id ? (
-                          <Check size={12} color="#ffffff" />
-                        ) : (
-                          <>
-                            <Plus size={12} color="#059669" />
-                            <Text style={styles.addBtnText}>Add</Text>
-                          </>
-                        )}
-                      </TouchableOpacity>
+              {/* Sample Product Chips */}
+              {store.sampleProducts && store.sampleProducts.length > 0 && (
+                <View style={styles.sampleChipsRow}>
+                  {store.sampleProducts.slice(0, 3).map((prod) => (
+                    <View key={prod.id} style={styles.sampleChip}>
+                      <Text style={styles.sampleChipText} numberOfLines={1}>
+                        {prod.name} ({formatPaise(prod.pricePaise)})
+                      </Text>
                     </View>
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
-        )}
-        ListEmptyComponent={
-          !loading ? (
-            <View style={styles.emptyContainer}>
-              <StoreIcon size={48} color="#cbd5e1" />
-              <Text style={styles.emptyTitle}>No Stores in this 3 km Radius</Text>
-              <Text style={styles.emptyDesc}>
-                Try changing your neighborhood location above to discover Indore stores.
-              </Text>
-            </View>
-          ) : (
-            <ActivityIndicator size="large" color="#059669" style={{ marginTop: 40 }} />
-          )
-        }
-      />
+                  ))}
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      {/* Neighborhood Selection Modal */}
+        <View style={{ height: 120 }} />
+      </ScrollView>
+
+      {/* Persistent Floating Cart Bar */}
+      <FloatingCartBar />
+
+      {/* Location Picker Modal */}
       <Modal
         visible={locationModalVisible}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setLocationModalVisible(false)}
       >
         <TouchableOpacity
@@ -247,30 +447,48 @@ export default function CustomerHomeScreen() {
           activeOpacity={1}
           onPress={() => setLocationModalVisible(false)}
         >
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Choose Indore Neighborhood</Text>
-            <Text style={styles.modalSub}>
-              Everything Local connects stores within 3.0 km of your selected area.
-            </Text>
+          <View style={styles.locationModal}>
+            <View style={styles.modalDragHandle} />
+            <Text style={styles.modalTitle}>Choose Delivery Location</Text>
+            <Text style={styles.modalSubtitle}>Currently serving Indore neighbourhoods within 3 km</Text>
 
-            {neighborhoods.map((n) => (
-              <TouchableOpacity
-                key={n}
-                onPress={() => {
-                  setSelectedNeighborhood(n);
-                  setLocationModalVisible(false);
-                }}
-                style={[styles.nItem, selectedNeighborhood === n && styles.nItemActive]}
-              >
-                <MapPin size={16} color={selectedNeighborhood === n ? '#059669' : '#94a3b8'} />
-                <Text style={[styles.nText, selectedNeighborhood === n && styles.nTextActive]}>
-                  {n}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            <FlatList
+              data={neighborhoods}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => {
+                const isSelected = selectedNeighborhood === item;
+                return (
+                  <TouchableOpacity
+                    style={[styles.neighborhoodOption, isSelected && styles.neighborhoodOptionSelected]}
+                    onPress={() => {
+                      setSelectedNeighborhood(item);
+                      setLocationModalVisible(false);
+                    }}
+                  >
+                    <View style={styles.neighborhoodLeft}>
+                      <MapPin size={18} color={isSelected ? '#047857' : '#64748b'} />
+                      <Text style={[styles.neighborhoodName, isSelected && styles.neighborhoodNameSelected]}>
+                        {item}
+                      </Text>
+                    </View>
+                    {isSelected && <Check size={18} color="#047857" />}
+                  </TouchableOpacity>
+                );
+              }}
+            />
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* Visual Search Modal */}
+      <VisualSearchModal
+        visible={visualSearchVisible}
+        onClose={() => setVisualSearchVisible(false)}
+        onSearchResults={(keyword) => {
+          setVisualSearchVisible(false);
+          router.push({ pathname: '/(customer)/search', params: { q: keyword } });
+        }}
+      />
     </View>
   );
 }
@@ -278,333 +496,381 @@ export default function CustomerHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff'
   },
-  topBar: {
+  topHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 52,
-    paddingBottom: 12,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    paddingTop: Platform.OS === 'ios' ? 48 : 12,
+    paddingBottom: 10,
+    backgroundColor: '#ffffff'
   },
-  locationPill: {
+  headerLeft: {
+    flex: 1
+  },
+  deliveryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    flex: 1,
+    backgroundColor: '#fef3c7',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginBottom: 4
   },
-  deliveringTo: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#94a3b8',
-    textTransform: 'uppercase',
+  deliveryBadgeText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#064e3b',
+    marginLeft: 4,
+    textTransform: 'uppercase'
   },
-  locationRow: {
+  locationSelector: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    alignItems: 'center'
   },
-  neighborhoodText: {
-    fontSize: 14,
+  locationName: {
+    fontSize: 15,
     fontWeight: '800',
     color: '#0f172a',
+    marginHorizontal: 4,
+    maxWidth: 220
   },
-  gpsBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: '#f1f5f9',
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f8fafc',
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0'
   },
-  listContent: {
-    padding: 16,
-    paddingBottom: 40,
+  headerBtnActive: {
+    backgroundColor: '#ecfdf5',
+    borderColor: '#047857'
   },
-  heroBanner: {
-    backgroundColor: '#064e3b',
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 20,
+  avatarBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#fef3c7',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#f59e0b'
   },
-  heroBadge: {
+  searchBarWrapper: {
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    backgroundColor: '#ffffff'
+  },
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginBottom: 10,
-  },
-  heroBadgeText: {
-    color: '#a7f3d0',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  heroTitle: {
-    color: '#ffffff',
-    fontSize: 20,
-    fontWeight: '900',
-    lineHeight: 26,
-    letterSpacing: -0.3,
-  },
-  heroSub: {
-    color: '#d1fae5',
-    fontSize: 13,
-    marginTop: 4,
-    marginBottom: 14,
-  },
-  heroStats: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  statPill: {
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    color: '#ffffff',
-    fontSize: 10,
-    fontWeight: '800',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  catScroll: {
-    gap: 8,
-    marginBottom: 20,
-  },
-  catPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    backgroundColor: '#f1f5f9',
     borderRadius: 14,
-    backgroundColor: '#ffffff',
+    paddingHorizontal: 14,
+    height: 48,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#e2e8f0'
   },
-  catPillActive: {
-    backgroundColor: '#064e3b',
-    borderColor: '#064e3b',
+  searchPlaceholder: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '500'
   },
-  catText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#475569',
+  searchShortcuts: {
+    flexDirection: 'row',
+    alignItems: 'center'
   },
-  catTextActive: {
+  shortcutBtn: {
+    padding: 6
+  },
+  scrollContent: {
+    backgroundColor: '#f8fafc',
+    paddingBottom: 24
+  },
+  promoCarousel: {
+    paddingHorizontal: 16,
+    marginTop: 12
+  },
+  promoCard: {
+    width: 330,
+    borderRadius: 20,
+    padding: 18,
+    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3
+  },
+  promoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f59e0b',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginBottom: 8
+  },
+  promoBadgeText: {
+    color: '#0f172a',
+    fontSize: 10,
+    fontWeight: '900',
+    marginLeft: 4
+  },
+  promoTitle: {
     color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '900',
+    lineHeight: 22,
+    marginBottom: 4
+  },
+  promoSubtitle: {
+    color: '#e2e8f0',
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 10
+  },
+  promoCodeRow: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  promoCodeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    marginLeft: 5,
+    letterSpacing: 0.5
+  },
+  indicatorRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 10
+  },
+  indicatorDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#cbd5e1',
+    marginHorizontal: 3
+  },
+  indicatorDotActive: {
+    width: 18,
+    backgroundColor: '#047857'
   },
   sectionHeader: {
-    marginBottom: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginTop: 18,
+    marginBottom: 10
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0f172a',
+    fontSize: 17,
+    fontWeight: '900',
+    color: '#0f172a'
   },
-  sectionSub: {
+  sectionSubtitle: {
     fontSize: 12,
-    color: '#94a3b8',
-    marginTop: 2,
+    color: '#64748b',
+    fontWeight: '500',
+    marginTop: 1
+  },
+  sectionAction: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#047857'
+  },
+  categoriesRow: {
+    paddingHorizontal: 16,
+    paddingBottom: 4
+  },
+  carouselSection: {
+    marginTop: 8
+  },
+  productCarouselRow: {
+    paddingHorizontal: 16,
+    gap: 12,
+    paddingVertical: 4
+  },
+  storesSection: {
+    marginTop: 12
   },
   storeCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 24,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderRadius: 18,
+    padding: 14,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    marginBottom: 16,
-    overflow: 'hidden',
     shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowRadius: 6,
+    elevation: 2
   },
-  storeCardTop: {
-    padding: 16,
-  },
-  storeHeaderRow: {
+  storeCardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 8,
+    alignItems: 'center'
   },
-  storeCategory: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#059669',
-    letterSpacing: 0.5,
-    marginBottom: 2,
+  storeLogoBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#ecfdf5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12
+  },
+  storeInfo: {
+    flex: 1
+  },
+  storeNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center'
   },
   storeName: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '800',
-    color: '#0f172a',
+    color: '#0f172a'
   },
-  storeAddress: {
-    fontSize: 12,
+  storeCategory: {
+    fontSize: 11,
     color: '#64748b',
-    marginTop: 2,
+    fontWeight: '600',
+    marginTop: 2
   },
   ratingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
     backgroundColor: '#fef3c7',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#fde68a',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 8
   },
   ratingText: {
     fontSize: 12,
     fontWeight: '800',
     color: '#92400e',
+    marginLeft: 3
   },
   storeMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9'
   },
   metaItem: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    alignItems: 'center'
   },
   metaText: {
     fontSize: 12,
     color: '#475569',
     fontWeight: '600',
+    marginLeft: 4
   },
-  metaDot: {
-    color: '#cbd5e1',
+  metaDivider: {
+    marginHorizontal: 8,
+    color: '#cbd5e1'
   },
-  pickupPill: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#059669',
-  },
-  sampleBox: {
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-    backgroundColor: '#f8fafc',
-    padding: 14,
-    gap: 8,
-  },
-  sampleTitle: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#94a3b8',
-    letterSpacing: 0.5,
-  },
-  productRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  prodName: {
+  freeDelText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#334155',
-    flex: 1,
-    marginRight: 10,
+    color: '#047857',
+    fontWeight: '700'
   },
-  priceRow: {
+  sampleChipsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10
   },
-  prodPrice: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#0f172a',
-  },
-  addBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    borderWidth: 1,
-    borderColor: '#a7f3d0',
-    backgroundColor: '#ffffff',
+  sampleChip: {
+    backgroundColor: '#f1f5f9',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 6
   },
-  addBtnSuccess: {
-    backgroundColor: '#059669',
-    borderColor: '#059669',
-  },
-  addBtnText: {
+  sampleChipText: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#059669',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 40,
-    gap: 12,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0f172a',
-  },
-  emptyDesc: {
-    fontSize: 13,
-    color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 18,
+    color: '#475569',
+    fontWeight: '600'
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
-    justifyContent: 'center',
-    padding: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end'
   },
-  modalBox: {
+  locationModal: {
     backgroundColor: '#ffffff',
-    borderRadius: 24,
-    padding: 24,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    maxHeight: '60%'
+  },
+  modalDragHandle: {
+    width: 38,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#cbd5e1',
+    alignSelf: 'center',
+    marginBottom: 16
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#0f172a',
+    color: '#0f172a'
   },
-  modalSub: {
-    fontSize: 12,
+  modalSubtitle: {
+    fontSize: 13,
     color: '#64748b',
-    marginTop: 4,
-    marginBottom: 16,
-    lineHeight: 16,
+    fontWeight: '500',
+    marginTop: 2,
+    marginBottom: 16
   },
-  nItem: {
+  neighborhoodOption: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 12,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: '#f1f5f9'
   },
-  nItemActive: {
+  neighborhoodOptionSelected: {
     backgroundColor: '#ecfdf5',
     marginHorizontal: -8,
     paddingHorizontal: 8,
-    borderRadius: 12,
-    borderBottomColor: 'transparent',
+    borderRadius: 10
   },
-  nText: {
+  neighborhoodLeft: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  neighborhoodName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#334155',
+    color: '#0f172a',
+    marginLeft: 10
   },
-  nTextActive: {
-    fontWeight: '800',
-    color: '#059669',
-  },
+  neighborhoodNameSelected: {
+    color: '#047857',
+    fontWeight: '800'
+  }
 });
