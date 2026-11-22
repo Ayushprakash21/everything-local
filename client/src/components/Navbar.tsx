@@ -59,7 +59,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   openCart,
   openAuth,
   searchQuery = '',
-  setSearchQuery
+  setSearchQuery,
+  openAI,
+  openHousehold,
+  openCommunity
 }) => {
   const { user, logout } = useAuth();
   const {
