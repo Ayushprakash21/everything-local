@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg-med" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F0FDF4"/>
+      <stop offset="100%" stop-color="#DCFCE7"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="40" fill="url(#bg-med)"/>
+  <circle cx="200" cy="200" r="140" fill="#BBF7D0" opacity="0.4"/>
+  <g transform="translate(150, 95)">
+    <rect x="35" y="10" width="30" height="80" rx="8" fill="#059669"/>
+    <rect x="10" y="35" width="80" height="30" rx="8" fill="#059669"/>
+  </g>
+  <g transform="translate(145, 170) rotate(-35)">
+    <rect x="0" y="0" width="40" height="45" rx="20" fill="#EF4444"/>
+    <rect x="0" y="40" width="40" height="45" rx="20" fill="#F3F4F6" stroke="#CBD5E1" stroke-width="1"/>
+  </g>
+  <text x="200" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="800" fill="#065F46" text-anchor="middle">Pharmacy &amp; Medicines</text>
+  <text x="200" y="362" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#059669" text-anchor="middle">Licensed Chemists • Rx &amp; OTC</text>
+</svg>

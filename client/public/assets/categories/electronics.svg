@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg-el" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#E2E8F0"/>
+    </linearGradient>
+    <linearGradient id="plug" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#1D4ED8"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="40" fill="url(#bg-el)"/>
+  <circle cx="200" cy="200" r="140" fill="#CBD5E1" opacity="0.4"/>
+  <g transform="translate(130, 105)">
+    <path d="M20,90 A50,50 0 0,1 120,90" stroke="#1E293B" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <rect x="10" y="80" width="25" height="45" rx="8" fill="url(#plug)"/>
+    <rect x="105" y="80" width="25" height="45" rx="8" fill="url(#plug)"/>
+    <polygon points="70,95 60,115 72,115 65,135 85,110 73,110" fill="#F59E0B"/>
+  </g>
+  <text x="200" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="800" fill="#1E293B" text-anchor="middle">Electronics &amp; Appliances</text>
+  <text x="200" y="362" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#475569" text-anchor="middle">Cables • Bulbs • Batteries • Audio</text>
+</svg>

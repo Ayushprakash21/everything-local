@@ -4,6 +4,7 @@ import { request, formatPaise } from '../../api/client';
 import { useLocation } from '../../context/LocationContext';
 import { useCart } from '../../context/CartContext';
 import { ELLogo } from '../../components/ELLogo';
+import { ImageWithFallback } from '../../components/common/ImageWithFallback';
 import {
   X,
   Trash2,
@@ -303,16 +304,14 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
                         className="p-3 bg-white rounded-2xl border border-slate-200/90 flex items-center justify-between gap-3 shadow-2xs hover:border-slate-300 transition"
                       >
                         <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200/70 overflow-hidden shrink-0 flex items-center justify-center p-1">
-                          {item.product.imageUrl ? (
-                            <img
-                              src={item.product.imageUrl}
-                              alt={item.product.name}
-                              className="w-full h-full object-contain"
-                              onError={(e) => ((e.target as HTMLElement).style.display = 'none')}
-                            />
-                          ) : (
-                            <ShoppingBag className="w-4 h-4 text-slate-400" />
-                          )}
+                          <ImageWithFallback
+                            src={item.product.imageUrl}
+                            alt={item.product.name}
+                            category={item.product.category}
+                            aspectRatio="square"
+                            objectFit="contain"
+                            className="w-full h-full"
+                          />
                         </div>
 
                         <div className="flex-1 min-w-0">

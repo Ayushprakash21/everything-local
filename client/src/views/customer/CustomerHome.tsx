@@ -4,6 +4,7 @@ import { request, formatPaise } from '../../api/client';
 import { useLocation } from '../../context/LocationContext';
 import { ProductCard } from '../../components/ProductCard';
 import { ProductDetailModal } from '../../components/ProductDetailModal';
+import { MainContentContainer } from '../../components/layout/MainContentContainer';
 import {
   Search,
   MapPin,
@@ -410,7 +411,7 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
   const isServiceable = serviceability ? serviceability.isAnyStoreServiceable : true;
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 space-y-6 sm:space-y-8">
+    <MainContentContainer className="py-6 space-y-6 sm:space-y-8">
       {/* SERVICEABILITY LIMITATION WARNING BANNER (If out of delivery zone) */}
       {!isServiceable && (
         <div className="bg-amber-50 border border-amber-300 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-subtle animate-in fade-in duration-200">
@@ -1038,6 +1039,6 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
           onAddToCart={onAddToCart}
         />
       )}
-    </div>
+    </MainContentContainer>
   );
 };

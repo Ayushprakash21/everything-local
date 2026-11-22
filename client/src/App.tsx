@@ -128,7 +128,7 @@ function MainLayout() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 pb-16 md:pb-0">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 pb-16 md:pb-0 overflow-x-hidden w-full">
       <Navbar
         discoveryMode={discoveryMode}
         setDiscoveryMode={(mode) => {

@@ -3,6 +3,7 @@ import { Product, Store } from '../types';
 import { formatPaise } from '../api/client';
 import { useCart } from '../context/CartContext';
 import { QuantityStepper } from './QuantityStepper';
+import { ImageWithFallback } from './common/ImageWithFallback';
 import {
   X,
   ShoppingBag,
@@ -108,26 +109,19 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             {/* Image Preview */}
             <div className="relative aspect-square rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center p-4">
               {hasDiscount && discountPercent > 0 && (
-                <div className="absolute top-3 left-3 bg-amber-500 text-slate-900 text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-xs flex items-center gap-1">
+                <div className="absolute top-3 left-3 z-10 bg-amber-500 text-slate-900 text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-xs flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />
                   <span>{discountPercent}% OFF</span>
                 </div>
               )}
-              {product.imageUrl ? (
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  className="w-full h-full object-contain"
-                  onError={(e) => ((e.target as HTMLElement).style.display = 'none')}
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center text-slate-300">
-                  <ShoppingBag className="w-16 h-16 stroke-1 mb-2" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    {product.name}
-                  </span>
-                </div>
-              )}
+              <ImageWithFallback
+                src={product.imageUrl}
+                alt={product.name}
+                category={product.category}
+                aspectRatio="square"
+                objectFit="contain"
+                className="w-full h-full p-2"
+              />
             </div>
 
             {/* Title & Pricing */}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ServiceCategory, ServiceProvider } from '../../types';
 import { request, formatPaise } from '../../api/client';
 import { useLocation } from '../../context/LocationContext';
+import { MainContentContainer } from '../../components/layout/MainContentContainer';
 import {
   Search,
   MapPin,
@@ -115,7 +116,7 @@ export const ServicesHomeView: React.FC<ServicesHomeViewProps> = ({
   const activeBanner = banners[activeBannerIdx];
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 space-y-6 sm:space-y-8">
+    <MainContentContainer className="py-6 space-y-6 sm:space-y-8">
       {/* 1. HERO PROMOTIONAL BANNER */}
       <div className="relative rounded-3xl overflow-hidden shadow-subtle border border-indigo-200/50">
         <div
@@ -432,6 +433,6 @@ export const ServicesHomeView: React.FC<ServicesHomeViewProps> = ({
           </div>
         )}
       </section>
-    </div>
+    </MainContentContainer>
   );
 };

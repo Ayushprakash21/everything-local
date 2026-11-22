@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg-hh" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F0FDF4"/>
+      <stop offset="100%" stop-color="#DCFCE7"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="40" fill="url(#bg-hh)"/>
+  <circle cx="200" cy="200" r="140" fill="#BBF7D0" opacity="0.35"/>
+  <g transform="translate(130, 105)">
+    <polygon points="70,20 10,70 130,70" fill="#059669"/>
+    <rect x="25" y="70" width="90" height="80" fill="#10B981" rx="4"/>
+    <rect x="55" y="100" width="30" height="50" fill="#064E3B" rx="3"/>
+    <circle cx="75" cy="125" r="3" fill="#FBBF24"/>
+  </g>
+  <text x="200" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="800" fill="#064E3B" text-anchor="middle">Household Essentials</text>
+  <text x="200" y="362" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#059669" text-anchor="middle">Kitchen • Pooja • Daily Needs</text>
+</svg>

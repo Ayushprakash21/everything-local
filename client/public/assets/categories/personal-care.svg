@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg-pc" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDF2F8"/>
+      <stop offset="100%" stop-color="#FCE7F3"/>
+    </linearGradient>
+    <linearGradient id="bottle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EC4899"/>
+      <stop offset="100%" stop-color="#BE185D"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="40" fill="url(#bg-pc)"/>
+  <circle cx="200" cy="200" r="140" fill="#FBCFE8" opacity="0.4"/>
+  <g transform="translate(140, 105)">
+    <rect x="50" y="15" width="20" height="25" fill="#94A3B8" rx="3"/>
+    <rect x="35" y="5" width="40" height="10" fill="#64748B" rx="3"/>
+    <path d="M30,40 L90,40 L85,160 Q85,170 75,170 L45,170 Q35,170 35,160 Z" fill="url(#bottle)" rx="8"/>
+    <rect x="42" y="80" width="36" height="50" rx="4" fill="#FFFFFF" opacity="0.9"/>
+    <circle cx="60" cy="105" r="10" fill="#F472B6"/>
+  </g>
+  <text x="200" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="800" fill="#831843" text-anchor="middle">Personal Care &amp; Hygiene</text>
+  <text x="200" y="362" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#BE185D" text-anchor="middle">Soaps • Shampoo • Skincare</text>
+</svg>
