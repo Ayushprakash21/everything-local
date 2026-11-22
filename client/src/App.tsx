@@ -92,12 +92,7 @@ function MainLayout() {
     }
     const result = await addItem(storeId, productId, 1);
     if (!result.success) {
-      if (result.conflictMessage?.includes('Single-store') || result.conflictMessage?.includes('contains items from')) {
-        if (confirm(result.conflictMessage)) {
-          await clearCart();
-          await addItem(storeId, productId, 1);
-        }
-      } else if (result.conflictMessage === 'AUTH_REQUIRED') {
+      if (result.conflictMessage === 'AUTH_REQUIRED') {
         setIsAuthOpen(true);
       } else {
         alert(result.conflictMessage || 'Could not add to cart');

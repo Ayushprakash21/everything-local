@@ -147,12 +147,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true };
     } catch (error: any) {
       await refreshCart(); // Rollback on error
-      if (error.data?.storeConflict) {
-        return {
-          success: false,
-          conflictMessage: error.data.message
-        };
-      }
       return {
         success: false,
         conflictMessage: error.message || 'Failed to add item to cart'
@@ -170,10 +164,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'AUTH_REQUIRED' };
     }
 
-    const targetStoreId = storeId || cart?.storeId;
-    if (!targetStoreId) {
-      return { success: false, error: 'Store information missing' };
-    }
+    const itemInCart = cart?.items.find((i) => i.productId === productId);
+    const targetStoreId = storeId || itemInCart?.product?.storeId || cart?.storeId || 'default-store';
 
     try {
       // Optimistic local state update for zero lag

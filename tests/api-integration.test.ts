@@ -60,9 +60,11 @@ describe('Everything Local - End-to-End API Integration', () => {
       .delete('/api/customer/cart')
       .set('Authorization', `Bearer ${customerToken}`);
 
-    // Add 1 small item (Tata Salt ₹28.00 = 2800 paise)
+    // Add 1 small item below ₹299 minimum order value
     const saltProductRes = await request(app).get(`/api/customer/stores/${palasiaStoreId}`);
-    const saltProduct = saltProductRes.body.store.products.find((p: any) => p.name.includes('Salt'));
+    const saltProduct = saltProductRes.body.store.products.find((p: any) => p.name.includes('Salt')) 
+      || saltProductRes.body.store.products.find((p: any) => p.pricePaise < 29900) 
+      || saltProductRes.body.store.products[0];
 
     await request(app)
       .post('/api/customer/cart/items')
@@ -84,13 +86,13 @@ describe('Everything Local - End-to-End API Integration', () => {
     expect(quoteRes.body.meetsMinimumOrderValue).toBe(false);
   });
 
-  it('enforces single-store cart rule when adding items from a different store', async () => {
+  it('supports unified multi-store cart when adding items from different stores', async () => {
     // Discover second store (Vijay Nagar)
     const storesRes = await request(app).get('/api/customer/stores?lat=22.7244&lng=75.8839');
     const store2 = storesRes.body.stores.find((s: any) => s.id !== palasiaStoreId);
 
     if (store2 && store2.sampleProducts.length > 0) {
-      const conflictRes = await request(app)
+      const multiStoreItemRes = await request(app)
         .post('/api/customer/cart/items')
         .set('Authorization', `Bearer ${customerToken}`)
         .send({
@@ -99,9 +101,11 @@ describe('Everything Local - End-to-End API Integration', () => {
           quantity: 1
         });
 
-      expect(conflictRes.status).toBe(409);
-      expect(conflictRes.body.storeConflict).toBe(true);
-      expect(conflictRes.body.error).toBe('Single-store checkout rule');
+      expect(multiStoreItemRes.status).toBe(200);
+      expect(multiStoreItemRes.body.cart.items.length).toBeGreaterThanOrEqual(2);
+      const storeIdsInCart = multiStoreItemRes.body.cart.items.map((i: any) => i.product.storeId);
+      expect(storeIdsInCart).toContain(palasiaStoreId);
+      expect(storeIdsInCart).toContain(store2.id);
     }
   });
 
@@ -118,22 +122,14 @@ describe('Everything Local - End-to-End API Integration', () => {
     const p2 = products[1];
 
     // Add items ensuring total >= ₹299 (29,900 paise)
+    const neededQty = Math.max(1, Math.ceil(32000 / p1.pricePaise));
     await request(app)
       .post('/api/customer/cart/items')
       .set('Authorization', `Bearer ${customerToken}`)
       .send({
         storeId: palasiaStoreId,
         productId: p1.id,
-        quantity: 1
-      });
-
-    await request(app)
-      .post('/api/customer/cart/items')
-      .set('Authorization', `Bearer ${customerToken}`)
-      .send({
-        storeId: palasiaStoreId,
-        productId: p2.id,
-        quantity: 1
+        quantity: neededQty
       });
 
     // Checkout with PICKUP (₹0 delivery charge)

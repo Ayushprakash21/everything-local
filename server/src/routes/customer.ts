@@ -189,7 +189,11 @@ router.get('/cart', authenticateToken, async (req: Request, res: Response): Prom
         store: true,
         items: {
           include: {
-            product: true
+            product: {
+              include: {
+                store: true
+              }
+            }
           }
         }
       }
@@ -202,7 +206,11 @@ router.get('/cart', authenticateToken, async (req: Request, res: Response): Prom
           store: true,
           items: {
             include: {
-              product: true
+              product: {
+                include: {
+                  store: true
+                }
+              }
             }
           }
         }
@@ -212,6 +220,18 @@ router.get('/cart', authenticateToken, async (req: Request, res: Response): Prom
     const subtotalPaise = cart.items.reduce((sum, item) => sum + item.unitPricePaise * item.quantity, 0);
     const movCheck = FinancialEngine.validateMinimumOrderValue(subtotalPaise);
 
+    // Multi-store merchant breakdown
+    const merchantGroups: Record<string, { merchantId: string; merchantName: string; subtotalPaise: number; itemCount: number }> = {};
+    for (const item of cart.items) {
+      const mId = item.product.storeId;
+      const mName = item.product.store?.name || 'Local Store';
+      if (!merchantGroups[mId]) {
+        merchantGroups[mId] = { merchantId: mId, merchantName: mName, subtotalPaise: 0, itemCount: 0 };
+      }
+      merchantGroups[mId].itemCount += item.quantity;
+      merchantGroups[mId].subtotalPaise += item.unitPricePaise * item.quantity;
+    }
+
     res.json({
       cart,
       subtotalPaise,
@@ -219,7 +239,9 @@ router.get('/cart', authenticateToken, async (req: Request, res: Response): Prom
       minimumOrderValuePaise: FinancialEngine.DEFAULT_MIN_ORDER_VALUE_PAISE,
       meetsMinimumOrderValue: movCheck.isValid,
       shortfallPaise: movCheck.shortfallPaise,
-      shortfallFormatted: FinancialEngine.formatPaiseToRupees(movCheck.shortfallPaise)
+      shortfallFormatted: FinancialEngine.formatPaiseToRupees(movCheck.shortfallPaise),
+      distinctMerchantCount: Object.keys(merchantGroups).length,
+      merchantBreakdowns: Object.values(merchantGroups)
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch cart' });
@@ -270,33 +292,46 @@ router.post('/cart/items', authenticateToken, async (req: Request, res: Response
 
     let cart = await prisma.cart.findFirst({
       where: { userId },
-      include: { items: true, store: true }
+      include: {
+        items: {
+          include: {
+            product: {
+              include: {
+                store: true
+              }
+            }
+          }
+        },
+        store: true
+      }
     });
 
     if (!cart) {
       cart = await prisma.cart.create({
         data: { userId, storeId },
-        include: { items: true, store: true }
+        include: {
+          items: {
+            include: {
+              product: {
+                include: {
+                  store: true
+                }
+              }
+            }
+          },
+          store: true
+        }
       });
     }
 
-    // SINGLE-STORE CART VALIDATION
-    if (cart.storeId && cart.storeId !== storeId && cart.items.length > 0) {
-      res.status(409).json({
-        error: 'Single-store checkout rule',
-        storeConflict: true,
-        currentStore: cart.store?.name,
-        message: `Your cart contains items from ${cart.store?.name}. Everything Local supports ordering from one neighborhood store at a time. Clear your cart to add items from this store.`
-      });
-      return;
-    }
-
-    // Update cart's storeId if empty and adding items
+    // MULTI-STORE CART: Customers can freely add products from Store A, Store B, Store C...
+    // No single-store restriction is enforced. Each CartItem retains its product and merchant reference.
     if (!cart.storeId && quantity > 0) {
       await prisma.cart.update({
         where: { id: cart.id },
         data: { storeId }
       });
+      cart.storeId = storeId;
     }
 
     // Upsert or remove cart item
@@ -311,7 +346,6 @@ router.post('/cart/items', authenticateToken, async (req: Request, res: Response
           where: { id: existingItem.id }
         });
       }
-      // If no items remain, reset storeId
       const remainingCount = await prisma.cartItem.count({
         where: { cartId: cart.id }
       });
@@ -340,12 +374,20 @@ router.post('/cart/items', authenticateToken, async (req: Request, res: Response
       });
     }
 
-    // Return updated cart
+    // Return updated cart with full product and store metadata
     const updatedCart = await prisma.cart.findUnique({
       where: { id: cart.id },
       include: {
         store: true,
-        items: { include: { product: true } }
+        items: {
+          include: {
+            product: {
+              include: {
+                store: true
+              }
+            }
+          }
+        }
       }
     });
 
@@ -353,6 +395,81 @@ router.post('/cart/items', authenticateToken, async (req: Request, res: Response
   } catch (error) {
     console.error('Error adding to cart:', error);
     res.status(500).json({ error: 'Failed to update cart' });
+  }
+});
+
+// 5b. Validate Multi-Merchant Stock (Checks each store independently without removing other items)
+router.post('/cart/validate', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+
+    const cart = await prisma.cart.findFirst({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: {
+                store: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!cart || cart.items.length === 0) {
+      res.json({ isValid: true, items: [], unavailableCount: 0, availableSubtotalPaise: 0 });
+      return;
+    }
+
+    const itemStatusList = [];
+    let availableSubtotalPaise = 0;
+    let unavailableCount = 0;
+
+    for (const item of cart.items) {
+      const prod = item.product;
+      const isAvailable = prod.isAvailable && (prod.stock === null || prod.stock === undefined || prod.stock >= item.quantity);
+
+      if (!isAvailable) {
+        unavailableCount++;
+        itemStatusList.push({
+          cartItemId: item.id,
+          productId: prod.id,
+          productName: prod.name,
+          storeId: prod.storeId,
+          storeName: prod.store?.name || 'Local Store',
+          requestedQuantity: item.quantity,
+          availableStock: prod.stock ?? 0,
+          unitPricePaise: item.unitPricePaise,
+          isAvailable: false,
+          reason: !prod.isAvailable ? 'Item currently not available' : `Only ${prod.stock} unit(s) available in stock`
+        });
+      } else {
+        availableSubtotalPaise += item.unitPricePaise * item.quantity;
+        itemStatusList.push({
+          cartItemId: item.id,
+          productId: prod.id,
+          productName: prod.name,
+          storeId: prod.storeId,
+          storeName: prod.store?.name || 'Local Store',
+          requestedQuantity: item.quantity,
+          availableStock: prod.stock ?? 999,
+          unitPricePaise: item.unitPricePaise,
+          isAvailable: true
+        });
+      }
+    }
+
+    res.json({
+      isValid: unavailableCount === 0,
+      unavailableCount,
+      items: itemStatusList,
+      availableSubtotalPaise,
+      availableSubtotalFormatted: FinancialEngine.formatPaiseToRupees(availableSubtotalPaise)
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to validate cart stock' });
   }
 });
 
@@ -410,11 +527,21 @@ router.post('/orders/quote', authenticateToken, async (req: Request, res: Respon
       where: { userId },
       include: {
         store: true,
-        items: { include: { product: true } }
+        items: {
+          include: {
+            product: {
+              include: {
+                store: true
+              }
+            }
+          }
+        }
       }
     });
 
-    if (!cart || cart.items.length === 0 || !cart.store) {
+    const primaryStore = cart?.store || cart?.items[0]?.product?.store;
+
+    if (!cart || cart.items.length === 0 || !primaryStore) {
       res.status(400).json({ error: 'Cart is empty' });
       return;
     }
@@ -444,17 +571,17 @@ router.post('/orders/quote', authenticateToken, async (req: Request, res: Respon
     let distanceKm = 1.0;
     if (customerLat !== undefined && customerLng !== undefined) {
       distanceKm = GeospatialEngine.calculateDistanceKm(
-        { latitude: cart.store.latitude, longitude: cart.store.longitude },
+        { latitude: primaryStore.latitude, longitude: primaryStore.longitude },
         { latitude: customerLat, longitude: customerLng }
       );
 
-      if (fulfillmentMode !== 'PICKUP' && distanceKm > cart.store.serviceRadiusKm) {
+      if (fulfillmentMode !== 'PICKUP' && distanceKm > primaryStore.serviceRadiusKm) {
         res.status(400).json({
           error: 'Out of delivery service area',
           distanceKm,
-          maxRadiusKm: cart.store.serviceRadiusKm,
+          maxRadiusKm: primaryStore.serviceRadiusKm,
           isPickupAvailable: true,
-          message: `Delivery is unavailable beyond ${cart.store.serviceRadiusKm} km. You can still choose Store Pickup!`
+          message: `Delivery is unavailable beyond ${primaryStore.serviceRadiusKm} km. You can still choose Store Pickup!`
         });
         return;
       }
@@ -466,14 +593,14 @@ router.post('/orders/quote', authenticateToken, async (req: Request, res: Respon
       items: itemInputs,
       fulfillmentMode,
       deliveryFeePaise: deliveryQuote.feePaise,
-      commissionRatePct: cart.store.commissionRatePct
+      commissionRatePct: primaryStore.commissionRatePct
     });
 
     res.json({
       store: {
-        id: cart.store.id,
-        name: cart.store.name,
-        category: cart.store.category
+        id: primaryStore.id,
+        name: primaryStore.name,
+        category: primaryStore.category
       },
       fulfillmentMode,
       distanceKm,
@@ -524,11 +651,21 @@ router.post('/orders/checkout', authenticateToken, async (req: Request, res: Res
       where: { userId },
       include: {
         store: true,
-        items: { include: { product: true } }
+        items: {
+          include: {
+            product: {
+              include: {
+                store: true
+              }
+            }
+          }
+        }
       }
     });
 
-    if (!cart || cart.items.length === 0 || !cart.store) {
+    const primaryStore = cart?.store || cart?.items[0]?.product?.store;
+
+    if (!cart || cart.items.length === 0 || !primaryStore) {
       res.status(400).json({ error: 'Your cart is empty' });
       return;
     }
@@ -553,10 +690,10 @@ router.post('/orders/checkout', authenticateToken, async (req: Request, res: Res
     let distanceKm = 1.0;
     if (customerLat !== undefined && customerLng !== undefined) {
       distanceKm = GeospatialEngine.calculateDistanceKm(
-        { latitude: cart.store.latitude, longitude: cart.store.longitude },
+        { latitude: primaryStore.latitude, longitude: primaryStore.longitude },
         { latitude: customerLat, longitude: customerLng }
       );
-      if (fulfillmentMode !== 'PICKUP' && distanceKm > cart.store.serviceRadiusKm) {
+      if (fulfillmentMode !== 'PICKUP' && distanceKm > primaryStore.serviceRadiusKm) {
         res.status(400).json({ error: 'Customer location is outside delivery radius' });
         return;
       }
@@ -567,7 +704,7 @@ router.post('/orders/checkout', authenticateToken, async (req: Request, res: Res
       items: itemInputs,
       fulfillmentMode,
       deliveryFeePaise: deliveryQuote.feePaise,
-      commissionRatePct: cart.store.commissionRatePct
+      commissionRatePct: primaryStore.commissionRatePct
     });
 
     const orderNumber = `ORD-IND-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
@@ -579,7 +716,7 @@ router.post('/orders/checkout', authenticateToken, async (req: Request, res: Res
         data: {
           orderNumber,
           customerId: userId,
-          storeId: cart.storeId!,
+          storeId: cart.storeId || primaryStore.id,
           status: 'PLACED',
           fulfillmentMode,
           deliveryAddressId,
@@ -941,7 +1078,18 @@ router.post('/delivery/quote', async (req: Request, res: Response): Promise<void
       totalWeightKg: req.body.totalWeightKg ? Number(req.body.totalWeightKg) : 2.0
     });
 
-    res.json({ quotes });
+    const mappedQuotes = quotes.map((q) => ({
+      ...q,
+      tier: q.tierCode,
+      feasible: q.isServiceable,
+      unfeasibleReason: q.unserviceableReason,
+      pricing: {
+        ...q.pricing,
+        extraPickupStopPaise: q.pricing.additionalPickupChargePaise || 0
+      }
+    }));
+
+    res.json({ quotes: mappedQuotes });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -993,6 +1141,13 @@ router.post('/orders/multi-store', authenticateToken, async (req: Request, res: 
       paymentMethod: paymentMethod || 'ONLINE',
       items: orderItems
     });
+
+    // Clear active cart upon successful multi-store checkout
+    const userCart = await prisma.cart.findFirst({ where: { userId } });
+    if (userCart) {
+      await prisma.cartItem.deleteMany({ where: { cartId: userCart.id } });
+      await prisma.cart.update({ where: { id: userCart.id }, data: { storeId: null } });
+    }
 
     res.status(201).json({
       success: true,
