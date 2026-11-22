@@ -8,6 +8,18 @@ interface AuthContextType {
   isLoading: boolean;
   login: (emailOrPhone: string, password: string) => Promise<User>;
   register: (data: { email: string; name: string; password: string; role: 'CUSTOMER' | 'MERCHANT'; phone?: string }) => Promise<User>;
+  registerMerchant: (data: {
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    businessName: string;
+    category?: string;
+    addressLine: string;
+    locality?: string;
+    city?: string;
+    pincode?: string;
+  }) => Promise<User>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -68,6 +80,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return res.user;
   };
 
+  const registerMerchant = async (data: {
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    businessName: string;
+    category?: string;
+    addressLine: string;
+    locality?: string;
+    city?: string;
+    pincode?: string;
+  }): Promise<User> => {
+    const res = await request<{ user: User; token: string }>('/auth/register-merchant', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+
+    localStorage.setItem('el_token', res.token);
+    setToken(res.token);
+    setUser(res.user);
+    return res.user;
+  };
+
   const logout = () => {
     localStorage.removeItem('el_token');
     setToken(null);
@@ -75,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, register, registerMerchant, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

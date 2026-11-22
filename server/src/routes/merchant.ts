@@ -78,7 +78,7 @@ router.post('/store', async (req: Request, res: Response): Promise<void> => {
         longitude,
         serviceRadiusKm,
         isOpen: true,
-        isVerified: true, // Auto-verified for pilot testing
+        isVerified: req.body.autoVerify === true, // Default to pending approval unless explicitly verified
         commissionRatePct: 3.5
       }
     });

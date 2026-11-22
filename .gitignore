@@ -10,3 +10,5 @@ uploads/*
 !uploads/.gitkeep
 
 .chrome_tmp/
+.chrome_merchant_tmp/
+.chrome_pending_tmp/

@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Store, Order, Product } from '../../types';
 import { request, formatPaise } from '../../api/client';
 import { ELLogo } from '../../components/ELLogo';
+import { MerchantPortalView } from './MerchantPortalView';
 import {
   Store as StoreIcon,
   Package,
@@ -22,11 +23,15 @@ import {
   Image as ImageIcon,
   TrendingUp,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
 
-export const MerchantDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth }) => {
-  const { user } = useAuth();
+export const MerchantDashboard: React.FC<{ openAuth: () => void; onReturnToShop?: () => void }> = ({
+  openAuth,
+  onReturnToShop
+}) => {
+  const { user, logout } = useAuth();
   const [store, setStore] = useState<Store | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -50,21 +55,24 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth
   const [catalogueStatus, setCatalogueStatus] = useState<string | null>(null);
 
   const fetchMerchantData = async () => {
-    if (!user || user.role !== 'MERCHANT') return;
+    if (!user || user.role !== 'MERCHANT') {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const storeRes = await request<{ store: Store }>('/merchant/store');
       setStore(storeRes.store);
 
-      if (storeRes.store) {
+      if (storeRes.store && storeRes.store.isVerified) {
         const [ordersRes, prodsRes, finRes] = await Promise.all([
           request<{ orders: Order[] }>('/merchant/orders'),
           request<{ products: Product[] }>('/merchant/products'),
           request<any>('/merchant/finance/statements')
         ]);
-        setOrders(ordersRes.orders);
-        setProducts(prodsRes.products);
-        setStatements(finRes.summary);
+        setOrders(ordersRes.orders || []);
+        setProducts(prodsRes.products || []);
+        setStatements(finRes.summary || null);
       }
     } catch (err) {
       console.error('Failed to load merchant data:', err);
@@ -233,23 +241,22 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth
     }
   };
 
-  if (!user || user.role !== 'MERCHANT') {
+  if (loading && user && user.role === 'MERCHANT') {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
-        <div className="w-16 h-16 rounded-3xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
-          <StoreIcon className="w-8 h-8" />
-        </div>
-        <h3 className="font-black text-slate-900 text-xl">Merchant Console Access</h3>
-        <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
-          Sign in with your verified merchant partner credentials to manage your Indore neighbourhood store.
-        </p>
-        <button
-          onClick={openAuth}
-          className="px-6 py-3 bg-forest-900 hover:bg-forest-950 text-white rounded-2xl text-xs font-black shadow-md transition active:scale-95"
-        >
-          Sign In as Merchant
-        </button>
+      <div className="max-w-md mx-auto py-24 text-center space-y-4">
+        <div className="w-12 h-12 rounded-full border-4 border-amber-500 border-t-transparent animate-spin mx-auto" />
+        <p className="text-xs font-bold text-slate-600">Loading merchant store console...</p>
       </div>
+    );
+  }
+
+  if (!user || user.role !== 'MERCHANT' || !store || !store.isVerified) {
+    return (
+      <MerchantPortalView
+        store={store}
+        onRefreshStore={fetchMerchantData}
+        onReturnToShop={onReturnToShop}
+      />
     );
   }
 
@@ -278,23 +285,34 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth
           </div>
         </div>
 
-        {/* Operating Status Toggle */}
-        <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-          <div className="text-left">
-            <span className="text-[10px] font-black uppercase text-slate-400 block">Accepting Orders</span>
-            <span className="text-xs font-black text-slate-800">
-              {store?.isOpen ? 'Store is OPEN' : 'Store is CLOSED'}
-            </span>
+        {/* Operating Status Toggle & Logout */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+            <div className="text-left">
+              <span className="text-[10px] font-black uppercase text-slate-400 block">Accepting Orders</span>
+              <span className="text-xs font-black text-slate-800">
+                {store?.isOpen ? 'Store is OPEN' : 'Store is CLOSED'}
+              </span>
+            </div>
+            <button
+              onClick={toggleStoreOpen}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all shadow-xs active:scale-95 ${
+                store?.isOpen
+                  ? 'bg-forest-900 text-white hover:bg-forest-950'
+                  : 'bg-rose-600 text-white hover:bg-rose-700'
+              }`}
+            >
+              {store?.isOpen ? 'Switch to Closed' : 'Open Store'}
+            </button>
           </div>
+
           <button
-            onClick={toggleStoreOpen}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all shadow-xs active:scale-95 ${
-              store?.isOpen
-                ? 'bg-forest-900 text-white hover:bg-forest-950'
-                : 'bg-rose-600 text-white hover:bg-rose-700'
-            }`}
+            onClick={logout}
+            title="Sign out of merchant console"
+            className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 text-xs font-bold"
           >
-            {store?.isOpen ? 'Switch to Closed' : 'Open Store'}
+            <LogOut className="w-4 h-4 text-slate-500" />
+            <span className="hidden sm:inline">Sign Out</span>
           </button>
         </div>
       </div>

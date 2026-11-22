@@ -191,7 +191,10 @@ function MainLayout() {
             )}
 
             {currentTab === 'merchant' && (
-              <MerchantDashboard openAuth={() => setIsAuthOpen(true)} />
+              <MerchantDashboard
+                openAuth={() => setIsAuthOpen(true)}
+                onReturnToShop={() => setCurrentTab('customer')}
+              />
             )}
 
             {currentTab === 'admin' && (
