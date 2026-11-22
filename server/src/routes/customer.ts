@@ -224,11 +224,11 @@ router.get('/cart', authenticateToken, async (req: Request, res: Response): Prom
   }
 });
 
-// 5. Add or Update Item in Cart (Enforces Single-Store Cart Rule)
+// 5. Add or Update Item in Cart (Enforces Single-Store Cart Rule & Stock Limits)
 const AddToCartSchema = z.object({
   storeId: z.string(),
   productId: z.string(),
-  quantity: z.number().int().min(1)
+  quantity: z.number().int().min(0)
 });
 
 router.post('/cart/items', authenticateToken, async (req: Request, res: Response): Promise<void> => {
@@ -249,6 +249,15 @@ router.post('/cart/items', authenticateToken, async (req: Request, res: Response
 
     if (!product || !product.isAvailable) {
       res.status(400).json({ error: 'Product is currently unavailable' });
+      return;
+    }
+
+    // Stock availability validation
+    if (quantity > 0 && product.stock > 0 && quantity > product.stock) {
+      res.status(400).json({
+        error: `Only ${product.stock} unit(s) available in stock.`,
+        availableStock: product.stock
+      });
       return;
     }
 
@@ -280,20 +289,37 @@ router.post('/cart/items', authenticateToken, async (req: Request, res: Response
       return;
     }
 
-    // Update cart's storeId if empty
-    if (!cart.storeId) {
+    // Update cart's storeId if empty and adding items
+    if (!cart.storeId && quantity > 0) {
       await prisma.cart.update({
         where: { id: cart.id },
         data: { storeId }
       });
     }
 
-    // Upsert cart item
+    // Upsert or remove cart item
     const existingItem = await prisma.cartItem.findFirst({
       where: { cartId: cart.id, productId }
     });
 
-    if (existingItem) {
+    if (quantity === 0) {
+      // Remove item if quantity becomes zero
+      if (existingItem) {
+        await prisma.cartItem.delete({
+          where: { id: existingItem.id }
+        });
+      }
+      // If no items remain, reset storeId
+      const remainingCount = await prisma.cartItem.count({
+        where: { cartId: cart.id }
+      });
+      if (remainingCount === 0) {
+        await prisma.cart.update({
+          where: { id: cart.id },
+          data: { storeId: null }
+        });
+      }
+    } else if (existingItem) {
       await prisma.cartItem.update({
         where: { id: existingItem.id },
         data: {

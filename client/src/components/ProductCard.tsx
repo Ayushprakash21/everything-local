@@ -1,13 +1,15 @@
 import React from 'react';
 import { Product } from '../types';
 import { formatPaise } from '../api/client';
-import { Plus, Minus, Check, ShoppingBag, Store as StoreIcon, Sparkles } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { QuantityStepper } from './QuantityStepper';
+import { ShoppingBag, Store as StoreIcon, Sparkles } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
   storeName?: string;
   storeDistance?: string;
-  onAddToCart: (storeId: string, productId: string) => void;
+  onAddToCart?: (storeId: string, productId: string) => void;
   onSelectProduct?: (product: Product) => void;
   currentQuantity?: number;
   onUpdateQuantity?: (productId: string, quantity: number) => void;
@@ -19,9 +21,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   storeDistance,
   onAddToCart,
   onSelectProduct,
-  currentQuantity = 0,
-  onUpdateQuantity
+  currentQuantity: propCurrentQuantity,
+  onUpdateQuantity: propOnUpdateQuantity
 }) => {
+  const { getItemQuantity, addItem, updateQuantity } = useCart();
+  const currentQuantity = propCurrentQuantity !== undefined ? propCurrentQuantity : getItemQuantity(product.id);
+
   const hasDiscount = product.mrpPaise && product.mrpPaise > product.pricePaise;
   const discountPercent = hasDiscount
     ? Math.round(((product.mrpPaise - product.pricePaise) / product.mrpPaise) * 100)
@@ -31,7 +36,31 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   // Extract or synthesize pack size if not explicitly set
   const packSize = product.packageSize || product.name.match(/\d+\s*(?:kg|g|gm|l|ltr|ml|pack|pcs|pieces)/i)?.[0] || 'Standard';
 
-  // Category-based icon or fallback styling
+  const handleAdd = () => {
+    if (onAddToCart) {
+      onAddToCart(product.storeId, product.id);
+    } else {
+      addItem(product.storeId, product.id, 1);
+    }
+  };
+
+  const handleIncrement = () => {
+    if (propOnUpdateQuantity) {
+      propOnUpdateQuantity(product.id, currentQuantity + 1);
+    } else {
+      updateQuantity(product.id, currentQuantity + 1, product.storeId);
+    }
+  };
+
+  const handleDecrement = () => {
+    if (propOnUpdateQuantity) {
+      propOnUpdateQuantity(product.id, currentQuantity - 1);
+    } else {
+      updateQuantity(product.id, currentQuantity - 1, product.storeId);
+    }
+  };
+
+  // Category-based fallback styling
   const getCategoryFallbackGradient = (category: string) => {
     const cat = category.toLowerCase();
     if (cat.includes('fruit') || cat.includes('veg') || cat.includes('produce')) {
@@ -45,6 +74,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     }
     return 'from-slate-50 via-stone-50 to-amber-50 text-emerald-700';
   };
+
+  const isOutOfStock = !product.isAvailable || (product.stock !== undefined && product.stock !== null && product.stock === 0);
 
   return (
     <div
@@ -76,7 +107,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             alt={product.name}
             className="absolute inset-0 w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
-              // Hide broken image and let fallback render
               (e.target as HTMLElement).style.display = 'none';
             }}
           />
@@ -123,7 +153,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Pricing and Cart Stepper */}
-        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 min-h-[38px]">
           {/* Prices */}
           <div>
             <div className="flex items-baseline gap-1.5">
@@ -143,48 +173,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             )}
           </div>
 
-          {/* Add / Stepper Button */}
+          {/* ADD / Quantity Stepper Component */}
           <div onClick={(e) => e.stopPropagation()}>
-            {currentQuantity > 0 ? (
-              <div className="flex items-center bg-forest-900 text-white rounded-xl shadow-xs px-1.5 py-1 text-xs font-bold gap-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    onUpdateQuantity
-                      ? onUpdateQuantity(product.id, currentQuantity - 1)
-                      : onAddToCart(product.storeId, product.id)
-                  }
-                  className="w-5 h-5 rounded-md hover:bg-forest-800 flex items-center justify-center transition"
-                  aria-label="Decrease quantity"
-                >
-                  <Minus className="w-3.5 h-3.5" />
-                </button>
-                <span className="min-w-[16px] text-center text-xs font-black">
-                  {currentQuantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    onUpdateQuantity
-                      ? onUpdateQuantity(product.id, currentQuantity + 1)
-                      : onAddToCart(product.storeId, product.id)
-                  }
-                  className="w-5 h-5 rounded-md hover:bg-forest-800 flex items-center justify-center transition"
-                  aria-label="Increase quantity"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onAddToCart(product.storeId, product.id)}
-                className="px-3.5 py-1.5 bg-forest-50 hover:bg-forest-900 text-forest-900 hover:text-white border border-forest-600/50 hover:border-forest-900 rounded-xl text-xs font-extrabold transition-all duration-150 shadow-2xs hover:shadow-xs flex items-center gap-1 active:scale-95"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>ADD</span>
-              </button>
-            )}
+            <QuantityStepper
+              quantity={currentQuantity}
+              onAdd={handleAdd}
+              onIncrement={handleIncrement}
+              onDecrement={handleDecrement}
+              disabled={isOutOfStock}
+              maxStock={product.stock > 0 ? product.stock : undefined}
+            />
           </div>
         </div>
       </div>

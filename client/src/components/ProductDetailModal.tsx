@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Product, Store } from '../types';
 import { formatPaise } from '../api/client';
+import { useCart } from '../context/CartContext';
+import { QuantityStepper } from './QuantityStepper';
 import {
   X,
   ShoppingBag,
@@ -9,8 +11,6 @@ import {
   Clock,
   ShieldCheck,
   Sparkles,
-  Plus,
-  Minus,
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
@@ -19,7 +19,7 @@ interface ProductDetailModalProps {
   product: Product | null;
   store?: Store;
   onClose: () => void;
-  onAddToCart: (storeId: string, productId: string) => void;
+  onAddToCart?: (storeId: string, productId: string) => void;
   currentQuantity?: number;
   onUpdateQuantity?: (productId: string, quantity: number) => void;
   similarProducts?: Product[];
@@ -31,14 +31,15 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   store,
   onClose,
   onAddToCart,
-  currentQuantity = 0,
-  onUpdateQuantity,
+  currentQuantity: propCurrentQuantity,
+  onUpdateQuantity: propOnUpdateQuantity,
   similarProducts = [],
   onSelectSimilarProduct
 }) => {
   if (!product) return null;
 
-  const [quantity, setQuantity] = useState<number>(currentQuantity > 0 ? currentQuantity : 1);
+  const { getItemQuantity, addItem, updateQuantity } = useCart();
+  const quantity = propCurrentQuantity !== undefined ? propCurrentQuantity : getItemQuantity(product.id);
 
   const hasDiscount = product.mrpPaise && product.mrpPaise > product.pricePaise;
   const discountPercent = hasDiscount
@@ -48,8 +49,30 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const packSize = product.packageSize || product.name.match(/\d+\s*(?:kg|g|gm|l|ltr|ml|pack|pcs|pieces)/i)?.[0] || 'Standard Pack';
 
   const handleAdd = () => {
-    onAddToCart(product.storeId, product.id);
+    if (onAddToCart) {
+      onAddToCart(product.storeId, product.id);
+    } else {
+      addItem(product.storeId, product.id, 1);
+    }
   };
+
+  const handleIncrement = () => {
+    if (propOnUpdateQuantity) {
+      propOnUpdateQuantity(product.id, quantity + 1);
+    } else {
+      updateQuantity(product.id, quantity + 1, product.storeId);
+    }
+  };
+
+  const handleDecrement = () => {
+    if (propOnUpdateQuantity) {
+      propOnUpdateQuantity(product.id, quantity - 1);
+    } else {
+      updateQuantity(product.id, quantity - 1, product.storeId);
+    }
+  };
+
+  const isOutOfStock = !product.isAvailable || (product.stock !== undefined && product.stock !== null && product.stock === 0);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
@@ -98,59 +121,57 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   onError={(e) => ((e.target as HTMLElement).style.display = 'none')}
                 />
               ) : (
-                <div className="flex flex-col items-center justify-center text-slate-400">
-                  <ShoppingBag className="w-16 h-16 mb-2 opacity-50" />
-                  <span className="text-xs font-bold uppercase tracking-wider">
-                    {product.category}
+                <div className="flex flex-col items-center justify-center text-slate-300">
+                  <ShoppingBag className="w-16 h-16 stroke-1 mb-2" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    {product.name}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Product Meta */}
+            {/* Title & Pricing */}
             <div className="flex flex-col justify-between space-y-4">
               <div className="space-y-2">
-                {product.brand && (
-                  <span className="text-xs font-bold text-forest-800 tracking-wide uppercase">
-                    {product.brand}
-                  </span>
-                )}
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 leading-snug">
-                  {product.name}
-                </h2>
-                <div className="inline-block bg-slate-100 text-slate-700 text-xs font-bold px-2.5 py-1 rounded-md">
-                  Pack Size: {packSize}
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  {product.brand || product.category}
                 </div>
-
-                {/* Pricing Box */}
-                <div className="pt-2">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-black text-slate-900">
-                      {formatPaise(product.pricePaise)}
-                    </span>
-                    {hasDiscount && (
-                      <span className="text-sm text-slate-400 line-through">
-                        MRP {formatPaise(product.mrpPaise)}
-                      </span>
-                    )}
-                  </div>
-                  {hasDiscount && (
-                    <p className="text-xs font-bold text-forest-700 mt-0.5">
-                      You Save {formatPaise(savingsPaise)} ({discountPercent}% Discount)
-                    </p>
-                  )}
-                  <p className="text-[11px] text-slate-400 mt-0.5">Inclusive of all local taxes</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 leading-snug">
+                  {product.name}
+                </h3>
+                <div className="inline-block bg-slate-100 text-slate-700 text-xs font-bold px-2.5 py-1 rounded-lg">
+                  {packSize}
                 </div>
               </div>
 
-              {/* Availability & Store Info */}
-              <div className="bg-slate-50 rounded-2xl p-3.5 space-y-2 border border-slate-100 text-xs">
+              {/* Price Details */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-1.5">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-slate-900">
+                    {formatPaise(product.pricePaise)}
+                  </span>
+                  {hasDiscount && (
+                    <span className="text-sm text-slate-400 line-through">
+                      {formatPaise(product.mrpPaise)}
+                    </span>
+                  )}
+                </div>
+                {hasDiscount && (
+                  <span className="text-xs font-bold text-forest-700 block">
+                    You save {formatPaise(savingsPaise)} ({discountPercent}% discount)
+                  </span>
+                )}
+                <span className="text-[10px] text-slate-400 block">Inclusive of all taxes</span>
+              </div>
+
+              {/* Stock / Fulfillment Info */}
+              <div className="space-y-2 text-xs">
                 <div className="flex items-center justify-between text-slate-600">
-                  <span className="font-semibold">Stock Status:</span>
-                  {product.stock > 0 ? (
+                  <span className="font-semibold">Stock Availability:</span>
+                  {!isOutOfStock ? (
                     <span className="font-bold text-forest-700 flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      In Stock ({product.stock} units)
+                      In Stock {product.stock > 0 ? `(${product.stock} units)` : ''}
                     </span>
                   ) : (
                     <span className="font-bold text-rose-600 flex items-center gap-1">
@@ -175,7 +196,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
                 <div className="flex items-center gap-2 pt-1 border-t border-slate-200/60 text-forest-800 font-semibold text-[11px]">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>30-min neighborhood delivery or ₹0 store pickup</span>
+                  <span>15-20 min neighborhood delivery or ₹0 store pickup</span>
                 </div>
               </div>
             </div>
@@ -209,15 +230,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       <span className="text-xs font-black text-slate-900">
                         {formatPaise(item.pricePaise)}
                       </span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onAddToCart(item.storeId, item.id);
-                        }}
-                        className="px-2 py-0.5 text-[10px] font-bold bg-forest-50 text-forest-900 border border-forest-600 rounded-md hover:bg-forest-900 hover:text-white transition"
-                      >
-                        + Add
-                      </button>
+                      <QuantityStepper
+                        quantity={getItemQuantity(item.id)}
+                        onAdd={() => addItem(item.storeId, item.id, 1)}
+                        onIncrement={() => updateQuantity(item.id, getItemQuantity(item.id) + 1, item.storeId)}
+                        onDecrement={() => updateQuantity(item.id, getItemQuantity(item.id) - 1, item.storeId)}
+                        disabled={!item.isAvailable || item.stock === 0}
+                      />
                     </div>
                   </div>
                 ))}
@@ -229,23 +248,24 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         {/* Sticky Action Footer */}
         <div className="p-4 px-6 border-t border-slate-200 bg-white flex items-center justify-between gap-4">
           <div>
-            <span className="text-[11px] text-slate-400 font-semibold block">Item Total</span>
+            <span className="text-[11px] text-slate-400 font-semibold block">
+              {quantity > 0 ? `Subtotal (${quantity} items)` : 'Unit Price'}
+            </span>
             <span className="text-lg font-black text-slate-900">
-              {formatPaise(product.pricePaise)}
+              {formatPaise(product.pricePaise * (quantity > 0 ? quantity : 1))}
             </span>
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                handleAdd();
-                onClose();
-              }}
-              className="px-6 py-3 bg-forest-900 hover:bg-forest-950 text-white rounded-2xl font-bold text-sm shadow-md hover:shadow-lg transition flex items-center gap-2 active:scale-95"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span>Add to Cart</span>
-            </button>
+            <QuantityStepper
+              quantity={quantity}
+              onAdd={handleAdd}
+              onIncrement={handleIncrement}
+              onDecrement={handleDecrement}
+              disabled={isOutOfStock}
+              maxStock={product.stock > 0 ? product.stock : undefined}
+              className="scale-110"
+            />
           </div>
         </div>
       </div>

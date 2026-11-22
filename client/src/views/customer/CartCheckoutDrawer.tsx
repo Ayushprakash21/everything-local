@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Cart, Order } from '../../types';
 import { request, formatPaise } from '../../api/client';
 import { useLocation } from '../../context/LocationContext';
+import { useCart } from '../../context/CartContext';
 import { ELLogo } from '../../components/ELLogo';
 import {
   X,
@@ -36,62 +37,20 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
   isLoggedIn
 }) => {
   const { coords, selectedLocation, setIsLocationModalOpen } = useLocation();
-  const [cart, setCart] = useState<Cart | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [subtotalPaise, setSubtotalPaise] = useState(0);
-  const [shortfallPaise, setShortfallPaise] = useState(0);
-  const [meetsMov, setMeetsMov] = useState(false);
+  const {
+    cart,
+    subtotalPaise,
+    shortfallPaise,
+    meetsMinimumOrderValue: meetsMov,
+    isLoading: loading,
+    updateQuantity,
+    removeItem,
+    refreshCart
+  } = useCart();
+
   const [fulfillmentMode, setFulfillmentMode] = useState<'PICKUP' | 'MERCHANT_DELIVERY' | 'PLATFORM_DELIVERY'>('PICKUP');
   const [checkingOut, setCheckingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const fetchCart = async () => {
-    if (!isLoggedIn) return;
-    setLoading(true);
-    try {
-      const res = await request<any>('/customer/cart');
-      setCart(res.cart);
-      setSubtotalPaise(res.subtotalPaise);
-      setShortfallPaise(res.shortfallPaise);
-      setMeetsMov(res.meetsMinimumOrderValue);
-    } catch (err: any) {
-      console.error('Failed to fetch cart:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      fetchCart();
-    }
-  }, [isOpen, isLoggedIn]);
-
-  const updateQuantity = async (productId: string, quantity: number) => {
-    if (!cart?.storeId) return;
-    try {
-      await request('/customer/cart/items', {
-        method: 'POST',
-        body: JSON.stringify({
-          storeId: cart.storeId,
-          productId,
-          quantity
-        })
-      });
-      fetchCart();
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  const removeItem = async (itemId: string) => {
-    try {
-      await request(`/customer/cart/items/${itemId}`, { method: 'DELETE' });
-      fetchCart();
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
 
   const handleCheckout = async () => {
     if (!isLoggedIn) {
@@ -115,6 +74,7 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
         })
       });
 
+      await refreshCart();
       onClose();
       onOrderSuccess(res.order);
     } catch (err: any) {

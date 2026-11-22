@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LocationProvider, useLocation } from './context/LocationContext';
+import { CartProvider, useCart } from './context/CartContext';
 import { Navbar } from './components/Navbar';
 import { LocationModal } from './components/LocationModal';
 import { CustomerHome, SHOPPING_CATEGORIES } from './views/customer/CustomerHome';
@@ -51,62 +52,38 @@ function MainLayout() {
   const [servicesTab, setServicesTab] = useState<'explore' | 'bookings' | 'provider'>('explore');
   const [selectedServiceProviderId, setSelectedServiceProviderId] = useState<string | null>(null);
 
-  // Cart & Drawers
-  const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
+  const {
+    cart,
+    itemCount: cartCount,
+    subtotalPaise: cartTotalPaise,
+    isCartOpen,
+    setIsCartOpen,
+    addItem,
+    updateQuantity,
+    clearCart,
+    refreshCart
+  } = useCart();
+
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
   const [isCategoriesSheetOpen, setIsCategoriesSheetOpen] = useState<boolean>(false);
-  const [cartCount, setCartCount] = useState<number>(0);
-  const [cartTotalPaise, setCartTotalPaise] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>('');
-
-  // Fetch cart details
-  const updateCartDetails = async () => {
-    if (!user) {
-      setCartCount(0);
-      setCartTotalPaise(0);
-      return;
-    }
-    try {
-      const res = await request<{ cart: Cart }>('/customer/cart');
-      const count = res.cart.items.reduce((sum, item) => sum + item.quantity, 0);
-      const total = res.cart.items.reduce((sum, item) => sum + item.quantity * item.unitPricePaise, 0);
-      setCartCount(count);
-      setCartTotalPaise(total);
-    } catch {
-      setCartCount(0);
-      setCartTotalPaise(0);
-    }
-  };
-
-  useEffect(() => {
-    updateCartDetails();
-  }, [user, isCartOpen]);
 
   const handleAddToCart = async (storeId: string, productId: string) => {
     if (!user) {
       setIsAuthOpen(true);
       return;
     }
-    try {
-      await request('/customer/cart/items', {
-        method: 'POST',
-        body: JSON.stringify({ storeId, productId, quantity: 1 })
-      });
-      await updateCartDetails();
-      setIsCartOpen(true);
-    } catch (err: any) {
-      if (err.data?.storeConflict) {
-        if (confirm(err.data.message)) {
-          await request('/customer/cart', { method: 'DELETE' });
-          await request('/customer/cart/items', {
-            method: 'POST',
-            body: JSON.stringify({ storeId, productId, quantity: 1 })
-          });
-          await updateCartDetails();
-          setIsCartOpen(true);
+    const result = await addItem(storeId, productId, 1);
+    if (!result.success) {
+      if (result.conflictMessage?.includes('Single-store') || result.conflictMessage?.includes('contains items from')) {
+        if (confirm(result.conflictMessage)) {
+          await clearCart();
+          await addItem(storeId, productId, 1);
         }
+      } else if (result.conflictMessage === 'AUTH_REQUIRED') {
+        setIsAuthOpen(true);
       } else {
-        alert(err.message || 'Could not add to cart');
+        alert(result.conflictMessage || 'Could not add to cart');
       }
     }
   };
@@ -114,7 +91,7 @@ function MainLayout() {
   const handleOrderSuccess = (order: Order) => {
     setSelectedOrder(order);
     setCurrentTab('orders');
-    updateCartDetails();
+    refreshCart();
   };
 
   const handleBookingSuccess = (booking: ServiceBooking) => {
@@ -295,12 +272,10 @@ function MainLayout() {
       {/* Cart Drawer */}
       <CartCheckoutDrawer
         isOpen={isCartOpen}
-        onClose={() => {
-          setIsCartOpen(false);
-          updateCartDetails();
-        }}
-        onOrderPlaced={handleOrderSuccess}
+        onClose={() => setIsCartOpen(false)}
+        onOrderSuccess={handleOrderSuccess}
         openAuth={() => setIsAuthOpen(true)}
+        isLoggedIn={!!user}
       />
 
       {/* Auth Modal */}
@@ -316,7 +291,9 @@ export function App() {
   return (
     <AuthProvider>
       <LocationProvider>
-        <MainLayout />
+        <CartProvider>
+          <MainLayout />
+        </CartProvider>
       </LocationProvider>
     </AuthProvider>
   );
