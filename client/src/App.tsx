@@ -11,8 +11,15 @@ import { OrderTrackingView } from './views/customer/OrderTrackingView';
 import { MerchantDashboard } from './views/merchant/MerchantDashboard';
 import { AdminDashboard } from './views/admin/AdminDashboard';
 import { AuthModal } from './views/auth/AuthModal';
+
+// Services Ecosystem Views
+import { ServicesHomeView } from './views/services/ServicesHomeView';
+import { ServiceProviderDetailView } from './views/services/ServiceProviderDetailView';
+import { CustomerBookingsView } from './views/services/CustomerBookingsView';
+import { ProviderConsoleView } from './views/services/ProviderConsoleView';
+
 import { request } from './api/client';
-import { Cart, Order } from './types';
+import { Cart, Order, ServiceBooking } from './types';
 import {
   Home,
   LayoutGrid,
@@ -22,15 +29,29 @@ import {
   ShoppingBag,
   ArrowRight,
   X,
-  Sparkles
+  Sparkles,
+  Wrench,
+  Calendar,
+  Briefcase
 } from 'lucide-react';
 
 function MainLayout() {
   const { user } = useAuth();
   const { selectedLocation, setIsLocationModalOpen } = useLocation();
+
+  // Primary Ecosystem Discovery Mode: 'shop' (retail) vs 'services' (service appointments)
+  const [discoveryMode, setDiscoveryMode] = useState<'shop' | 'services'>('shop');
+
+  // Shop navigation
   const [currentTab, setCurrentTab] = useState<'customer' | 'merchant' | 'admin' | 'orders'>('customer');
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  // Services navigation
+  const [servicesTab, setServicesTab] = useState<'explore' | 'bookings' | 'provider'>('explore');
+  const [selectedServiceProviderId, setSelectedServiceProviderId] = useState<string | null>(null);
+
+  // Cart & Drawers
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
   const [isCategoriesSheetOpen, setIsCategoriesSheetOpen] = useState<boolean>(false);
@@ -96,8 +117,14 @@ function MainLayout() {
     updateCartDetails();
   };
 
+  const handleBookingSuccess = (booking: ServiceBooking) => {
+    setSelectedServiceProviderId(null);
+    setServicesTab('bookings');
+  };
+
   const handleSelectCategoryFromSheet = (catId: string) => {
     setIsCategoriesSheetOpen(false);
+    setDiscoveryMode('shop');
     setCurrentTab('customer');
     setSelectedStoreId(null);
     const cat = SHOPPING_CATEGORIES.find((c) => c.id === catId);
@@ -109,11 +136,23 @@ function MainLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 pb-16 md:pb-0">
       <Navbar
+        discoveryMode={discoveryMode}
+        setDiscoveryMode={(mode) => {
+          setDiscoveryMode(mode);
+          setSelectedServiceProviderId(null);
+          setSelectedStoreId(null);
+          setSearchQuery('');
+        }}
         currentTab={currentTab}
         setCurrentTab={(tab) => {
           setCurrentTab(tab);
           setSelectedStoreId(null);
           setSelectedOrder(null);
+        }}
+        servicesTab={servicesTab}
+        setServicesTab={(tab) => {
+          setServicesTab(tab);
+          setSelectedServiceProviderId(null);
         }}
         cartCount={cartCount}
         openCart={() => setIsCartOpen(true)}
@@ -121,60 +160,111 @@ function MainLayout() {
         searchQuery={searchQuery}
         setSearchQuery={(q) => {
           setSearchQuery(q);
-          if (currentTab !== 'customer') setCurrentTab('customer');
-          if (selectedStoreId) setSelectedStoreId(null);
+          if (discoveryMode === 'shop') {
+            if (currentTab !== 'customer') setCurrentTab('customer');
+            if (selectedStoreId) setSelectedStoreId(null);
+          } else {
+            if (servicesTab !== 'explore') setServicesTab('explore');
+            if (selectedServiceProviderId) setSelectedServiceProviderId(null);
+          }
         }}
       />
 
       <main className="flex-1">
-        {currentTab === 'customer' && (
+        {/* ==================================================== */}
+        {/* 1. SHOP DISCOVERY ECOSYSTEM (RETAIL COMMERCE)       */}
+        {/* ==================================================== */}
+        {discoveryMode === 'shop' && (
           <>
-            {selectedStoreId ? (
-              <StorefrontView
-                storeId={selectedStoreId}
-                onBack={() => setSelectedStoreId(null)}
-                onAddToCart={handleAddToCart}
-              />
-            ) : (
-              <CustomerHome
-                onSelectStore={(id) => setSelectedStoreId(id)}
-                onAddToCart={handleAddToCart}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                onOpenCategories={() => setIsCategoriesSheetOpen(true)}
-              />
+            {currentTab === 'customer' && (
+              <>
+                {selectedStoreId ? (
+                  <StorefrontView
+                    storeId={selectedStoreId}
+                    onBack={() => setSelectedStoreId(null)}
+                    onAddToCart={handleAddToCart}
+                  />
+                ) : (
+                  <CustomerHome
+                    onSelectStore={(id) => setSelectedStoreId(id)}
+                    onAddToCart={handleAddToCart}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    onOpenCategories={() => setIsCategoriesSheetOpen(true)}
+                  />
+                )}
+              </>
+            )}
+
+            {currentTab === 'orders' && (
+              <>
+                {selectedOrder ? (
+                  <OrderTrackingView
+                    order={selectedOrder}
+                    onBack={() => setSelectedOrder(null)}
+                  />
+                ) : (
+                  <CustomerOrdersView
+                    onSelectOrder={(order) => setSelectedOrder(order)}
+                    openAuth={() => setIsAuthOpen(true)}
+                    isLoggedIn={!!user}
+                  />
+                )}
+              </>
+            )}
+
+            {currentTab === 'merchant' && (
+              <MerchantDashboard openAuth={() => setIsAuthOpen(true)} />
+            )}
+
+            {currentTab === 'admin' && (
+              <AdminDashboard openAuth={() => setIsAuthOpen(true)} />
             )}
           </>
         )}
 
-        {currentTab === 'orders' && (
+        {/* ==================================================== */}
+        {/* 2. LOCAL SERVICES BOOKING ECOSYSTEM                 */}
+        {/* ==================================================== */}
+        {discoveryMode === 'services' && (
           <>
-            {selectedOrder ? (
-              <OrderTrackingView
-                order={selectedOrder}
-                onBack={() => setSelectedOrder(null)}
-              />
-            ) : (
-              <CustomerOrdersView
-                onSelectOrder={(order) => setSelectedOrder(order)}
+            {servicesTab === 'explore' && (
+              <>
+                {selectedServiceProviderId ? (
+                  <ServiceProviderDetailView
+                    providerId={selectedServiceProviderId}
+                    onBack={() => setSelectedServiceProviderId(null)}
+                    onBookingSuccess={handleBookingSuccess}
+                    openAuth={() => setIsAuthOpen(true)}
+                  />
+                ) : (
+                  <ServicesHomeView
+                    onSelectProvider={(id) => setSelectedServiceProviderId(id)}
+                    onOpenBookings={() => setServicesTab('bookings')}
+                  />
+                )}
+              </>
+            )}
+
+            {servicesTab === 'bookings' && (
+              <CustomerBookingsView
                 openAuth={() => setIsAuthOpen(true)}
-                isLoggedIn={!!user}
+                onExploreServices={() => {
+                  setServicesTab('explore');
+                  setSelectedServiceProviderId(null);
+                }}
               />
             )}
+
+            {servicesTab === 'provider' && (
+              <ProviderConsoleView openAuth={() => setIsAuthOpen(true)} />
+            )}
           </>
-        )}
-
-        {currentTab === 'merchant' && (
-          <MerchantDashboard openAuth={() => setIsAuthOpen(true)} />
-        )}
-
-        {currentTab === 'admin' && (
-          <AdminDashboard openAuth={() => setIsAuthOpen(true)} />
         )}
       </main>
 
-      {/* Floating Bottom Cart Bar (Mobile) */}
-      {cartCount > 0 && currentTab === 'customer' && (
+      {/* Floating Bottom Cart Bar (Mobile) - only active in shop mode */}
+      {cartCount > 0 && discoveryMode === 'shop' && currentTab === 'customer' && (
         <div className="md:hidden fixed bottom-16 left-3 right-3 z-40 animate-in slide-in-from-bottom-3 duration-200">
           <button
             onClick={() => setIsCartOpen(true)}
@@ -202,148 +292,27 @@ function MainLayout() {
         </div>
       )}
 
-      {/* Mobile Fixed Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1.5 flex items-center justify-around shadow-lg">
-        <button
-          onClick={() => {
-            setCurrentTab('customer');
-            setSelectedStoreId(null);
-            setSearchQuery('');
-          }}
-          className={`flex flex-col items-center py-1 px-3 rounded-xl transition ${
-            currentTab === 'customer' && !selectedStoreId
-              ? 'text-amber-600 font-black'
-              : 'text-slate-500 hover:text-slate-900 font-semibold'
-          }`}
-        >
-          <Home className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px]">Home</span>
-        </button>
-
-        <button
-          onClick={() => setIsCategoriesSheetOpen(true)}
-          className="flex flex-col items-center py-1 px-3 rounded-xl text-slate-500 hover:text-slate-900 font-semibold transition"
-        >
-          <LayoutGrid className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px]">Categories</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setCurrentTab('customer');
-            setSelectedStoreId(null);
-            const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
-            searchInput?.focus();
-          }}
-          className="flex flex-col items-center py-1 px-3 rounded-xl text-slate-500 hover:text-slate-900 font-semibold transition"
-        >
-          <Search className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px]">Search</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setCurrentTab('orders');
-            setSelectedStoreId(null);
-          }}
-          className={`flex flex-col items-center py-1 px-3 rounded-xl transition ${
-            currentTab === 'orders'
-              ? 'text-amber-600 font-black'
-              : 'text-slate-500 hover:text-slate-900 font-semibold'
-          }`}
-        >
-          <Package className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px]">Orders</span>
-        </button>
-
-        <button
-          onClick={() => {
-            if (user) {
-              if (user.role === 'MERCHANT') setCurrentTab('merchant');
-              else if (user.role === 'ADMIN') setCurrentTab('admin');
-              else setCurrentTab('orders');
-            } else {
-              setIsAuthOpen(true);
-            }
-          }}
-          className="flex flex-col items-center py-1 px-3 rounded-xl text-slate-500 hover:text-slate-900 font-semibold transition"
-        >
-          <User className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px]">{user ? 'Account' : 'Sign In'}</span>
-        </button>
-      </nav>
-
-      {/* Categories Sheet / Modal */}
-      {isCategoriesSheetOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-5 space-y-4 animate-in slide-in-from-bottom duration-200">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center">
-                  <LayoutGrid className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-slate-900">All Categories</h3>
-                  <p className="text-xs text-slate-500">Shop by department in Indore</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsCategoriesSheetOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              {SHOPPING_CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => handleSelectCategoryFromSheet(cat.id)}
-                  className={`flex items-center gap-2.5 p-3 rounded-2xl border ${cat.bgColor} ${cat.borderColor} text-left transition hover:scale-102`}
-                >
-                  <span className="text-2xl">{cat.icon}</span>
-                  <span className={`text-xs font-extrabold ${cat.textColor} leading-tight`}>
-                    {cat.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Interactive Location Selector & Autocomplete Modal */}
-      <LocationModal />
-
+      {/* Cart Drawer */}
       <CartCheckoutDrawer
         isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        onOrderSuccess={handleOrderSuccess}
+        onClose={() => {
+          setIsCartOpen(false);
+          updateCartDetails();
+        }}
+        onOrderPlaced={handleOrderSuccess}
         openAuth={() => setIsAuthOpen(true)}
-        isLoggedIn={!!user}
       />
 
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-      />
+      {/* Auth Modal */}
+      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
 
-      {/* Desktop Footer */}
-      <footer className="hidden md:block bg-white border-t border-slate-200 mt-12 py-8 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 space-y-2">
-          <div className="font-extrabold text-slate-800 text-sm">Everything Local</div>
-          <p className="italic">Shop more. Save more. Live better.</p>
-          <p className="text-slate-400">
-            Initial Pilot: Indore, Madhya Pradesh • Hyperlocal 3.0 km Neighbourhood Retail Network
-          </p>
-        </div>
-      </footer>
+      {/* Indore Location Modal */}
+      <LocationModal />
     </div>
   );
 }
 
-export default function App() {
+export function App() {
   return (
     <AuthProvider>
       <LocationProvider>
@@ -352,3 +321,4 @@ export default function App() {
     </AuthProvider>
   );
 }
+export default App;

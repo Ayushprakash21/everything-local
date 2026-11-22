@@ -27,24 +27,30 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
   const [merchants, setMerchants] = useState<Store[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ledger, setLedger] = useState<FinancialLedgerEntry[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'merchants' | 'orders' | 'ledger'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'merchants' | 'orders' | 'ledger' | 'services'>('overview');
+  const [serviceProviders, setServiceProviders] = useState<any[]>([]);
+  const [serviceBookings, setServiceBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAdminData = async () => {
     if (!user || user.role !== 'ADMIN') return;
     setLoading(true);
     try {
-      const [metRes, merchRes, ordRes, ledRes] = await Promise.all([
+      const [metRes, merchRes, ordRes, ledRes, srvProvRes, srvBkgRes] = await Promise.all([
         request<any>('/admin/metrics'),
         request<{ stores: Store[] }>('/admin/merchants'),
         request<{ orders: Order[] }>('/admin/orders'),
-        request<{ entries: FinancialLedgerEntry[] }>('/admin/finance/ledger')
+        request<{ entries: FinancialLedgerEntry[] }>('/admin/finance/ledger'),
+        request<{ providers: any[] }>('/services/admin/providers').catch(() => ({ providers: [] })),
+        request<{ bookings: any[] }>('/services/admin/bookings').catch(() => ({ bookings: [] }))
       ]);
 
       setMetrics(metRes.metrics);
       setMerchants(merchRes.stores);
       setOrders(ordRes.orders);
       setLedger(ledRes.entries);
+      setServiceProviders(srvProvRes.providers || []);
+      setServiceBookings(srvBkgRes.bookings || []);
     } catch (err) {
       console.error('Failed to load admin data:', err);
     } finally {
@@ -55,6 +61,18 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
   useEffect(() => {
     fetchAdminData();
   }, [user]);
+
+  const handleVerifyServiceProvider = async (providerId: string, status: 'VERIFIED' | 'REJECTED' | 'SUSPENDED') => {
+    try {
+      await request(`/services/admin/providers/${providerId}/verify`, {
+        method: 'POST',
+        body: JSON.stringify({ status })
+      });
+      fetchAdminData();
+    } catch (err: any) {
+      alert(`Error updating provider verification: ${err.message}`);
+    }
+  };
 
   const handleVerifyMerchant = async (storeId: string, isVerified: boolean) => {
     try {
@@ -217,6 +235,17 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
         >
           Double-Entry Ledger ({ledger.length})
         </button>
+
+        <button
+          onClick={() => setActiveTab('services')}
+          className={`pb-3 border-b-2 transition ${
+            activeTab === 'services'
+              ? 'border-forest-900 text-forest-900 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          Services Marketplace ({serviceProviders.length})
+        </button>
       </div>
 
       {/* TAB 1: Merchant Governance */}
@@ -372,6 +401,89 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: Services Marketplace Moderation */}
+      {activeTab === 'services' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-card">
+            <div className="p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-black text-slate-900">Registered Indore Service Providers</h3>
+                <p className="text-xs text-slate-500">Approve credentials, home coverage radii, and commission tiers.</p>
+              </div>
+              <span className="text-xs font-bold bg-amber-100 text-amber-900 px-3 py-1 rounded-full">
+                {serviceProviders.length} Providers
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-400 uppercase tracking-wider font-black">
+                  <tr>
+                    <th className="px-5 py-4">Business Name & Category</th>
+                    <th className="px-5 py-4">Owner & Contact</th>
+                    <th className="px-5 py-4">Coverage & Visit Modes</th>
+                    <th className="px-5 py-4">Status</th>
+                    <th className="px-5 py-4 text-right">Moderation Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {serviceProviders.map((p) => (
+                    <tr key={p.id} className="hover:bg-slate-50/70 transition">
+                      <td className="px-5 py-4">
+                        <span className="font-bold text-slate-900 block text-sm">{p.businessName}</span>
+                        <span className="text-slate-500 text-[11px] font-semibold">{p.categorySlug} • ★ {p.rating.toFixed(1)}</span>
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        <span className="font-bold block text-slate-800">{p.owner?.name || 'Partner'}</span>
+                        <span className="text-slate-400 text-[11px]">{p.owner?.email || p.owner?.phone}</span>
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        <span className="font-semibold block text-slate-800">
+                          {p.hasShopVisit ? '🏢 Shop' : ''} {p.hasHomeVisit ? `🏠 Home (${p.homeVisitRadiusKm} km)` : ''}
+                        </span>
+                        <span className="text-[11px] text-slate-400">
+                          {p._count?.services || 0} services • {p._count?.bookings || 0} bookings
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                            p.verificationStatus === 'VERIFIED'
+                              ? 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                              : p.verificationStatus === 'REJECTED'
+                              ? 'bg-rose-100 text-rose-900 border border-rose-200'
+                              : 'bg-amber-100 text-amber-900 border border-amber-200'
+                          }`}
+                        >
+                          {p.verificationStatus}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-right space-x-2">
+                        {p.verificationStatus !== 'VERIFIED' ? (
+                          <button
+                            onClick={() => handleVerifyServiceProvider(p.id, 'VERIFIED')}
+                            className="px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black shadow-xs transition"
+                          >
+                            Approve
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleVerifyServiceProvider(p.id, 'SUSPENDED')}
+                            className="px-3 py-1.5 text-xs border border-rose-300 text-rose-700 rounded-xl hover:bg-rose-50 font-bold transition"
+                          >
+                            Suspend
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

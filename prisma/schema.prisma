@@ -23,6 +23,10 @@ model User {
   carts        Cart[]
   reviews      Review[]
   auditLogs    AuditLog[]
+
+  serviceProviders ServiceProvider[]  @relation("UserProviders")
+  serviceBookings  ServiceBooking[]   @relation("CustomerBookings")
+  serviceReviews   ServiceReview[]    @relation("CustomerServiceReviews")
 }
 
 model Store {
@@ -222,3 +226,233 @@ model Review {
   comment    String?
   createdAt  DateTime @default(now())
 }
+
+// ==========================================
+// LOCAL SERVICES ECOSYSTEM MODELS
+// ==========================================
+
+model ServiceCategory {
+  id           String           @id @default(uuid())
+  name         String
+  slug         String           @unique
+  icon         String           // e.g. "✂️", "💄", "🔧", "🧹", "🚗", "📚"
+  description  String?
+  displayOrder Int              @default(0)
+  isActive     Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  services     ServiceListing[]
+}
+
+model ServiceProvider {
+  id                  String                 @id @default(uuid())
+  ownerId             String
+  owner               User                   @relation("UserProviders", fields: [ownerId], references: [id], onDelete: Cascade)
+  businessName        String
+  slug                String                 @unique
+  description         String?
+  profileImageUrl     String?
+  contactPhone        String
+  contactEmail        String?
+  categorySlug        String                 // Primary category (e.g. salon, home-maintenance, cleaning)
+  isVerified          Boolean                @default(false)
+  verificationStatus  String                 @default("PENDING") // PENDING, VERIFIED, REJECTED, SUSPENDED
+  kycDocumentUrl      String?
+  commissionRatePct   Float                  @default(10.0) // Configurable platform commission rate
+  rating              Float                  @default(4.9)
+  reviewCount         Int                    @default(0)
+  
+  // Shop Visit configuration
+  hasShopVisit        Boolean                @default(true)
+  shopAddressLine     String?
+  shopCity            String                 @default("Indore")
+  shopPincode         String?
+  shopLatitude        Float?
+  shopLongitude       Float?
+
+  // Home Visit configuration
+  hasHomeVisit        Boolean                @default(true)
+  homeVisitRadiusKm   Float                  @default(7.0) // Independent radius for services (e.g. 7-10 km)
+  homeVisitFeePaise   Int                    @default(0)   // Travel / visit fee in paise (e.g. ₹9900 or 0)
+  
+  isOpen              Boolean                @default(true)
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  staff               ProviderStaff[]
+  services            ServiceListing[]
+  serviceAreas        ServiceArea[]
+  availabilities      ProviderAvailability[]
+  appointmentSlots    AppointmentSlot[]
+  bookings            ServiceBooking[]
+  reviews             ServiceReview[]
+  earnings            ProviderEarning[]
+}
+
+model ProviderStaff {
+  id               String            @id @default(uuid())
+  providerId       String
+  provider         ServiceProvider   @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name             String
+  role             String            // e.g. "Senior Stylist", "AC Technician", "Master Electrician"
+  phone            String?
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+
+  bookings         ServiceBooking[]
+  appointmentSlots AppointmentSlot[]
+}
+
+model ServiceListing {
+  id                  String           @id @default(uuid())
+  providerId          String
+  provider            ServiceProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  categoryId          String
+  category            ServiceCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  title               String
+  description         String?
+  imageUrl            String?
+  pricePaise          Int              // Integer paise (e.g. 29900 = ₹299)
+  mrpPaise            Int?             // Integer paise (e.g. 39900 = ₹399)
+  pricingType         String           @default("FIXED") // FIXED, STARTING_FROM, INSPECTION_FEE
+  durationMinutes     Int              @default(45)
+  allowsShopVisit     Boolean          @default(true)
+  allowsHomeVisit     Boolean          @default(true)
+  materialIncluded    Boolean          @default(false)
+  isActive            Boolean          @default(true)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  bookings            ServiceBooking[]
+}
+
+model ServiceArea {
+  id          String          @id @default(uuid())
+  providerId  String
+  provider    ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  locality    String          // e.g. "Vijay Nagar", "Palasia", "All Indore"
+  pincode     String?
+}
+
+model ProviderAvailability {
+  id                  String          @id @default(uuid())
+  providerId          String
+  provider            ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  dayOfWeek           Int             // 0 (Sun) to 6 (Sat)
+  startTime           String          // e.g. "09:00"
+  endTime             String          // e.g. "20:00"
+  slotDurationMinutes Int             @default(60)
+  isDayOff            Boolean         @default(false)
+}
+
+model AppointmentSlot {
+  id          String          @id @default(uuid())
+  providerId  String
+  provider    ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  staffId     String?
+  staff       ProviderStaff?  @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  date        String          // YYYY-MM-DD
+  timeSlot    String          // e.g. "10:00 AM"
+  isBooked    Boolean         @default(false)
+  bookingId   String?
+  createdAt   DateTime        @default(now())
+
+  @@unique([providerId, date, timeSlot])
+}
+
+model ServiceBooking {
+  id                    String              @id @default(uuid())
+  bookingNumber         String              @unique // BKG-IND-XXXXXX
+  customerId            String
+  customer              User                @relation("CustomerBookings", fields: [customerId], references: [id])
+  providerId            String
+  provider              ServiceProvider     @relation(fields: [providerId], references: [id])
+  serviceId             String
+  service               ServiceListing      @relation(fields: [serviceId], references: [id])
+  staffId               String?
+  staff                 ProviderStaff?      @relation(fields: [staffId], references: [id])
+  
+  fulfillmentType       String              // SHOP_VISIT or HOME_VISIT
+  bookingDate           String              // YYYY-MM-DD
+  timeSlot              String              // e.g. "10:00 AM"
+  status                String              @default("PENDING_CONFIRMATION") 
+  // PENDING_CONFIRMATION, CONFIRMED, PROVIDER_ASSIGNED, PROVIDER_EN_ROUTE, ARRIVED, IN_PROGRESS, COMPLETED, CANCELLED, REJECTED, NO_SHOW, REFUNDED
+
+  // Customer location for Home Visit
+  customerAddressLine   String?
+  customerLocality      String?
+  customerCity          String              @default("Indore")
+  customerPincode       String?
+  customerLat           Float?
+  customerLng           Float?
+  instructions          String?
+
+  // Financial Snapshot in Integer Paise
+  serviceFeePaise       Int
+  travelFeePaise        Int                 @default(0)
+  materialFeePaise      Int                 @default(0)
+  discountPaise         Int                 @default(0)
+  totalAmountPaise      Int
+  commissionPaise       Int
+  providerPayablePaise  Int
+  platformRevenuePaise  Int
+  paymentStatus         String              @default("PENDING") // PENDING, PAID, REFUNDED
+  cancellationReason    String?
+
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  events                BookingStatusEvent[]
+  review                ServiceReview?
+  payment               ServicePayment?
+}
+
+model BookingStatusEvent {
+  id          String         @id @default(uuid())
+  bookingId   String
+  booking     ServiceBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  status      String
+  actorId     String?
+  actorRole   String?        // CUSTOMER, PROVIDER, ADMIN, SYSTEM
+  note        String?
+  createdAt   DateTime       @default(now())
+}
+
+model ServiceReview {
+  id          String          @id @default(uuid())
+  bookingId   String          @unique
+  booking     ServiceBooking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  providerId  String
+  provider    ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  customerId  String
+  customer    User            @relation("CustomerServiceReviews", fields: [customerId], references: [id], onDelete: Cascade)
+  rating      Int             // 1 to 5
+  comment     String?
+  createdAt   DateTime        @default(now())
+}
+
+model ProviderEarning {
+  id                 String          @id @default(uuid())
+  providerId         String
+  provider           ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  bookingId          String?
+  amountPaise        Int
+  commissionPaise    Int
+  netEarningPaise    Int
+  payoutStatus       String          @default("PENDING") // PENDING, PROCESSED, WITHDRAWN
+  reference          String?
+  createdAt          DateTime        @default(now())
+}
+
+model ServicePayment {
+  id             String         @id @default(uuid())
+  bookingId      String         @unique
+  booking        ServiceBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  amountPaise    Int
+  paymentMethod  String         @default("CASH_ON_SERVICE") // CASH_ON_SERVICE, UPI, CARD
+  transactionRef String?
+  status         String         @default("PAID") // PENDING, PAID, REFUNDED
+  createdAt      DateTime       @default(now())
+}
+
