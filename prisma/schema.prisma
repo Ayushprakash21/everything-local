@@ -27,6 +27,10 @@ model User {
   serviceProviders ServiceProvider[]  @relation("UserProviders")
   serviceBookings  ServiceBooking[]   @relation("CustomerBookings")
   serviceReviews   ServiceReview[]    @relation("CustomerServiceReviews")
+
+  pharmacies       Pharmacy[]         @relation("UserPharmacies")
+  prescriptions    Prescription[]     @relation("CustomerPrescriptions")
+  pharmacyOrders   PharmacyOrder[]    @relation("CustomerPharmacyOrders")
 }
 
 model Store {
@@ -454,5 +458,271 @@ model ServicePayment {
   transactionRef String?
   status         String         @default("PAID") // PENDING, PAID, REFUNDED
   createdAt      DateTime       @default(now())
+}
+
+// ====================================================
+// PHARMACY & MEDICAL ECOSYSTEM MODELS
+// ====================================================
+
+model Pharmacy {
+  id                 String               @id @default(uuid())
+  ownerId            String
+  owner              User                 @relation("UserPharmacies", fields: [ownerId], references: [id], onDelete: Cascade)
+  name               String
+  legalBusinessName  String
+  slug               String               @unique
+  addressLine        String
+  city               String               @default("Indore")
+  pincode            String
+  latitude           Float
+  longitude          Float
+  phone              String
+  email              String
+  operatingHours     String               @default("08:00 AM - 11:00 PM")
+  serviceRadiusKm    Float                @default(5.0)
+  isOpen             Boolean              @default(true)
+  verificationStatus String               @default("UNDER_VERIFICATION") // APPLICATION_SUBMITTED, DOCUMENTS_PENDING, UNDER_VERIFICATION, APPROVED, REJECTED, SUSPENDED, LICENCE_EXPIRED
+  isVerified         Boolean              @default(false)
+  rejectionReason    String?
+  counterPickup      Boolean              @default(true)
+  homeDelivery       Boolean              @default(true)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  licences           PharmacyLicence[]
+  pharmacists        RegisteredPharmacist[]
+  inventory          PharmacyInventory[]
+  prescriptions      Prescription[]
+  quotations         PharmacyQuotation[]
+  orders             PharmacyOrder[]
+}
+
+model PharmacyLicence {
+  id                 String    @id @default(uuid())
+  pharmacyId         String
+  pharmacy           Pharmacy  @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  licenceType        String    // FORM_20, FORM_21, FORM_20B, FORM_21B
+  licenceNumber      String    // e.g. "MP/IND/20/2023/10842"
+  issuingAuthority   String    @default("Madhya Pradesh Food and Drugs Administration (FDA)")
+  validFrom          DateTime
+  validUpto          DateTime
+  documentUrl        String?
+  status             String    @default("PENDING") // PENDING, VERIFIED, EXPIRED, REVOKED
+  verifiedAt         DateTime?
+  verifiedByAdminId  String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model RegisteredPharmacist {
+  id                   String    @id @default(uuid())
+  pharmacyId           String
+  pharmacy             Pharmacy  @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  userId               String?
+  name                 String    // e.g. "Pooja Sharma, B.Pharm"
+  registrationNumber   String    // e.g. "MPPC-48291"
+  councilName          String    @default("Madhya Pradesh State Pharmacy Council")
+  qualification        String    @default("B.Pharm / M.Pharm")
+  registrationValidity DateTime
+  isPrimary            Boolean   @default(true)
+  isActive             Boolean   @default(true)
+  phone                String
+  email                String?
+  certificateUrl       String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model MedicineClassification {
+  id                    String   @id @default(uuid())
+  code                  String   @unique // OTC, SCHEDULE_H, SCHEDULE_H1, SCHEDULE_X, CONTROLLED, MEDICAL_DEVICE, AYURVEDIC
+  name                  String
+  requiresPrescription  Boolean  @default(false)
+  isOnlineSalePermitted Boolean  @default(true) // SCHEDULE_X is false
+  description           String?
+  regulatoryNotes       String?
+}
+
+model Medicine {
+  id                   String              @id @default(uuid())
+  name                 String              // e.g. "Augmentin 625 Duo Tablet"
+  brand                String              // "GSK"
+  genericName          String              // "Amoxycillin (500mg) + Clavulanic Acid (125mg)"
+  strength             String              // "625mg"
+  dosageForm           String              // "Tablet", "Syrup", "Ointment", "Capsule", "Drops"
+  packSize             String              // "10 Tablets per strip"
+  manufacturer         String              // "GlaxoSmithKline Pharmaceuticals Ltd"
+  mrpPaise             Int
+  sellingPricePaise    Int
+  classification       String              @default("SCHEDULE_H") // OTC, SCHEDULE_H, SCHEDULE_H1, SCHEDULE_X, MEDICAL_DEVICE
+  requiresPrescription Boolean             @default(true)
+  isProhibitedOnline   Boolean             @default(false)
+  storageRequirement   String?             @default("Store below 25°C in a dry place")
+  imageUrl             String?
+  barcode              String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  inventories          PharmacyInventory[]
+}
+
+model PharmacyInventory {
+  id                String    @id @default(uuid())
+  pharmacyId        String
+  pharmacy          Pharmacy  @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  medicineId        String
+  medicine          Medicine  @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  batchNumber       String
+  expiryDate        DateTime
+  stockQuantity     Int       @default(0)
+  mrpPaise          Int
+  sellingPricePaise Int
+  isAvailable       Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model Prescription {
+  id                 String                 @id @default(uuid())
+  prescriptionNumber String                 @unique // e.g. "RX-202611-1001"
+  customerId         String
+  customer           User                   @relation("CustomerPrescriptions", fields: [customerId], references: [id], onDelete: Cascade)
+  pharmacyId         String?
+  pharmacy           Pharmacy?              @relation(fields: [pharmacyId], references: [id], onDelete: SetNull)
+  status             String                 @default("SUBMITTED") // DRAFT, UPLOADED, SUBMITTED, UNDER_PHARMACIST_REVIEW, ADDITIONAL_INFO_REQUIRED, APPROVED, PARTIALLY_APPROVED, REJECTED, AWAITING_CUSTOMER_CONFIRMATION, ORDER_CREATED, DISPENSED, COMPLETED, CANCELLED
+  patientName        String
+  patientAge         Int
+  patientGender      String                 // MALE, FEMALE, OTHER
+  patientRelation    String                 @default("Self") // Self, Parent, Child, Spouse, Other
+  doctorName         String?
+  doctorRegNumber    String?
+  clinicHospital     String?
+  prescriptionDate   DateTime?
+  customerNotes      String?
+  pharmacistNotes    String?
+  rejectionReason    String?
+  deliveryAddress    String?
+  deliveryType       String                 @default("HOME_DELIVERY") // HOME_DELIVERY, COUNTER_PICKUP
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  documents          PrescriptionDocument[]
+  reviews            PrescriptionReview[]
+  quotations         PharmacyQuotation[]
+  order              PharmacyOrder?
+  auditEvents        PrescriptionAuditEvent[]
+}
+
+model PrescriptionDocument {
+  id             String       @id @default(uuid())
+  prescriptionId String
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  pageNumber     Int          @default(1)
+  fileName       String
+  fileType       String       // image/jpeg, image/png, application/pdf
+  fileSizeBytes  Int
+  storagePath    String       // Non-public server path
+  createdAt      DateTime     @default(now())
+}
+
+model PrescriptionReview {
+  id               String       @id @default(uuid())
+  prescriptionId   String
+  prescription     Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  pharmacistId     String
+  pharmacistName   String
+  pharmacistRegNo  String
+  decision         String       // APPROVED, PARTIALLY_APPROVED, REJECTED, INFO_REQUESTED
+  doctorVerified   Boolean      @default(false)
+  validityVerified Boolean      @default(false)
+  notes            String?
+  rejectionReason  String?
+  reviewTimestamp  DateTime     @default(now())
+}
+
+model PharmacyQuotation {
+  id                       String          @id @default(uuid())
+  quotationNumber          String          @unique // e.g. "QT-202611-1001"
+  prescriptionId           String
+  prescription             Prescription    @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  pharmacyId               String
+  pharmacy                 Pharmacy        @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  status                   String          @default("PENDING_CUSTOMER") // PENDING_CUSTOMER, ACCEPTED, EXPIRED, REJECTED
+  subtotalPaise            Int
+  taxPaise                 Int             @default(0)
+  deliveryFeePaise         Int             @default(0)
+  totalPaise               Int
+  deliveryType             String          @default("HOME_DELIVERY")
+  estimatedDeliveryMinutes Int             @default(30)
+  validUntil               DateTime
+  pharmacistNotes          String?
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+
+  items                    QuotationItem[]
+}
+
+model QuotationItem {
+  id                 String            @id @default(uuid())
+  quotationId        String
+  quotation          PharmacyQuotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  medicineId         String?
+  medicineName       String
+  dosageStrength     String
+  prescribedQuantity Int
+  approvedQuantity   Int
+  unitPricePaise     Int
+  totalPricePaise    Int
+  isAvailable        Boolean           @default(true)
+  substitutionNote   String?
+}
+
+model PharmacyOrder {
+  id                    String             @id @default(uuid())
+  orderNumber           String             @unique // e.g. "RXORD-202611-1001"
+  prescriptionId        String             @unique
+  prescription          Prescription       @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  pharmacyId            String
+  pharmacy              Pharmacy           @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  customerId            String
+  customer              User               @relation("CustomerPharmacyOrders", fields: [customerId], references: [id], onDelete: Cascade)
+  totalAmountPaise      Int
+  status                String             @default("CONFIRMED") // CONFIRMED, DISPENSING, READY_FOR_PICKUP, OUT_FOR_DELIVERY, DELIVERED, COMPLETED, CANCELLED
+  deliveryType          String             @default("HOME_DELIVERY")
+  deliveryAddress       String?
+  paymentStatus         String             @default("CASH_ON_DELIVERY")
+  dispensedByPharmacist String?
+  dispensedAt           DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  dispensingRecords     DispensingRecord[]
+}
+
+model DispensingRecord {
+  id                 String        @id @default(uuid())
+  orderId            String
+  order              PharmacyOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  pharmacistId       String
+  pharmacistName     String
+  pharmacistRegNo    String
+  medicineName       String
+  batchNumber        String
+  expiryDate         String
+  quantityDispensed  Int
+  dispenseTimestamp  DateTime      @default(now())
+}
+
+model PrescriptionAuditEvent {
+  id             String       @id @default(uuid())
+  prescriptionId String
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  actorId        String
+  actorRole      String       // CUSTOMER, PHARMACIST, ADMIN, SYSTEM
+  actorName      String?
+  action         String       // CREATED, DOCUMENT_UPLOADED, VIEWED, DOWNLOADED, REVIEWED, QUOTATION_ISSUED, ACCEPTED, DISPENSED, CANCELLED
+  ipAddress      String?
+  details        String?
+  createdAt      DateTime     @default(now())
 }
 

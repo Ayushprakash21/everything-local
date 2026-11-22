@@ -19,6 +19,12 @@ import { ServiceProviderDetailView } from './views/services/ServiceProviderDetai
 import { CustomerBookingsView } from './views/services/CustomerBookingsView';
 import { ProviderConsoleView } from './views/services/ProviderConsoleView';
 
+// Pharmacy & Medical Ecosystem Views
+import { PharmacyHomeView } from './views/pharmacy/PharmacyHomeView';
+import { PharmacyPrescriptionUploadView } from './views/pharmacy/PharmacyPrescriptionUploadView';
+import { CustomerPrescriptionsView } from './views/pharmacy/CustomerPrescriptionsView';
+import { PharmacistConsoleView } from './views/pharmacy/PharmacistConsoleView';
+
 import { request } from './api/client';
 import { Cart, Order, ServiceBooking } from './types';
 import {
@@ -40,8 +46,8 @@ function MainLayout() {
   const { user } = useAuth();
   const { selectedLocation, setIsLocationModalOpen } = useLocation();
 
-  // Primary Ecosystem Discovery Mode: 'shop' (retail) vs 'services' (service appointments)
-  const [discoveryMode, setDiscoveryMode] = useState<'shop' | 'services'>('shop');
+  // Primary Ecosystem Discovery Mode: 'shop' (retail) vs 'services' (service appointments) vs 'pharmacy' (medical)
+  const [discoveryMode, setDiscoveryMode] = useState<'shop' | 'services' | 'pharmacy'>('shop');
 
   // Shop navigation
   const [currentTab, setCurrentTab] = useState<'customer' | 'merchant' | 'admin' | 'orders'>('customer');
@@ -51,6 +57,9 @@ function MainLayout() {
   // Services navigation
   const [servicesTab, setServicesTab] = useState<'explore' | 'bookings' | 'provider'>('explore');
   const [selectedServiceProviderId, setSelectedServiceProviderId] = useState<string | null>(null);
+
+  // Pharmacy navigation
+  const [pharmacyTab, setPharmacyTab] = useState<'explore' | 'upload' | 'prescriptions' | 'pharmacist'>('explore');
 
   const {
     cart,
@@ -131,6 +140,8 @@ function MainLayout() {
           setServicesTab(tab);
           setSelectedServiceProviderId(null);
         }}
+        pharmacyTab={pharmacyTab}
+        setPharmacyTab={(tab) => setPharmacyTab(tab)}
         cartCount={cartCount}
         openCart={() => setIsCartOpen(true)}
         openAuth={() => setIsAuthOpen(true)}
@@ -140,7 +151,7 @@ function MainLayout() {
           if (discoveryMode === 'shop') {
             if (currentTab !== 'customer') setCurrentTab('customer');
             if (selectedStoreId) setSelectedStoreId(null);
-          } else {
+          } else if (discoveryMode === 'services') {
             if (servicesTab !== 'explore') setServicesTab('explore');
             if (selectedServiceProviderId) setSelectedServiceProviderId(null);
           }
@@ -168,6 +179,14 @@ function MainLayout() {
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
                     onOpenCategories={() => setIsCategoriesSheetOpen(true)}
+                    onNavigateToPharmacy={() => {
+                      setDiscoveryMode('pharmacy');
+                      setPharmacyTab('explore');
+                    }}
+                    onOpenPrescriptionUpload={() => {
+                      setDiscoveryMode('pharmacy');
+                      setPharmacyTab('upload');
+                    }}
                   />
                 )}
               </>
@@ -238,6 +257,45 @@ function MainLayout() {
 
             {servicesTab === 'provider' && (
               <ProviderConsoleView openAuth={() => setIsAuthOpen(true)} />
+            )}
+          </>
+        )}
+
+        {/* ==================================================== */}
+        {/* 3. PHARMACY & MEDICAL MARKETPLACE ECOSYSTEM         */}
+        {/* ==================================================== */}
+        {discoveryMode === 'pharmacy' && (
+          <>
+            {pharmacyTab === 'explore' && (
+              <PharmacyHomeView
+                onOpenPrescriptionUpload={() => setPharmacyTab('upload')}
+                onOpenMyPrescriptions={() => setPharmacyTab('prescriptions')}
+                onOpenPharmacistConsole={() => setPharmacyTab('pharmacist')}
+                openAuth={() => setIsAuthOpen(true)}
+              />
+            )}
+
+            {pharmacyTab === 'upload' && (
+              <PharmacyPrescriptionUploadView
+                onBack={() => setPharmacyTab('explore')}
+                onSuccess={(_rxId) => setPharmacyTab('prescriptions')}
+                openAuth={() => setIsAuthOpen(true)}
+              />
+            )}
+
+            {pharmacyTab === 'prescriptions' && (
+              <CustomerPrescriptionsView
+                onBack={() => setPharmacyTab('explore')}
+                onOpenUpload={() => setPharmacyTab('upload')}
+                openAuth={() => setIsAuthOpen(true)}
+              />
+            )}
+
+            {pharmacyTab === 'pharmacist' && (
+              <PharmacistConsoleView
+                onBack={() => setPharmacyTab('explore')}
+                openAuth={() => setIsAuthOpen(true)}
+              />
             )}
           </>
         )}

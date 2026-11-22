@@ -7,6 +7,7 @@ import {
   ShoppingBag,
   Store,
   Shield,
+  ShieldCheck,
   User,
   LogOut,
   ChevronDown,
@@ -17,16 +18,21 @@ import {
   X,
   Wrench,
   Calendar,
-  Briefcase
+  Briefcase,
+  HeartPulse,
+  Pill,
+  FileText
 } from 'lucide-react';
 
 interface NavbarProps {
-  discoveryMode: 'shop' | 'services';
-  setDiscoveryMode: (mode: 'shop' | 'services') => void;
+  discoveryMode: 'shop' | 'services' | 'pharmacy';
+  setDiscoveryMode: (mode: 'shop' | 'services' | 'pharmacy') => void;
   currentTab: 'customer' | 'merchant' | 'admin' | 'orders';
   setCurrentTab: (tab: 'customer' | 'merchant' | 'admin' | 'orders') => void;
   servicesTab: 'explore' | 'bookings' | 'provider';
   setServicesTab: (tab: 'explore' | 'bookings' | 'provider') => void;
+  pharmacyTab?: 'explore' | 'upload' | 'prescriptions' | 'pharmacist';
+  setPharmacyTab?: (tab: 'explore' | 'upload' | 'prescriptions' | 'pharmacist') => void;
   cartCount: number;
   openCart: () => void;
   openAuth: () => void;
@@ -41,6 +47,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   setCurrentTab,
   servicesTab,
   setServicesTab,
+  pharmacyTab = 'explore',
+  setPharmacyTab,
   cartCount,
   openCart,
   openAuth,
@@ -137,6 +145,21 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <ShoppingBag className="w-3.5 h-3.5" />
               <span>Shop</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setDiscoveryMode('pharmacy');
+                if (setPharmacyTab) setPharmacyTab('explore');
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition ${
+                discoveryMode === 'pharmacy'
+                  ? 'bg-amber-400 text-slate-950 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <HeartPulse className="w-3.5 h-3.5" />
+              <span>Pharmacy</span>
             </button>
 
             <button
@@ -251,6 +274,56 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   <Shield className="w-3.5 h-3.5 text-slate-700" />
                   <span>Admin</span>
+                </button>
+              </div>
+            ) : discoveryMode === 'pharmacy' ? (
+              <div className="hidden md:flex bg-slate-100 p-1 rounded-2xl text-xs font-bold border border-slate-200/50">
+                <button
+                  onClick={() => setPharmacyTab && setPharmacyTab('explore')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition ${
+                    pharmacyTab === 'explore'
+                      ? 'bg-white text-forest-900 shadow-2xs font-black'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <HeartPulse className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Medicines</span>
+                </button>
+
+                <button
+                  onClick={() => setPharmacyTab && setPharmacyTab('upload')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition ${
+                    pharmacyTab === 'upload'
+                      ? 'bg-white text-forest-900 shadow-2xs font-black'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Upload Rx</span>
+                </button>
+
+                <button
+                  onClick={() => setPharmacyTab && setPharmacyTab('prescriptions')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition ${
+                    pharmacyTab === 'prescriptions'
+                      ? 'bg-white text-forest-900 shadow-2xs font-black'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Clock className="w-3.5 h-3.5 text-blue-600" />
+                  <span>My Prescriptions</span>
+                </button>
+
+                <button
+                  onClick={() => setPharmacyTab && setPharmacyTab('pharmacist')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition ${
+                    pharmacyTab === 'pharmacist'
+                      ? 'bg-white text-forest-900 shadow-2xs font-black'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-teal-700" />
+                  <span>Pharmacist Console</span>
                 </button>
               </div>
             ) : (
@@ -497,6 +570,65 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <User className="w-4 h-4" />
               <span>{user ? (user.role === 'ADMIN' ? 'Admin' : 'Account') : 'Sign In'}</span>
+            </button>
+          </>
+        ) : discoveryMode === 'pharmacy' ? (
+          <>
+            <button
+              onClick={() => {
+                setDiscoveryMode('shop');
+                setCurrentTab('customer');
+              }}
+              className="flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl text-slate-500 hover:text-slate-900"
+            >
+              <ShoppingBag className="w-4 h-4 text-slate-600" />
+              <span>Shop</span>
+            </button>
+
+            <button
+              onClick={() => setPharmacyTab && setPharmacyTab('explore')}
+              className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl transition ${
+                pharmacyTab === 'explore' ? 'text-forest-900 font-black' : 'text-slate-500'
+              }`}
+            >
+              <HeartPulse className="w-4 h-4 text-emerald-600" />
+              <span>Medicines</span>
+            </button>
+
+            <button
+              onClick={() => setPharmacyTab && setPharmacyTab('upload')}
+              className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl transition ${
+                pharmacyTab === 'upload' ? 'text-forest-900 font-black' : 'text-slate-500'
+              }`}
+            >
+              <FileText className="w-4 h-4 text-amber-600" />
+              <span>Upload Rx</span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (user && setPharmacyTab) setPharmacyTab('prescriptions');
+                else openAuth();
+              }}
+              className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl transition ${
+                pharmacyTab === 'prescriptions' ? 'text-forest-900 font-black' : 'text-slate-500'
+              }`}
+            >
+              <Clock className="w-4 h-4 text-blue-600" />
+              <span>My Rx</span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (user && setPharmacyTab) setPharmacyTab('pharmacist');
+                else openAuth();
+              }}
+              className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl transition ${
+                pharmacyTab === 'pharmacist' ? 'text-forest-900 font-black' : 'text-slate-500'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 text-teal-700" />
+              <span>Pharmacist</span>
             </button>
           </>
         ) : (

@@ -26,6 +26,7 @@ import {
   Milk,
   Coffee,
   HeartPulse,
+  Upload,
   Sparkle,
   Home,
   Tv,
@@ -52,6 +53,8 @@ interface CustomerHomeProps {
   searchQuery?: string;
   setSearchQuery?: (q: string) => void;
   onOpenCategories?: () => void;
+  onNavigateToPharmacy?: () => void;
+  onOpenPrescriptionUpload?: () => void;
 }
 
 // 12 Exact Categories from User Specification
@@ -183,7 +186,9 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
   onAddToCart,
   searchQuery = '',
   setSearchQuery,
-  onOpenCategories
+  onOpenCategories,
+  onNavigateToPharmacy,
+  onOpenPrescriptionUpload
 }) => {
   const { coords, selectedLocation, serviceability, setIsLocationModalOpen } = useLocation();
 
@@ -535,7 +540,13 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
             return (
               <button
                 key={cat.id}
-                onClick={() => setSelectedCategory(isSelected ? 'all' : cat.id)}
+                onClick={() => {
+                  if (cat.id === 'pharmacy' && onNavigateToPharmacy) {
+                    onNavigateToPharmacy();
+                    return;
+                  }
+                  setSelectedCategory(isSelected ? 'all' : cat.id);
+                }}
                 className={`flex flex-col items-center p-2 sm:p-2.5 rounded-2xl transition-all duration-150 text-center border group ${
                   isSelected
                     ? 'bg-amber-100/90 border-amber-500 shadow-xs ring-2 ring-amber-400/40 scale-102'
@@ -553,6 +564,50 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
           })}
         </div>
       </section>
+
+      {/* Prominent Pharmacy & Medical Prescription Feature Card */}
+      {onNavigateToPharmacy && (
+        <section className="bg-gradient-to-r from-teal-950 via-teal-900 to-forest-950 rounded-3xl p-6 sm:p-7 text-white border border-teal-700/80 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center shrink-0 text-amber-300">
+              <HeartPulse className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full">
+                  Pharmacy & Chemist
+                </span>
+                <span className="text-xs text-teal-200 font-bold">Licensed Indore Stores</span>
+              </div>
+              <h3 className="text-base sm:text-xl font-black text-white">
+                Medicines & Health Essentials • Prescription Upload
+              </h3>
+              <p className="text-xs text-teal-100 max-w-xl">
+                Upload your doctor's prescription for registered pharmacist review or explore OTC products from licensed pharmacies in Palasia and Vijay Nagar.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto shrink-0">
+            {onOpenPrescriptionUpload && (
+              <button
+                onClick={onOpenPrescriptionUpload}
+                className="flex-1 md:flex-none px-4 py-2.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>Upload Prescription</span>
+              </button>
+            )}
+            <button
+              onClick={onNavigateToPharmacy}
+              className="flex-1 md:flex-none px-4 py-2.5 bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-xs rounded-xl border border-white/20 transition flex items-center justify-center gap-1.5"
+            >
+              <span>Explore Pharmacy</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* 3. DEDICATED PRODUCT LISTING VIEW (When Category or Search is active) */}
       {isFiltering ? (

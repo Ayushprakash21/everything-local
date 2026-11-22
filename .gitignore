@@ -8,7 +8,10 @@ test.db-journal
 *.log
 uploads/*
 !uploads/.gitkeep
+server/secure_storage/*
+!server/secure_storage/.gitkeep
 
 .chrome_tmp/
 .chrome_merchant_tmp/
 .chrome_pending_tmp/
+.chrome_*

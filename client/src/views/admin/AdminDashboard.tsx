@@ -27,22 +27,24 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
   const [merchants, setMerchants] = useState<Store[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ledger, setLedger] = useState<FinancialLedgerEntry[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'merchants' | 'orders' | 'ledger' | 'services'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'merchants' | 'orders' | 'ledger' | 'services' | 'pharmacies'>('overview');
   const [serviceProviders, setServiceProviders] = useState<any[]>([]);
   const [serviceBookings, setServiceBookings] = useState<any[]>([]);
+  const [adminPharmacies, setAdminPharmacies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAdminData = async () => {
     if (!user || user.role !== 'ADMIN') return;
     setLoading(true);
     try {
-      const [metRes, merchRes, ordRes, ledRes, srvProvRes, srvBkgRes] = await Promise.all([
+      const [metRes, merchRes, ordRes, ledRes, srvProvRes, srvBkgRes, pharmRes] = await Promise.all([
         request<any>('/admin/metrics'),
         request<{ stores: Store[] }>('/admin/merchants'),
         request<{ orders: Order[] }>('/admin/orders'),
         request<{ entries: FinancialLedgerEntry[] }>('/admin/finance/ledger'),
         request<{ providers: any[] }>('/services/admin/providers').catch(() => ({ providers: [] })),
-        request<{ bookings: any[] }>('/services/admin/bookings').catch(() => ({ bookings: [] }))
+        request<{ bookings: any[] }>('/services/admin/bookings').catch(() => ({ bookings: [] })),
+        request<{ pharmacies: any[] }>('/pharmacy/admin/pharmacies').catch(() => ({ pharmacies: [] }))
       ]);
 
       setMetrics(metRes.metrics);
@@ -51,6 +53,7 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
       setLedger(ledRes.entries);
       setServiceProviders(srvProvRes.providers || []);
       setServiceBookings(srvBkgRes.bookings || []);
+      setAdminPharmacies(pharmRes.pharmacies || []);
     } catch (err) {
       console.error('Failed to load admin data:', err);
     } finally {
@@ -83,6 +86,18 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
       fetchAdminData();
     } catch (err: any) {
       alert(`Error updating verification: ${err.message}`);
+    }
+  };
+
+  const handleVerifyPharmacy = async (pharmacyId: string, isVerified: boolean, status: string) => {
+    try {
+      await request(`/pharmacy/admin/pharmacies/${pharmacyId}/verify`, {
+        method: 'POST',
+        body: JSON.stringify({ isVerified, verificationStatus: status })
+      });
+      fetchAdminData();
+    } catch (err: any) {
+      alert(`Error updating pharmacy verification: ${err.message}`);
     }
   };
 
@@ -245,6 +260,17 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
           }`}
         >
           Services Marketplace ({serviceProviders.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('pharmacies')}
+          className={`pb-3 border-b-2 transition ${
+            activeTab === 'pharmacies'
+              ? 'border-forest-900 text-forest-900 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          Licensed Pharmacies ({adminPharmacies.length})
         </button>
       </div>
 
@@ -473,6 +499,105 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
                         ) : (
                           <button
                             onClick={() => handleVerifyServiceProvider(p.id, 'SUSPENDED')}
+                            className="px-3 py-1.5 text-xs border border-rose-300 text-rose-700 rounded-xl hover:bg-rose-50 font-bold transition"
+                          >
+                            Suspend
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: Licensed Pharmacies Governance */}
+      {activeTab === 'pharmacies' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-card">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-black text-slate-900 text-sm">
+                  Licensed Retail Chemist & Drug Store Registry (FDA MP Approved)
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Statutory verification under Drugs and Cosmetics Act, 1940 and Pharmacy Act, 1948.
+                </p>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-400 uppercase tracking-wider font-black">
+                  <tr>
+                    <th className="px-5 py-3">Pharmacy / Chemist</th>
+                    <th className="px-5 py-3">Address & Locality</th>
+                    <th className="px-5 py-3">Drug Licences</th>
+                    <th className="px-5 py-3">Registered Pharmacist</th>
+                    <th className="px-5 py-3">Status</th>
+                    <th className="px-5 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {adminPharmacies.map((pharm: any) => (
+                    <tr key={pharm.id} className="hover:bg-slate-50/50 transition">
+                      <td className="px-5 py-4">
+                        <p className="font-bold text-slate-900">{pharm.name}</p>
+                        <p className="text-[11px] text-slate-400">{pharm.legalBusinessName}</p>
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {pharm.addressLine}, {pharm.city} - {pharm.pincode}
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {pharm.licences && pharm.licences.length > 0 ? (
+                          pharm.licences.map((l: any) => (
+                            <span key={l.id} className="block text-[11px] font-mono">
+                              {l.licenceType}: {l.licenceNumber}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-amber-600 font-bold">Documents Pending</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {pharm.pharmacists && pharm.pharmacists.length > 0 ? (
+                          <div>
+                            <p className="font-bold text-slate-800">{pharm.pharmacists[0].name}</p>
+                            <p className="text-[10px] text-teal-800 font-mono">
+                              {pharm.pharmacists[0].registrationNumber} ({pharm.pharmacists[0].councilName})
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-rose-600 font-bold">No Pharmacist Linked</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                            pharm.verificationStatus === 'APPROVED'
+                              ? 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                              : pharm.verificationStatus === 'REJECTED'
+                              ? 'bg-rose-100 text-rose-900 border border-rose-200'
+                              : 'bg-amber-100 text-amber-900 border border-amber-200'
+                          }`}
+                        >
+                          {pharm.verificationStatus}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-right space-x-2">
+                        {pharm.verificationStatus !== 'APPROVED' ? (
+                          <button
+                            onClick={() => handleVerifyPharmacy(pharm.id, true, 'APPROVED')}
+                            className="px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black shadow-xs transition"
+                          >
+                            Approve
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleVerifyPharmacy(pharm.id, false, 'SUSPENDED')}
                             className="px-3 py-1.5 text-xs border border-rose-300 text-rose-700 rounded-xl hover:bg-rose-50 font-bold transition"
                           >
                             Suspend
