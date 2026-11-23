@@ -40,6 +40,23 @@ describe('Everything Local — Unified Multi-Store Cart & Checkout Master Test S
     expect(storeB.products.length).toBeGreaterThanOrEqual(1);
     expect(storeC.products.length).toBeGreaterThanOrEqual(1);
 
+    // Ensure test products have ample stock for tests
+    await prisma.product.updateMany({
+      where: {
+        id: {
+          in: [
+            storeA.products[0].id,
+            storeB.products[0].id,
+            storeC.products[0].id
+          ]
+        }
+      },
+      data: {
+        stock: 100,
+        isAvailable: true
+      }
+    });
+
     // 3. Clear cart initially
     await request(app)
       .delete('/api/customer/cart')

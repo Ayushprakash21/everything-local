@@ -50,7 +50,7 @@ export class DeliveryPriorityEngine {
       throw new Error('No valid merchants found for delivery calculation');
     }
 
-    // 3. Compute road distances between customer and each merchant
+    // 3. Compute road routing distances between customer and each merchant
     let maxDistanceKm = 0;
     for (const store of stores) {
       const dist = GeospatialEngine.calculateDistanceKm(

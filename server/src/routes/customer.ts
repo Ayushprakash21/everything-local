@@ -601,6 +601,9 @@ router.post('/orders/quote', authenticateToken, async (req: Request, res: Respon
     });
 
     res.json({
+      quoteId: `QUOTE-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      validUntil: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15-minute price guarantee
+      pricingVersion: '2.0',
       store: {
         id: primaryStore.id,
         name: primaryStore.name,

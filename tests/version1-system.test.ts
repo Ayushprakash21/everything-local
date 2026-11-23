@@ -74,6 +74,12 @@ describe('Everything Local — Master System Test Suite (Version 1.0)', () => {
     product1Id = store1!.products[0].id;
     product2Id = store2!.products[0].id;
 
+    // Ensure ample stock for test products
+    await prisma.product.updateMany({
+      where: { id: { in: [product1Id, product2Id] } },
+      data: { stock: 100, isAvailable: true }
+    });
+
     let riderProfile = await prisma.riderProfile.findFirst();
     if (!riderProfile) {
       const riderUser = await prisma.user.findFirst({ where: { role: 'RIDER' } });
@@ -178,6 +184,9 @@ describe('Everything Local — Master System Test Suite (Version 1.0)', () => {
           ]
         });
 
+      if (checkoutRes.status !== 201) {
+        console.error('CHECKOUT FAILED:', checkoutRes.body);
+      }
       expect(checkoutRes.status).toBe(201);
       expect(checkoutRes.body.parentOrder).toBeDefined();
       expect(checkoutRes.body.childOrders).toBeDefined();

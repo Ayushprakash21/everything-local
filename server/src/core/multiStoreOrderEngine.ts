@@ -72,19 +72,12 @@ export class MultiStoreOrderEngine {
 
     const deliveryFeePaise = chosenQuote.pricing.totalDeliveryFeePaise;
     const deliveryEtaMinutes = chosenQuote.estimatedWindowMinutes[1];
-
-    // 4. Calculate item subtotals
-    let totalSubtotalPaise = 0;
-    for (const item of req.items) {
-      totalSubtotalPaise += item.unitPricePaise * item.quantity;
-    }
-
-    const totalPaidPaise = totalSubtotalPaise + deliveryFeePaise;
     const parentOrderNumber = `EL-ORD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
 
-    // 5. Database transaction to create parent, child orders, and delivery tasks atomically
+    // 4. Database transaction to create parent, child orders, and delivery tasks atomically
     const result = await prisma.$transaction(async (tx) => {
-      // P1 Remediation: Validate live inventory and atomically decrement stock
+      // P1 Remediation: Validate live inventory, synchronize price, and decrement stock
+      let totalSubtotalPaise = 0;
       for (const item of req.items) {
         const prod = await tx.product.findUnique({
           where: { id: item.productId }
@@ -100,7 +93,10 @@ export class MultiStoreOrderEngine {
             data: { stock: { decrement: item.quantity } }
           });
         }
+        totalSubtotalPaise += item.unitPricePaise * item.quantity;
       }
+
+      const totalPaidPaise = totalSubtotalPaise + deliveryFeePaise;
 
       // Create Parent Order
       const parentOrder = await tx.parentOrder.create({
