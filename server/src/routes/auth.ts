@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '../db';
-import { generateToken, authenticateToken } from '../middleware/auth';
+import { generateToken, authenticateToken, requireRole } from '../middleware/auth';
 
 const router = Router();
 
@@ -11,7 +11,7 @@ const RegisterSchema = z.object({
   phone: z.string().optional(),
   name: z.string().min(2),
   password: z.string().min(6),
-  role: z.enum(['CUSTOMER', 'MERCHANT', 'ADMIN']).default('CUSTOMER')
+  role: z.enum(['CUSTOMER', 'MERCHANT']).default('CUSTOMER')
 });
 
 const LoginSchema = z.object({
@@ -136,6 +136,14 @@ router.post('/register-merchant', async (req: Request, res: Response): Promise<v
 // Register
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
   try {
+    // P0 Security Fix: Explicitly reject any attempt to register as an ADMIN
+    if (req.body && (req.body.role === 'ADMIN' || req.body.role === 'SUPER_ADMIN')) {
+      res.status(403).json({
+        error: 'Privilege escalation rejected: Administrative accounts cannot be created via public registration.'
+      });
+      return;
+    }
+
     const parse = RegisterSchema.safeParse(req.body);
     if (!parse.success) {
       res.status(400).json({ error: 'Validation failed', details: parse.error.errors });
@@ -190,6 +198,154 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ error: 'Internal server error during registration' });
   }
 });
+
+// P0 Security: One-time Super-Admin Bootstrap
+const BootstrapSchema = z.object({
+  email: z.string().email(),
+  name: z.string().min(2),
+  password: z.string().min(8, 'Admin password must be at least 8 characters'),
+  phone: z.string().optional(),
+  bootstrapToken: z.string().optional()
+});
+
+router.post('/bootstrap-admin', async (req: Request, res: Response): Promise<void> => {
+  try {
+    // 1. Check if an admin already exists
+    const existingAdmin = await prisma.user.findFirst({
+      where: { role: 'ADMIN' }
+    });
+
+    if (existingAdmin) {
+      res.status(403).json({
+        error: 'Admin bootstrap is permanently disabled: An administrator already exists. Use authenticated admin account management.'
+      });
+      return;
+    }
+
+    // 2. Validate token if configured in environment
+    const requiredBootstrapToken = process.env.ADMIN_BOOTSTRAP_TOKEN;
+    if (requiredBootstrapToken && req.body.bootstrapToken !== requiredBootstrapToken) {
+      res.status(401).json({ error: 'Invalid or missing bootstrap authorization token' });
+      return;
+    }
+
+    const parse = BootstrapSchema.safeParse(req.body);
+    if (!parse.success) {
+      res.status(400).json({ error: 'Validation failed', details: parse.error.errors });
+      return;
+    }
+
+    const { email, name, password, phone } = parse.data;
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    const adminUser = await prisma.user.create({
+      data: {
+        email,
+        name,
+        phone,
+        passwordHash,
+        role: 'ADMIN'
+      }
+    });
+
+    // Record security audit log
+    await prisma.auditLog.create({
+      data: {
+        userId: adminUser.id,
+        action: 'SUPER_ADMIN_BOOTSTRAPPED',
+        resourceType: 'User',
+        resourceId: adminUser.id,
+        detailsJson: JSON.stringify({ email: adminUser.email, timestamp: new Date() }),
+        ipAddress: req.ip || req.socket.remoteAddress
+      }
+    });
+
+    const token = generateToken({
+      userId: adminUser.id,
+      email: adminUser.email,
+      role: 'ADMIN'
+    });
+
+    res.status(201).json({
+      message: 'Super-admin account bootstrapped successfully. Public bootstrap is now locked.',
+      token,
+      user: {
+        id: adminUser.id,
+        email: adminUser.email,
+        name: adminUser.name,
+        role: adminUser.role
+      }
+    });
+  } catch (err: any) {
+    console.error('Bootstrap admin error:', err);
+    res.status(500).json({ error: 'Internal server error during admin bootstrap' });
+  }
+});
+
+// P0 Security: Authenticated Admin Invitation / Creation
+router.post(
+  '/create-admin',
+  authenticateToken,
+  requireRole('ADMIN'),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const parse = BootstrapSchema.safeParse(req.body);
+      if (!parse.success) {
+        res.status(400).json({ error: 'Validation failed', details: parse.error.errors });
+        return;
+      }
+
+      const { email, name, password, phone } = parse.data;
+
+      const existing = await prisma.user.findFirst({
+        where: { OR: [{ email }, ...(phone ? [{ phone }] : [])] }
+      });
+
+      if (existing) {
+        res.status(409).json({ error: 'User with this email or phone already exists' });
+        return;
+      }
+
+      const passwordHash = await bcrypt.hash(password, 12);
+      const newAdmin = await prisma.user.create({
+        data: {
+          email,
+          name,
+          phone,
+          passwordHash,
+          role: 'ADMIN'
+        }
+      });
+
+      await prisma.auditLog.create({
+        data: {
+          userId: req.user!.userId,
+          action: 'ADMIN_INVITED',
+          resourceType: 'User',
+          resourceId: newAdmin.id,
+          detailsJson: JSON.stringify({
+            invitedBy: req.user!.email,
+            newAdminEmail: newAdmin.email
+          }),
+          ipAddress: req.ip || req.socket.remoteAddress
+        }
+      });
+
+      res.status(201).json({
+        message: 'Administrator account created successfully',
+        admin: {
+          id: newAdmin.id,
+          email: newAdmin.email,
+          name: newAdmin.name,
+          role: newAdmin.role
+        }
+      });
+    } catch (err: any) {
+      console.error('Create admin error:', err);
+      res.status(500).json({ error: 'Failed to create admin user' });
+    }
+  }
+);
 
 // Login
 router.post('/login', async (req: Request, res: Response): Promise<void> => {

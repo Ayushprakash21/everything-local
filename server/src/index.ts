@@ -20,7 +20,41 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors());
+// P0 Security: Explicit CORS configuration (No wildcards with credentials)
+const envOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+  : [];
+
+const defaultAllowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+  'capacitor://localhost',
+  'http://localhost'
+];
+
+const allowedOriginsSet = new Set([...envOrigins, ...defaultAllowedOrigins]);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // In development/test, allow requests with no origin (e.g. mobile apps, server-to-server, curl)
+      if (!origin) {
+        return callback(null, true);
+      }
+      if (allowedOriginsSet.has(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`CORS policy violation: origin ${origin} is not allowed`));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Idempotency-Key'],
+    optionsSuccessStatus: 200
+  })
+);
+
 app.use(express.json());
 
 // Serve uploaded media statically

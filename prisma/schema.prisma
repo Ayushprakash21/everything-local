@@ -69,6 +69,7 @@ model Store {
   merchantChildOrders   MerchantChildOrder[]
   settlementStatements  MerchantSettlementStatement[]
   communityCampaigns    CommunityCampaign[]
+  adCampaigns           AdCampaign[]
 }
 
 model Product {
@@ -1036,5 +1037,32 @@ model LoyaltyLedgerEntry {
   referenceId  String?
   createdAt    DateTime       @default(now())
 }
+
+// 8. Merchant Self-Service Advertising Engine
+model AdCampaign {
+  id               String   @id @default(uuid())
+  storeId          String
+  store            Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  title            String
+  placement        String   // HERO_BANNER, PROMO_CAROUSEL, SPONSORED_PRODUCT, FEATURED_MERCHANT, CATEGORY_PROMOTION
+  headline         String
+  description      String?
+  creativeUrl      String?
+  targetCategory   String?
+  targetLocality   String?  // e.g. "Palasia", "Vijay Nagar", "All Indore"
+  dailyBudgetPaise Int
+  totalBudgetPaise Int
+  spentPaise       Int      @default(0)
+  pricingModel     String   @default("CPC") // CPM, CPC, FIXED
+  status           String   @default("PENDING_APPROVAL") // DRAFT, SUBMITTED, PENDING_APPROVAL, ACTIVE, PAUSED, COMPLETED, REJECTED
+  impressions      Int      @default(0)
+  clicks           Int      @default(0)
+  conversions      Int      @default(0)
+  startsAt         DateTime
+  endsAt           DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
 
 

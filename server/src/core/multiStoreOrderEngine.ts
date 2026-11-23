@@ -1,5 +1,6 @@
 import { prisma } from '../db';
 import { DeliveryPriorityEngine } from './deliveryPriorityEngine';
+import { DoubleEntryLedgerEngine } from './doubleEntryLedger';
 
 export interface MultiStoreCheckoutRequest {
   customerId: string;
@@ -83,6 +84,24 @@ export class MultiStoreOrderEngine {
 
     // 5. Database transaction to create parent, child orders, and delivery tasks atomically
     const result = await prisma.$transaction(async (tx) => {
+      // P1 Remediation: Validate live inventory and atomically decrement stock
+      for (const item of req.items) {
+        const prod = await tx.product.findUnique({
+          where: { id: item.productId }
+        });
+        if (prod) {
+          if (prod.stock < item.quantity) {
+            throw new Error(
+              `Insufficient stock for "${prod.name}". Available: ${prod.stock}, Requested: ${item.quantity}`
+            );
+          }
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } }
+          });
+        }
+      }
+
       // Create Parent Order
       const parentOrder = await tx.parentOrder.create({
         data: {
@@ -106,6 +125,8 @@ export class MultiStoreOrderEngine {
 
       const childOrders = [];
       let childIndex = 1;
+      const merchantPayableMap = new Map<string, number>();
+      let totalPlatformCommission = 0;
 
       for (const [storeId, storeItems] of storeMap.entries()) {
         const store = stores.find((s) => s.id === storeId)!;
@@ -119,6 +140,9 @@ export class MultiStoreOrderEngine {
 
         const commPaise = Math.round((storeSubtotal * commRatePct) / 100);
         const merchantPayable = storeSubtotal - commPaise;
+        merchantPayableMap.set(storeId, merchantPayable);
+        totalPlatformCommission += commPaise;
+
         const childOrderNumber = `${parentOrderNumber}-M${childIndex++}`;
 
         const childOrder = await tx.merchantChildOrder.create({
@@ -198,6 +222,17 @@ export class MultiStoreOrderEngine {
         });
       }
 
+      // Record double-entry balanced transaction
+      DoubleEntryLedgerEngine.recordOrderPayment({
+        orderId: parentOrder.id,
+        orderNumber: parentOrder.orderNumber,
+        totalPaidPaise,
+        merchantPayableMap,
+        platformCommissionPaise: totalPlatformCommission,
+        deliveryFeePaise,
+        taxPaise: 0 // In GST-inclusive retail pricing, tax is included in item subtotal
+      });
+
       return {
         parentOrder,
         childOrders
@@ -234,7 +269,7 @@ export class MultiStoreOrderEngine {
         }
       });
 
-      // 2. Mark items as unfulfilled
+      // 2. Mark items as unfulfilled and restore stock
       await tx.merchantChildOrderItem.updateMany({
         where: { merchantOrderId },
         data: {
@@ -242,6 +277,13 @@ export class MultiStoreOrderEngine {
           rejectionReason: reason
         }
       });
+
+      for (const it of childOrder.items) {
+        await tx.product.update({
+          where: { id: it.productId },
+          data: { stock: { increment: it.quantity } }
+        }).catch(() => {});
+      }
 
       // Cancel associated delivery task
       await tx.deliveryTask.updateMany({
@@ -277,6 +319,19 @@ export class MultiStoreOrderEngine {
           amountPaise: -refundAmountPaise,
           reference: `Customer Refund: ${childOrder.childOrderNumber} rejected (${reason})`
         }
+      });
+
+      // Record balanced double-entry refund transaction
+      DoubleEntryLedgerEngine.recordRefund({
+        orderId: parent.id,
+        childOrderId: childOrder.id,
+        refundReference: `REF-${childOrder.childOrderNumber}`,
+        customerRefundPaise: refundAmountPaise,
+        merchantDebitPaise: childOrder.merchantPayablePaise,
+        platformCommissionDebitPaise: childOrder.commissionPaise,
+        taxRefundPaise: 0,
+        storeId: childOrder.storeId,
+        isMerchantFault: true
       });
 
       // Audit log

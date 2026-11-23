@@ -25,7 +25,8 @@ export interface Store {
   distanceKm?: number;
   isServiceable?: boolean;
   isPickupAvailable?: boolean;
-  rating?: number;
+  rating?: number | null;
+  ratingDisplay?: string;
   reviewCount?: number;
   sampleProducts?: Product[];
   products?: Product[];

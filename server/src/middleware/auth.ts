@@ -1,7 +1,32 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'everything_local_indore_secure_jwt_secret_key_2026';
+const DEFAULT_DEV_SECRET = 'everything_local_indore_secure_jwt_secret_key_2026';
+
+export function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  const isProd = process.env.NODE_ENV === 'production';
+  if (isProd) {
+    if (!secret) {
+      throw new Error('SECURITY FATAL: JWT_SECRET environment variable is required in production.');
+    }
+    if (secret.length < 32) {
+      throw new Error('SECURITY FATAL: JWT_SECRET must be at least 32 characters in production.');
+    }
+    if (
+      secret === DEFAULT_DEV_SECRET ||
+      secret.includes('example') ||
+      secret.includes('placeholder') ||
+      secret.includes('test_secret')
+    ) {
+      throw new Error('SECURITY FATAL: JWT_SECRET cannot be a default or example placeholder in production.');
+    }
+    return secret;
+  }
+  return secret || DEFAULT_DEV_SECRET;
+}
+
+export const JWT_SECRET = getJwtSecret();
 
 export interface AuthUser {
   userId: string;

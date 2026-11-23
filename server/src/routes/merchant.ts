@@ -14,11 +14,15 @@ const router = Router();
 router.use(authenticateToken);
 router.use(requireRole('MERCHANT'));
 
-// 1. Get or Check Merchant Store
+// 1. Get Active or Primary Merchant Store
 router.get('/store', async (req: Request, res: Response): Promise<void> => {
   try {
+    const requestedStoreId = (req.headers['x-store-id'] as string) || (req.query.storeId as string);
     const store = await prisma.store.findFirst({
-      where: { ownerId: req.user!.userId },
+      where: {
+        ownerId: req.user!.userId,
+        ...(requestedStoreId ? { id: requestedStoreId } : {})
+      },
       include: {
         _count: {
           select: { products: true, orders: true }
@@ -32,7 +36,26 @@ router.get('/store', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// 2. Onboard / Register Store
+// 1b. List All Stores Owned by Merchant (Multi-Store Tenancy)
+router.get('/stores', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const stores = await prisma.store.findMany({
+      where: { ownerId: req.user!.userId },
+      include: {
+        _count: {
+          select: { products: true, orders: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({ stores, count: stores.length });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch merchant stores' });
+  }
+});
+
+// 2. Onboard / Register Store (Supports Multi-Store Ownership)
 const CreateStoreSchema = z.object({
   name: z.string().min(2),
   description: z.string().optional(),
@@ -50,15 +73,6 @@ router.post('/store', async (req: Request, res: Response): Promise<void> => {
     const parse = CreateStoreSchema.safeParse(req.body);
     if (!parse.success) {
       res.status(400).json({ error: 'Validation failed', details: parse.error.errors });
-      return;
-    }
-
-    const existingStore = await prisma.store.findFirst({
-      where: { ownerId: req.user!.userId }
-    });
-
-    if (existingStore) {
-      res.status(400).json({ error: 'Merchant already has a registered store' });
       return;
     }
 
@@ -554,6 +568,179 @@ router.get('/settlements/statements', requireMerchantTenant, async (req: Request
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================================
+// PHASE 9: MERCHANT PAID ADVERTISING ENGINE
+// ==========================================
+
+const CreateAdCampaignSchema = z.object({
+  title: z.string().min(3),
+  placement: z.enum([
+    'HERO_BANNER',
+    'PROMO_CAROUSEL',
+    'SPONSORED_PRODUCT',
+    'FEATURED_MERCHANT',
+    'CATEGORY_PROMOTION'
+  ]),
+  headline: z.string().min(5),
+  description: z.string().optional(),
+  creativeUrl: z.string().optional(),
+  targetCategory: z.string().optional(),
+  targetLocality: z.string().default('All Indore'),
+  dailyBudgetPaise: z.number().int().min(5000), // Min ₹50/day
+  totalBudgetPaise: z.number().int().min(20000), // Min ₹200 total
+  pricingModel: z.enum(['CPC', 'CPM', 'FIXED']).default('CPC'),
+  durationDays: z.number().int().min(1).max(90).default(7)
+});
+
+// 17. List Merchant Ad Campaigns
+router.get('/ads', requireMerchantTenant, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const storeId = req.user!.storeId!;
+    const campaigns = await prisma.adCampaign.findMany({
+      where: { storeId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({ campaigns, count: campaigns.length });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to fetch advertising campaigns' });
+  }
+});
+
+// 18. Create New Ad Campaign
+router.post('/ads', requireMerchantTenant, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const storeId = req.user!.storeId!;
+    const parse = CreateAdCampaignSchema.safeParse(req.body);
+    if (!parse.success) {
+      res.status(400).json({ error: 'Validation failed', details: parse.error.errors });
+      return;
+    }
+
+    const {
+      title,
+      placement,
+      headline,
+      description,
+      creativeUrl,
+      targetCategory,
+      targetLocality,
+      dailyBudgetPaise,
+      totalBudgetPaise,
+      pricingModel,
+      durationDays
+    } = parse.data;
+
+    const startsAt = new Date();
+    const endsAt = new Date(Date.now() + durationDays * 86400000);
+
+    const campaign = await prisma.adCampaign.create({
+      data: {
+        storeId,
+        title,
+        placement,
+        headline,
+        description,
+        creativeUrl,
+        targetCategory,
+        targetLocality,
+        dailyBudgetPaise,
+        totalBudgetPaise,
+        pricingModel,
+        status: 'PENDING_APPROVAL',
+        startsAt,
+        endsAt
+      }
+    });
+
+    res.status(201).json({
+      message: 'Ad campaign created and submitted for platform governance approval',
+      campaign
+    });
+  } catch (error: any) {
+    console.error('Create ad campaign error:', error);
+    res.status(500).json({ error: 'Failed to create ad campaign' });
+  }
+});
+
+// 19. Pause or Resume Ad Campaign
+router.patch('/ads/:id/status', requireMerchantTenant, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const storeId = req.user!.storeId!;
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['ACTIVE', 'PAUSED', 'CANCELLED'].includes(status)) {
+      res.status(400).json({ error: 'Invalid campaign status transition' });
+      return;
+    }
+
+    const campaign = await prisma.adCampaign.findFirst({
+      where: { id, storeId }
+    });
+
+    if (!campaign) {
+      res.status(404).json({ error: 'Ad campaign not found' });
+      return;
+    }
+
+    const updated = await prisma.adCampaign.update({
+      where: { id },
+      data: { status }
+    });
+
+    res.json({ message: `Campaign status updated to ${status}`, campaign: updated });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to update campaign status' });
+  }
+});
+
+// 20. Ad Campaign Analytics & Performance Metrics
+router.get('/ads/:id/analytics', requireMerchantTenant, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const storeId = req.user!.storeId!;
+    const { id } = req.params;
+
+    const campaign = await prisma.adCampaign.findFirst({
+      where: { id, storeId }
+    });
+
+    if (!campaign) {
+      res.status(404).json({ error: 'Ad campaign not found' });
+      return;
+    }
+
+    const impressions = campaign.impressions;
+    const clicks = campaign.clicks;
+    const conversions = campaign.conversions;
+    const spentPaise = campaign.spentPaise;
+
+    const ctrPct = impressions > 0 ? Math.round((clicks / impressions) * 10000) / 100 : 0.0;
+    const avgCpcPaise = clicks > 0 ? Math.round(spentPaise / clicks) : 0;
+    const conversionRatePct = clicks > 0 ? Math.round((conversions / clicks) * 10000) / 100 : 0.0;
+
+    res.json({
+      campaignId: campaign.id,
+      title: campaign.title,
+      status: campaign.status,
+      placement: campaign.placement,
+      metrics: {
+        impressions,
+        clicks,
+        ctrPct,
+        conversions,
+        conversionRatePct,
+        totalBudgetPaise: campaign.totalBudgetPaise,
+        spentPaise,
+        remainingBudgetPaise: Math.max(0, campaign.totalBudgetPaise - spentPaise),
+        avgCpcPaise
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to fetch campaign analytics' });
   }
 });
 

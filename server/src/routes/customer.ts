@@ -48,9 +48,12 @@ router.get('/stores', async (req: Request, res: Response): Promise<void> => {
         store.serviceRadiusKm
       );
 
-      const avgRating = store.reviews.length
-        ? store.reviews.reduce((acc, r) => acc + r.rating, 0) / store.reviews.length
-        : 4.8; // Default initial merchant rating
+      // P1 Remediation: Honest reviews and ratings (no fabricated 4.8 or 24 review defaults)
+      const reviewCount = store.reviews.length;
+      const avgRating = reviewCount > 0
+        ? Math.round((store.reviews.reduce((acc, r) => acc + r.rating, 0) / reviewCount) * 10) / 10
+        : null;
+      const ratingDisplay = reviewCount > 0 ? `${avgRating}` : 'New store';
 
       return {
         id: store.id,
@@ -67,8 +70,9 @@ router.get('/stores', async (req: Request, res: Response): Promise<void> => {
         isServiceable: serviceability.isServiceable,
         isPickupAvailable: serviceability.isPickupAvailable,
         serviceRadiusKm: store.serviceRadiusKm,
-        rating: Math.round(avgRating * 10) / 10,
-        reviewCount: store.reviews.length || 24,
+        rating: avgRating,
+        ratingDisplay,
+        reviewCount,
         sampleProducts: store.products
       };
     });

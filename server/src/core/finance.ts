@@ -117,6 +117,54 @@ export class FinancialEngine {
   }
 
   /**
+   * P1 Remediation: Item-level refund calculation with isMerchantFault treatment
+   * Supports partial merchant rejection, single-item out-of-stock, and fault-based fee treatment
+   */
+  public static calculateItemRefund(params: {
+    itemUnitPricePaise: number;
+    quantity: number;
+    commissionRatePct: number;
+    taxRatePct?: number; // default 5%
+    isMerchantFault: boolean;
+    deliveryFeeRefundPaise?: number;
+    reason: string;
+  }): {
+    customerRefundPaise: number;
+    merchantDebitPaise: number;
+    platformCommissionDebitPaise: number;
+    taxRefundPaise: number;
+    deliveryFeeRefundPaise: number;
+    isMerchantFault: boolean;
+    reason: string;
+  } {
+    const itemSubtotal = params.itemUnitPricePaise * params.quantity;
+    const taxRate = params.taxRatePct !== undefined ? params.taxRatePct : 5.0;
+    const taxRefundPaise = Math.round((itemSubtotal * taxRate) / 100);
+    const commissionDebitPaise = Math.round((itemSubtotal * params.commissionRatePct) / 100);
+
+    let deliveryFeeRefundPaise = params.deliveryFeeRefundPaise || 0;
+    let customerRefundPaise = itemSubtotal + taxRefundPaise + deliveryFeeRefundPaise;
+
+    // If it is merchant fault (e.g. out of stock, spoilt product, merchant rejection),
+    // the merchant absorbs the full item price loss, and their payable is debited.
+    // If delivery failed due to merchant fault, merchant also covers the delivery fee.
+    let merchantDebitPaise = itemSubtotal - commissionDebitPaise;
+    if (params.isMerchantFault && deliveryFeeRefundPaise > 0) {
+      merchantDebitPaise += deliveryFeeRefundPaise;
+    }
+
+    return {
+      customerRefundPaise,
+      merchantDebitPaise,
+      platformCommissionDebitPaise: commissionDebitPaise,
+      taxRefundPaise,
+      deliveryFeeRefundPaise,
+      isMerchantFault: params.isMerchantFault,
+      reason: params.reason
+    };
+  }
+
+  /**
    * Calculate refund reversal amounts
    */
   public static calculateRefund(
@@ -127,10 +175,14 @@ export class FinancialEngine {
     merchantDebitPaise: number;
     platformCommissionDebitPaise: number;
   } {
-    // If cancelled before dispatch, full customer refund
     const customerRefundPaise = snapshot.totalAmountPaise;
     const platformCommissionDebitPaise = snapshot.commissionPaise;
-    const merchantDebitPaise = snapshot.merchantPayablePaise;
+    let merchantDebitPaise = snapshot.merchantPayablePaise;
+
+    // When cancellation is strictly merchant fault, merchant absorbs any delivery pass-through liability
+    if (isMerchantFault && snapshot.thirdPartyDeliveryPayoutPaise > 0) {
+      merchantDebitPaise += snapshot.thirdPartyDeliveryPayoutPaise;
+    }
 
     return {
       customerRefundPaise,

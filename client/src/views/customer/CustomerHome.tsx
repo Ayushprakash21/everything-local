@@ -993,10 +993,19 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
                       <p className="text-xs text-slate-500 line-clamp-1">{store.addressLine}</p>
 
                       <div className="flex items-center gap-2 text-xs font-bold mt-2">
-                        <span className="flex items-center gap-1 text-amber-600">
-                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                          <span>4.8</span>
-                        </span>
+                        {store.rating ? (
+                          <span className="flex items-center gap-1 text-amber-600">
+                            <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                            <span>{store.rating}</span>
+                            {store.reviewCount ? (
+                              <span className="text-[10px] text-slate-400">({store.reviewCount})</span>
+                            ) : null}
+                          </span>
+                        ) : (
+                          <span className="text-[11px] font-semibold text-slate-500">
+                            New store
+                          </span>
+                        )}
                         <span className="text-slate-300">•</span>
                         <span className="text-slate-600">
                           {store.distanceKm ? `${store.distanceKm.toFixed(1)} km` : 'Local'}

@@ -405,4 +405,50 @@ router.post('/commissions', async (req: Request, res: Response): Promise<void> =
   }
 });
 
+// ==========================================
+// PHASE 9: ADMIN ADVERTISING GOVERNANCE
+// ==========================================
+
+// 13. Review Ad Campaigns
+router.get('/ads', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const campaigns = await prisma.adCampaign.findMany({
+      include: { store: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ campaigns, count: campaigns.length });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to fetch ad campaigns' });
+  }
+});
+
+// 14. Approve Ad Campaign
+router.patch('/ads/:id/approve', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const campaign = await prisma.adCampaign.update({
+      where: { id },
+      data: { status: 'ACTIVE' }
+    });
+    res.json({ message: 'Campaign approved and activated', campaign });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to approve campaign' });
+  }
+});
+
+// 15. Reject Ad Campaign
+router.patch('/ads/:id/reject', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const campaign = await prisma.adCampaign.update({
+      where: { id },
+      data: { status: 'REJECTED' }
+    });
+    res.json({ message: 'Campaign rejected', reason, campaign });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to reject campaign' });
+  }
+});
+
 export default router;
