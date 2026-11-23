@@ -18,17 +18,46 @@ router.use(requireRole('MERCHANT'));
 router.get('/store', async (req: Request, res: Response): Promise<void> => {
   try {
     const requestedStoreId = (req.headers['x-store-id'] as string) || (req.query.storeId as string);
+    if (requestedStoreId) {
+      const store = await prisma.store.findFirst({
+        where: {
+          id: requestedStoreId,
+          ownerId: req.user!.userId
+        },
+        include: {
+          _count: {
+            select: { products: true, orders: true }
+          }
+        }
+      });
+
+      if (!store) {
+        res.status(403).json({
+          error: 'Forbidden: You do not have authorized management permissions for this store.'
+        });
+        return;
+      }
+
+      res.json({ store });
+      return;
+    }
+
     const store = await prisma.store.findFirst({
       where: {
-        ownerId: req.user!.userId,
-        ...(requestedStoreId ? { id: requestedStoreId } : {})
+        ownerId: req.user!.userId
       },
+      orderBy: { createdAt: 'asc' },
       include: {
         _count: {
           select: { products: true, orders: true }
         }
       }
     });
+
+    if (!store) {
+      res.status(404).json({ error: 'No store found associated with this merchant account' });
+      return;
+    }
 
     res.json({ store });
   } catch (error) {
