@@ -101,4 +101,24 @@ interface EverythingLocalApi {
     suspend fun uploadImage(
         @Part image: MultipartBody.Part
     ): ImageUploadResponse
+
+    // --- Merchant Partner Onboarding Endpoints ---
+    @POST("onboarding/start")
+    suspend fun startOnboarding(@Body req: StartOnboardingRequest): StartOnboardingResponse
+
+    @POST("onboarding/verify-phone-otp")
+    suspend fun verifyPhoneOtp(@Body req: VerifyPhoneOtpRequest): ApplicationResponse
+
+    @GET("onboarding/application/{ref}")
+    suspend fun getApplication(@Path("ref") ref: String): ApplicationResponse
+
+    @PUT("onboarding/application/{ref}/step/{stepNum}")
+    suspend fun updateOnboardingStep(
+        @Path("ref") ref: String,
+        @Path("stepNum") stepNum: Int,
+        @Body body: Map<String, String>
+    ): ApplicationResponse
+
+    @POST("onboarding/application/{ref}/submit")
+    suspend fun submitOnboardingApplication(@Path("ref") ref: String): ApplicationResponse
 }

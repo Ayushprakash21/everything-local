@@ -392,6 +392,70 @@ function MainLayout() {
         </div>
       )}
 
+      {/* Global Footer */}
+      <footer className="mt-20 border-t border-slate-200 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="space-y-3">
+              <BrandLogo size="md" />
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Hyperlocal neighbourhood commerce and instant services platform for Indore, Madhya Pradesh.
+              </p>
+              <div className="text-[11px] font-bold text-slate-400">
+                Shop more. Save more. Live better.
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-3">Shop Local</h4>
+              <ul className="text-xs text-slate-600 space-y-2">
+                <li><button onClick={() => { setDiscoveryMode('shop'); setCurrentTab('customer'); }} className="hover:text-emerald-700">Grocery & Daily Staples</button></li>
+                <li><button onClick={() => { setDiscoveryMode('shop'); setCurrentTab('customer'); }} className="hover:text-emerald-700">Fresh Produce & Dairy</button></li>
+                <li><button onClick={() => { setDiscoveryMode('pharmacy'); setCurrentTab('customer'); }} className="hover:text-emerald-700">Apollo & Local Pharmacy</button></li>
+                <li><button onClick={() => { setDiscoveryMode('services'); setCurrentTab('customer'); }} className="hover:text-emerald-700">Home & Personal Services</button></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-3">Partner With Us</h4>
+              <ul className="text-xs text-slate-600 space-y-2">
+                <li>
+                  <button
+                    onClick={() => {
+                      setDiscoveryMode('shop');
+                      setCurrentTab('merchant');
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+                  >
+                    <span>Become a Merchant Partner</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </li>
+                <li><button onClick={() => { setDiscoveryMode('rider'); setCurrentTab('customer'); }} className="hover:text-emerald-700">Drive with Us (Rider Partner)</button></li>
+                <li><button onClick={() => { setDiscoveryMode('services'); setCurrentTab('customer'); }} className="hover:text-emerald-700">Service Provider Registration</button></li>
+                <li><span className="text-slate-400">Indore Partner Desk: +91 731 400 8899</span></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-3">Operations & Trust</h4>
+              <ul className="text-xs text-slate-500 space-y-1.5 leading-relaxed">
+                <li>Hub: Palasia & Vijay Nagar, Indore</li>
+                <li>Service Radius: 3.0 km Instant Delivery</li>
+                <li>Payments: UPI, Cards & Cash on Delivery</li>
+                <li>Settlements: Daily T+1 IMPS/NEFT</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400">
+            <p>© 2026 Everything Local Technologies Pvt Ltd. All rights reserved.</p>
+            <p>Made for Indore • Local Supply Chain Engine v2.0</p>
+          </div>
+        </div>
+      </footer>
+
       {/* Cart Drawer */}
       <CartCheckoutDrawer
         isOpen={isCartOpen}

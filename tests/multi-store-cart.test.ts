@@ -27,14 +27,19 @@ describe('Everything Local — Unified Multi-Store Cart & Checkout Master Test S
     const stores = storesRes.body.stores;
     expect(stores.length).toBeGreaterThanOrEqual(3);
 
-    // Fetch full storefront for each to get active products
-    const s1 = await request(app).get(`/api/customer/stores/${stores[0].id}`);
-    const s2 = await request(app).get(`/api/customer/stores/${stores[1].id}`);
-    const s3 = await request(app).get(`/api/customer/stores/${stores[2].id}`);
+    // Fetch full storefront for candidate stores to get active products
+    const storesWithProducts: any[] = [];
+    for (const st of stores) {
+      const s = await request(app).get(`/api/customer/stores/${st.id}`);
+      if (s.body.store && s.body.store.products && s.body.store.products.length > 0) {
+        storesWithProducts.push(s.body.store);
+        if (storesWithProducts.length === 3) break;
+      }
+    }
 
-    storeA = s1.body.store;
-    storeB = s2.body.store;
-    storeC = s3.body.store;
+    storeA = storesWithProducts[0];
+    storeB = storesWithProducts[1];
+    storeC = storesWithProducts[2];
 
     expect(storeA.products.length).toBeGreaterThanOrEqual(1);
     expect(storeB.products.length).toBeGreaterThanOrEqual(1);

@@ -37,6 +37,7 @@ model User {
   ownedHouseholds  Household[]        @relation("HouseholdOwner")
   householdMemberships HouseholdMember[]
   loyaltyAccount   LoyaltyAccount?
+  merchantApplications MerchantApplication[] @relation("UserMerchantApplications")
 }
 
 model Store {
@@ -70,6 +71,7 @@ model Store {
   settlementStatements  MerchantSettlementStatement[]
   communityCampaigns    CommunityCampaign[]
   adCampaigns           AdCampaign[]
+  merchantApplications  MerchantApplication[] @relation("StoreMerchantApplications")
 }
 
 model Product {
@@ -1063,6 +1065,153 @@ model AdCampaign {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
+
+// 9. Merchant Partner Self-Service Onboarding & Statutory Compliance
+model MerchantApplication {
+  id                         String                      @id @default(uuid())
+  referenceNumber            String                      @unique // e.g. "EL-MAPP-1002"
+  userId                     String
+  user                       User                        @relation("UserMerchantApplications", fields: [userId], references: [id], onDelete: Cascade)
+  status                     String                      @default("DRAFT") // DRAFT, SUBMITTED, UNDER_REVIEW, DOCUMENTS_REQUIRED, APPROVED, REJECTED, SUSPENDED, WITHDRAWN, ACTIVE
+  currentStep                Int                         @default(1)
+  
+  // Step 1: Owner Information
+  ownerName                  String
+  ownerPhone                 String
+  ownerEmail                 String
+  isPhoneVerified            Boolean                     @default(false)
+  isEmailVerified            Boolean                     @default(false)
+  communicationConsent       Boolean                     @default(true)
+  
+  // Step 2: Business Information
+  businessName               String?
+  legalName                  String?
+  entityType                 String?                     // PROPRIETORSHIP, PARTNERSHIP, LLP, PRIVATE_LIMITED, OTHER
+  panNumber                  String?
+  isGstRegistered            Boolean                     @default(false)
+  gstin                      String?
+  businessRegistrationNumber String?
+  
+  // Step 3: Store Information
+  storeName                  String?
+  category                   String?                     @default("grocery")
+  description                String?
+  addressLine                String?
+  city                       String?                     @default("Indore")
+  district                   String?                     @default("Indore")
+  state                      String?                     @default("Madhya Pradesh")
+  pincode                    String?
+  latitude                   Float?                      @default(22.7196)
+  longitude                  Float?                      @default(75.8577)
+  storePhotos                String?                     // Comma-separated or JSON array of image URLs
+  openingTime                String?                     @default("09:00")
+  closingTime                String?                     @default("21:00")
+  weeklyClosingDay           String?                     @default("None")
+  
+  // Step 4: Delivery Configuration
+  hasPickup                  Boolean                     @default(true)
+  hasMerchantDelivery        Boolean                     @default(false)
+  hasPlatformDelivery        Boolean                     @default(true)
+  deliveryRadiusKm           Float                       @default(3.0)
+  minOrderValuePaise         Int                         @default(29900)
+  estimatedPrepMinutes       Int                         @default(20)
+  deliveryOperatingHours     String?                     @default("09:00 - 21:00")
+  
+  // Statutory Licenses (Category Specific)
+  fssaiNumber                String?
+  drugLicenseNumber          String?
+  
+  // Commercial Agreement Configuration
+  commissionRatePct          Float                       @default(3.5)
+  listingFeePaise            Int                         @default(0)
+  settlementFrequency        String                      @default("T_PLUS_1") // DAILY, T_PLUS_1, WEEKLY
+  
+  // Admin Review & Feedback
+  adminFeedback              String?
+  rejectionReason            String?
+  reviewedByAdminId          String?
+  reviewedAt                 DateTime?
+  approvedAt                 DateTime?
+  
+  // Activated Store Association upon Approval
+  activatedStoreId           String?
+  activatedStore             Store?                      @relation("StoreMerchantApplications", fields: [activatedStoreId], references: [id], onDelete: SetNull)
+  
+  createdAt                  DateTime                    @default(now())
+  updatedAt                  DateTime                    @updatedAt
+
+  // Relationships
+  documents                  MerchantDocument[]
+  bankAccount                MerchantBankAccount?
+  agreementAcceptance        MerchantAgreementAcceptance?
+  history                    MerchantOnboardingHistory[]
+}
+
+model MerchantDocument {
+  id                 String              @id @default(uuid())
+  applicationId      String
+  application        MerchantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  documentType       String              // PAN_CARD, GST_CERTIFICATE, BUSINESS_REGISTRATION, CANCELLED_CHEQUE, STORE_PHOTO, FSSAI_LICENSE, DRUG_LICENSE, OTHER
+  fileName           String
+  fileUrl            String
+  fileSizeBytes      Int
+  mimeType           String
+  verificationStatus String              @default("PENDING") // PENDING, VERIFIED, REJECTED
+  adminComment       String?
+  isProtected        Boolean             @default(true)
+  uploadedAt         DateTime            @default(now())
+}
+
+model MerchantBankAccount {
+  id                  String              @id @default(uuid())
+  applicationId       String              @unique
+  application         MerchantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  accountHolderName   String
+  bankName            String
+  accountNumber       String              // Encrypted or restricted bank account number
+  accountNumberMasked String              // Formatted masked string: e.g. "•••• •••• 5678"
+  ifsc                String
+  chequeDocumentUrl   String?
+  verificationStatus  String              @default("PENDING") // PENDING, VERIFIED, REJECTED
+  verifiedAt          DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+}
+
+model MerchantAgreement {
+  id            String   @id @default(uuid())
+  version       String   @unique // e.g. "v2026.1"
+  title         String
+  content       String
+  categoryRates String   // JSON string of category commission rates
+  effectiveFrom DateTime @default(now())
+  isActive      Boolean  @default(true)
+}
+
+model MerchantAgreementAcceptance {
+  id               String              @id @default(uuid())
+  applicationId    String              @unique
+  application      MerchantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  agreementVersion String
+  merchantName     String
+  merchantEmail    String
+  acceptedAt       DateTime            @default(now())
+  ipAddress        String?
+  userAgent        String?
+}
+
+model MerchantOnboardingHistory {
+  id            String              @id @default(uuid())
+  applicationId String
+  application   MerchantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fromStatus    String
+  toStatus      String
+  actorRole     String              // MERCHANT, ADMIN, SYSTEM
+  actorId       String?
+  notes         String?
+  timestamp     DateTime            @default(now())
+}
+
 
 
 

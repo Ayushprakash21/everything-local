@@ -110,4 +110,35 @@ class MerchantRepository(
     suspend fun logout() = withContext(Dispatchers.IO) {
         sessionManager.clearSession()
     }
+
+    // --- Onboarding Operations ---
+    suspend fun startOnboarding(req: StartOnboardingRequest): StartOnboardingResponse = withContext(Dispatchers.IO) {
+        val res = api.startOnboarding(req)
+        res.token?.let { token ->
+            sessionManager.saveSession(
+                token = token,
+                userId = res.application.id,
+                email = res.application.ownerEmail,
+                name = res.application.ownerName,
+                role = "CUSTOMER"
+            )
+        }
+        res
+    }
+
+    suspend fun verifyPhoneOtp(ref: String, otp: String): MerchantApplicationDto = withContext(Dispatchers.IO) {
+        api.verifyPhoneOtp(VerifyPhoneOtpRequest(referenceNumber = ref, otp = otp)).application
+    }
+
+    suspend fun getApplication(ref: String): MerchantApplicationDto = withContext(Dispatchers.IO) {
+        api.getApplication(ref).application
+    }
+
+    suspend fun updateOnboardingStep(ref: String, stepNum: Int, data: Map<String, String>): MerchantApplicationDto = withContext(Dispatchers.IO) {
+        api.updateOnboardingStep(ref, stepNum, data).application
+    }
+
+    suspend fun submitOnboardingApplication(ref: String): MerchantApplicationDto = withContext(Dispatchers.IO) {
+        api.submitOnboardingApplication(ref).application
+    }
 }

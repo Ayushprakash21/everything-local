@@ -451,4 +451,302 @@ router.patch('/ads/:id/reject', async (req: Request, res: Response): Promise<voi
   }
 });
 
+// ==========================================
+// 8. Central Admin Merchant Partner Onboarding & Statutory Verification
+// ==========================================
+
+// 8.1 List All Merchant Applications with Status Filters
+router.get('/onboarding/applications', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { status, search } = req.query;
+
+    const where: any = {};
+    if (status && status !== 'ALL') {
+      where.status = String(status);
+    }
+    if (search) {
+      const q = String(search);
+      where.OR = [
+        { referenceNumber: { contains: q } },
+        { ownerName: { contains: q } },
+        { ownerPhone: { contains: q } },
+        { ownerEmail: { contains: q } },
+        { businessName: { contains: q } },
+        { storeName: { contains: q } }
+      ];
+    }
+
+    const applications = await prisma.merchantApplication.findMany({
+      where,
+      include: {
+        documents: true,
+        bankAccount: true,
+        agreementAcceptance: true,
+        activatedStore: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const counts = {
+      all: await prisma.merchantApplication.count(),
+      submitted: await prisma.merchantApplication.count({ where: { status: 'SUBMITTED' } }),
+      underReview: await prisma.merchantApplication.count({ where: { status: 'UNDER_REVIEW' } }),
+      documentsRequired: await prisma.merchantApplication.count({ where: { status: 'DOCUMENTS_REQUIRED' } }),
+      approved: await prisma.merchantApplication.count({ where: { status: 'APPROVED' } }),
+      rejected: await prisma.merchantApplication.count({ where: { status: 'REJECTED' } }),
+      suspended: await prisma.merchantApplication.count({ where: { status: 'SUSPENDED' } })
+    };
+
+    res.json({ applications, counts });
+  } catch (error) {
+    console.error('Fetch onboarding applications error:', error);
+    res.status(500).json({ error: 'Failed to fetch onboarding applications' });
+  }
+});
+
+// 8.2 Get Single Application Details
+router.get('/onboarding/applications/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const application = await prisma.merchantApplication.findUnique({
+      where: { id },
+      include: {
+        user: { select: { id: true, name: true, email: true, phone: true, role: true } },
+        documents: true,
+        bankAccount: true,
+        agreementAcceptance: true,
+        history: { orderBy: { timestamp: 'desc' } },
+        activatedStore: true
+      }
+    });
+
+    if (!application) {
+      res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+
+    res.json({ application });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch application details' });
+  }
+});
+
+// 8.3 Admin Decision Action on Application
+const AdminOnboardingActionSchema = z.object({
+  action: z.enum(['APPROVE', 'REJECT', 'REQUEST_DOCUMENTS', 'RETURN_FOR_CORRECTION', 'SUSPEND', 'REACTIVATE']),
+  reason: z.string().optional(),
+  feedback: z.string().optional(),
+  commissionRatePct: z.number().optional()
+});
+
+router.post('/onboarding/applications/:id/action', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const parse = AdminOnboardingActionSchema.safeParse(req.body);
+    if (!parse.success) {
+      res.status(400).json({ error: 'Validation failed', details: parse.error.errors });
+      return;
+    }
+
+    const { action, reason, feedback, commissionRatePct } = parse.data;
+
+    const application = await prisma.merchantApplication.findUnique({
+      where: { id },
+      include: {
+        user: true,
+        bankAccount: true,
+        documents: true,
+        activatedStore: true
+      }
+    });
+
+    if (!application) {
+      res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+
+    const previousStatus = application.status;
+    let nextStatus = previousStatus;
+    let activatedStoreId = application.activatedStoreId;
+
+    if (action === 'APPROVE') {
+      // 1. Elevate user role to MERCHANT (never ADMIN)
+      await prisma.user.update({
+        where: { id: application.userId },
+        data: { role: 'MERCHANT' }
+      });
+
+      // 2. Create or Activate Store
+      const cleanStoreName = (application.storeName || application.businessName || 'Merchant Store').trim();
+      const slug = `${cleanStoreName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const finalCommission = commissionRatePct !== undefined ? commissionRatePct : application.commissionRatePct;
+
+      let store = application.activatedStore;
+      if (!store) {
+        store = await prisma.store.create({
+          data: {
+            ownerId: application.userId,
+            name: cleanStoreName,
+            slug,
+            description: application.description || `${cleanStoreName} - Verified Partner in ${application.city}`,
+            category: application.category || 'grocery',
+            addressLine: application.addressLine || 'Indore',
+            city: application.city || 'Indore',
+            pincode: application.pincode || '452001',
+            latitude: application.latitude || 22.7196,
+            longitude: application.longitude || 75.8577,
+            serviceRadiusKm: application.deliveryRadiusKm || 3.0,
+            isOpen: true,
+            isVerified: true,
+            commissionRatePct: finalCommission
+          }
+        });
+      } else {
+        store = await prisma.store.update({
+          where: { id: store.id },
+          data: {
+            isVerified: true,
+            isOpen: true,
+            commissionRatePct: finalCommission
+          }
+        });
+      }
+
+      activatedStoreId = store.id;
+      nextStatus = 'APPROVED';
+
+      // Mark bank account and documents as verified
+      if (application.bankAccount) {
+        await prisma.merchantBankAccount.update({
+          where: { id: application.bankAccount.id },
+          data: { verificationStatus: 'VERIFIED', verifiedAt: new Date() }
+        });
+      }
+
+      await prisma.merchantDocument.updateMany({
+        where: { applicationId: application.id },
+        data: { verificationStatus: 'VERIFIED' }
+      });
+
+      await prisma.merchantApplication.update({
+        where: { id: application.id },
+        data: {
+          status: 'APPROVED',
+          approvedAt: new Date(),
+          reviewedByAdminId: req.user!.userId,
+          reviewedAt: new Date(),
+          activatedStoreId: store.id,
+          commissionRatePct: finalCommission,
+          adminFeedback: null,
+          rejectionReason: null
+        }
+      });
+    } else if (action === 'REJECT') {
+      if (!reason) {
+        res.status(400).json({ error: 'Rejection reason is mandatory' });
+        return;
+      }
+      nextStatus = 'REJECTED';
+      await prisma.merchantApplication.update({
+        where: { id: application.id },
+        data: {
+          status: 'REJECTED',
+          rejectionReason: reason,
+          reviewedByAdminId: req.user!.userId,
+          reviewedAt: new Date()
+        }
+      });
+    } else if (action === 'REQUEST_DOCUMENTS' || action === 'RETURN_FOR_CORRECTION') {
+      if (!feedback) {
+        res.status(400).json({ error: 'Feedback detailing required documents or corrections is mandatory' });
+        return;
+      }
+      nextStatus = 'DOCUMENTS_REQUIRED';
+      await prisma.merchantApplication.update({
+        where: { id: application.id },
+        data: {
+          status: 'DOCUMENTS_REQUIRED',
+          adminFeedback: feedback,
+          reviewedByAdminId: req.user!.userId,
+          reviewedAt: new Date()
+        }
+      });
+    } else if (action === 'SUSPEND') {
+      nextStatus = 'SUSPENDED';
+      if (application.activatedStoreId) {
+        await prisma.store.update({
+          where: { id: application.activatedStoreId },
+          data: { isOpen: false, isVerified: false }
+        });
+      }
+      await prisma.merchantApplication.update({
+        where: { id: application.id },
+        data: { status: 'SUSPENDED', rejectionReason: reason || 'Suspended by admin' }
+      });
+    } else if (action === 'REACTIVATE') {
+      nextStatus = 'ACTIVE';
+      if (application.activatedStoreId) {
+        await prisma.store.update({
+          where: { id: application.activatedStoreId },
+          data: { isOpen: true, isVerified: true }
+        });
+      }
+      await prisma.merchantApplication.update({
+        where: { id: application.id },
+        data: { status: 'APPROVED' }
+      });
+    }
+
+    // Write Onboarding Audit History
+    await prisma.merchantOnboardingHistory.create({
+      data: {
+        applicationId: application.id,
+        fromStatus: previousStatus,
+        toStatus: nextStatus,
+        actorRole: 'ADMIN',
+        actorId: req.user!.userId,
+        notes: reason || feedback || `Admin action: ${action}`
+      }
+    });
+
+    // Write Platform Audit Log
+    await prisma.auditLog.create({
+      data: {
+        userId: req.user!.userId,
+        action: `MERCHANT_ONBOARDING_${action}`,
+        resourceType: 'MerchantApplication',
+        resourceId: application.id,
+        detailsJson: JSON.stringify({
+          action,
+          previousStatus,
+          nextStatus,
+          reason,
+          feedback,
+          activatedStoreId
+        })
+      }
+    });
+
+    const refreshed = await prisma.merchantApplication.findUnique({
+      where: { id: application.id },
+      include: {
+        documents: true,
+        bankAccount: true,
+        agreementAcceptance: true,
+        history: { orderBy: { timestamp: 'desc' } },
+        activatedStore: true
+      }
+    });
+
+    res.json({
+      message: `Merchant application ${action.toLowerCase()} completed successfully`,
+      application: refreshed
+    });
+  } catch (error) {
+    console.error('Admin onboarding action error:', error);
+    res.status(500).json({ error: 'Failed to process admin onboarding action' });
+  }
+});
+
 export default router;

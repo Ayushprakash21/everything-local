@@ -12,6 +12,9 @@ prisma/*.baseline-backup
 prisma/*.release-candidate-backup
 uploads/*
 !uploads/.gitkeep
+server/uploads/*
+!server/uploads/.gitkeep
+!server/uploads/documents/.gitkeep
 server/secure_storage/*
 !server/secure_storage/.gitkeep
 

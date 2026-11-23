@@ -97,6 +97,17 @@ fun MerchantApp(viewModel: MerchantViewModel) {
                     onBack = { navController.popBackStack() }
                 )
             }
+            composable("onboarding") {
+                MerchantOnboardingScreen(
+                    repository = viewModel.repository,
+                    onBack = { navController.popBackStack() },
+                    onOnboardingComplete = {
+                        navController.navigate("dashboard") {
+                            popUpTo("dashboard") { inclusive = true }
+                        }
+                    }
+                )
+            }
         }
     }
 }

@@ -180,3 +180,52 @@ data class SingleOrderResponse(
 data class OrderStatusUpdateRequest(
     val status: String
 )
+
+@Serializable
+data class MerchantApplicationDto(
+    val id: String = "",
+    val referenceNumber: String = "",
+    val status: String = "DRAFT",
+    val currentStep: Int = 1,
+    val ownerName: String = "",
+    val ownerPhone: String = "",
+    val ownerEmail: String = "",
+    val isPhoneVerified: Boolean = false,
+    val businessName: String? = null,
+    val storeName: String? = null,
+    val category: String? = "Grocery & Daily Staples",
+    val addressLine: String? = null,
+    val city: String? = "Indore",
+    val pincode: String? = "452001",
+    val deliveryRadiusKm: Double = 3.0,
+    val commissionRatePct: Double = 3.5,
+    val adminFeedback: String? = null,
+    val rejectionReason: String? = null
+)
+
+@Serializable
+data class StartOnboardingRequest(
+    val ownerName: String,
+    val ownerPhone: String,
+    val ownerEmail: String,
+    val password: String,
+    val communicationConsent: Boolean = true
+)
+
+@Serializable
+data class StartOnboardingResponse(
+    val message: String,
+    val token: String? = null,
+    val application: MerchantApplicationDto
+)
+
+@Serializable
+data class VerifyPhoneOtpRequest(
+    val referenceNumber: String,
+    val otp: String
+)
+
+@Serializable
+data class ApplicationResponse(
+    val application: MerchantApplicationDto
+)

@@ -14,6 +14,7 @@ import { riderRouter } from './routes/rider';
 import { aiAssistantRouter } from './routes/aiAssistant';
 import { householdRouter } from './routes/household';
 import { communityRouter } from './routes/community';
+import merchantOnboardingRouter from './routes/merchantOnboarding';
 
 dotenv.config();
 
@@ -50,7 +51,7 @@ app.use(
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Idempotency-Key'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Idempotency-Key', 'x-store-id'],
     optionsSuccessStatus: 200
   })
 );
@@ -84,6 +85,7 @@ app.use('/api/rider', riderRouter);
 app.use('/api/ai', aiAssistantRouter);
 app.use('/api/household', householdRouter);
 app.use('/api/community', communityRouter);
+app.use('/api/onboarding', merchantOnboardingRouter);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {

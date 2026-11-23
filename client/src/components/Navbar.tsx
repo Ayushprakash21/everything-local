@@ -394,7 +394,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     </button>
 
                     {/* Role Gated Dashboards */}
-                    {isMerchant && (
+                    {isMerchant ? (
                       <button
                         onClick={() => {
                           setDiscoveryMode('shop');
@@ -405,6 +405,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                       >
                         <Store className="w-3.5 h-3.5 text-amber-600" />
                         <span>Merchant Dashboard</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setDiscoveryMode('shop');
+                          setCurrentTab('merchant');
+                          setShowUserMenu(false);
+                        }}
+                        className="w-full text-left px-3 py-2 bg-emerald-50/70 hover:bg-emerald-100/70 rounded-xl flex items-center gap-2 text-emerald-800 font-bold border border-emerald-200/60 my-1 transition"
+                      >
+                        <Store className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Become a Merchant Partner</span>
                       </button>
                     )}
 

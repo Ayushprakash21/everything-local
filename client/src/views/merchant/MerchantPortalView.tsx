@@ -3,6 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import { Store } from '../../types';
 import { BrandLogo } from '../../components/BrandLogo';
 import { ELLogo } from '../../components/ELLogo';
+import { MerchantOnboardingWizard } from './MerchantOnboardingWizard';
+import { MerchantApplicationStatusView } from './MerchantApplicationStatusView';
 import {
   Store as StoreIcon,
   ShieldCheck,
@@ -60,7 +62,8 @@ export const MerchantPortalView: React.FC<MerchantPortalViewProps> = ({
 }) => {
   const { user, login, registerMerchant, logout } = useAuth();
 
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register' | 'onboarding' | 'status'>('login');
+  const [trackingRef, setTrackingRef] = useState<string>('');
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -79,6 +82,39 @@ export const MerchantPortalView: React.FC<MerchantPortalViewProps> = ({
   const [regAddress, setRegAddress] = useState('');
   const [regLocality, setRegLocality] = useState(INDORE_LOCALITIES[0]);
   const [regPincode, setRegPincode] = useState('452001');
+
+  if (mode === 'onboarding') {
+    return (
+      <MerchantOnboardingWizard
+        initialReference={trackingRef}
+        onBackToLogin={() => setMode('login')}
+        onComplete={(app) => {
+          setTrackingRef(app.referenceNumber);
+          setMode('status');
+        }}
+      />
+    );
+  }
+
+  if (mode === 'status') {
+    return (
+      <div className="py-6">
+        <div className="max-w-2xl mx-auto px-4 mb-4 flex items-center justify-between">
+          <button
+            onClick={() => setMode('login')}
+            className="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1"
+          >
+            ← Back to Merchant Portal
+          </button>
+        </div>
+        <MerchantApplicationStatusView
+          referenceNumber={trackingRef}
+          onContinueApplication={() => setMode('onboarding')}
+          onGoToDashboard={() => onRefreshStore()}
+        />
+      </div>
+    );
+  }
 
   // If user is a MERCHANT and store is pending verification
   if (user && user.role === 'MERCHANT' && store && !store.isVerified) {
@@ -329,8 +365,8 @@ export const MerchantPortalView: React.FC<MerchantPortalViewProps> = ({
         </div>
       )}
 
-      {/* Tab Switcher: Sign In vs Register */}
-      <div className="bg-slate-100 p-1 rounded-2xl flex items-center mb-6 max-w-sm mx-auto border border-slate-200">
+      {/* Tab Switcher: Sign In vs Register Business */}
+      <div className="bg-slate-100 p-1 rounded-2xl flex items-center mb-6 max-w-md mx-auto border border-slate-200">
         <button
           type="button"
           onClick={() => {
@@ -343,21 +379,21 @@ export const MerchantPortalView: React.FC<MerchantPortalViewProps> = ({
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          Sign In to Store
+          Existing Merchant Login
         </button>
         <button
           type="button"
           onClick={() => {
-            setMode('register');
+            setMode('onboarding');
             setError(null);
           }}
           className={`flex-1 py-2 text-xs font-black rounded-xl transition ${
-            mode === 'register'
-              ? 'bg-white text-slate-900 shadow-sm'
-              : 'text-slate-600 hover:text-slate-900'
+            mode === 'onboarding'
+              ? 'bg-emerald-600 text-white shadow-sm'
+              : 'text-emerald-800 hover:text-emerald-950'
           }`}
         >
-          Register New Store
+          Become a Partner ➔
         </button>
       </div>
 
@@ -468,21 +504,51 @@ export const MerchantPortalView: React.FC<MerchantPortalViewProps> = ({
               </button>
             </div>
 
-            {/* Footer Navigation */}
-            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-              <p>
-                Don't have a merchant account?{' '}
+            {/* Become a Merchant Partner Callout */}
+            <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <h4 className="text-xs font-black text-emerald-950 flex items-center gap-1.5">
+                    <StoreIcon className="w-4 h-4 text-emerald-700" />
+                    <span>Become a Merchant Partner</span>
+                  </h4>
+                  <p className="text-[11px] text-emerald-800 mt-0.5">
+                    Start selling to thousands of neighbourhood customers with zero setup fee.
+                  </p>
+                </div>
                 <button
                   type="button"
                   onClick={() => {
-                    setMode('register');
+                    setMode('onboarding');
                     setError(null);
                   }}
-                  className="font-bold text-amber-600 hover:text-amber-700 hover:underline"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 shrink-0"
                 >
-                  Register your store
+                  <span>Register Your Business</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
-              </p>
+              </div>
+            </div>
+
+            {/* Footer Navigation & Application Tracking */}
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+              <div className="flex items-center gap-2">
+                <span>Already applied?</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const ref = window.prompt('Enter your 6-digit Application Reference (e.g. EL-MAPP-1002):');
+                    if (ref && ref.trim()) {
+                      setTrackingRef(ref.trim());
+                      setMode('status');
+                    }
+                  }}
+                  className="font-bold text-amber-700 hover:underline flex items-center gap-1"
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Track Application Status</span>
+                </button>
+              </div>
               {onReturnToShop && (
                 <button
                   type="button"

@@ -4,6 +4,7 @@ import { Store, Order, FinancialLedgerEntry } from '../../types';
 import { request, formatPaise } from '../../api/client';
 import { BrandLogo } from '../../components/BrandLogo';
 import { ELLogo } from '../../components/ELLogo';
+import { AdminMerchantOnboardingView } from './AdminMerchantOnboardingView';
 import {
   Shield,
   TrendingUp,
@@ -19,7 +20,8 @@ import {
   AlertCircle,
   FileText,
   MapPin,
-  Sparkles
+  Sparkles,
+  Building2
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth }) => {
@@ -28,7 +30,7 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
   const [merchants, setMerchants] = useState<Store[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ledger, setLedger] = useState<FinancialLedgerEntry[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'control_tower' | 'delivery_pricing' | 'settlements' | 'orders' | 'ledger' | 'services' | 'pharmacies'>('control_tower');
+  const [activeTab, setActiveTab] = useState<'overview' | 'control_tower' | 'onboarding' | 'delivery_pricing' | 'settlements' | 'orders' | 'ledger' | 'services' | 'pharmacies'>('control_tower');
   const [controlMetrics, setControlMetrics] = useState<any>(null);
   const [liveTasks, setLiveTasks] = useState<any[]>([]);
   const [onlineRiders, setOnlineRiders] = useState<any[]>([]);
@@ -247,6 +249,18 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
         </button>
 
         <button
+          onClick={() => setActiveTab('onboarding')}
+          className={`pb-3 border-b-2 transition whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'onboarding'
+              ? 'border-emerald-700 text-emerald-800 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Building2 className="w-4 h-4 text-emerald-600" />
+          <span>Merchant Onboarding Desk</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('delivery_pricing')}
           className={`pb-3 border-b-2 transition whitespace-nowrap ${
             activeTab === 'delivery_pricing'
@@ -323,6 +337,9 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
           Licensed Pharmacies ({adminPharmacies.length})
         </button>
       </div>
+
+      {/* TAB: MERCHANT ONBOARDING DESK */}
+      {activeTab === 'onboarding' && <AdminMerchantOnboardingView />}
 
       {/* TAB: DISPATCH CONTROL TOWER */}
       {activeTab === 'control_tower' && (

@@ -25,7 +25,7 @@ data class MerchantUiState(
 )
 
 class MerchantViewModel(
-    private val repository: MerchantRepository
+    val repository: MerchantRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MerchantUiState())

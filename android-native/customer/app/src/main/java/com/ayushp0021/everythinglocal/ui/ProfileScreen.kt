@@ -86,6 +86,37 @@ fun ProfileScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Become a Merchant Partner Entry Point
+            Card(
+                colors = CardDefaults.cardColors(containerColor = AmberLight.copy(alpha = 0.25f)),
+                shape = RoundedCornerShape(16.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, AmberPrimary.copy(alpha = 0.4f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(AmberPrimary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Storefront, contentDescription = null, tint = Color.Black)
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Become a Merchant Partner", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextDark)
+                        Text("Register your Indore shop for 3 km neighbourhood delivery", fontSize = 11.sp, color = TextMuted)
+                    }
+                    Icon(Icons.Default.ArrowForward, contentDescription = null, tint = TextDark, modifier = Modifier.size(18.dp))
+                }
+            }
+
             Spacer(modifier = Modifier.height(20.dp))
 
             // App Version Info
