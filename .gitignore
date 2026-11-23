@@ -7,7 +7,9 @@ test.db-journal
 .env
 *.log
 *.baseline-backup
+*.release-candidate-backup
 prisma/*.baseline-backup
+prisma/*.release-candidate-backup
 uploads/*
 !uploads/.gitkeep
 server/secure_storage/*
