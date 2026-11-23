@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface BrandLogoProps {
-  variant?: 'horizontal' | 'symbol' | 'light' | 'dark' | 'monochrome';
+  variant?: 'horizontal' | 'compact' | 'symbol' | 'light' | 'dark' | 'monochrome' | 'merchant';
   size?: 'small' | 'medium' | 'large' | number;
   showTagline?: boolean;
   className?: string;
@@ -22,14 +22,18 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   // Determine asset source based on variant
   let src = '/brand/everything-local-logo-horizontal.svg';
 
-  if (variant === 'symbol') {
+  if (variant === 'compact') {
+    src = '/brand/everything-local-logo-compact.svg';
+  } else if (variant === 'symbol') {
     src = '/brand/everything-local-symbol.svg';
   } else if (variant === 'dark') {
     src = '/brand/everything-local-logo-dark.svg';
   } else if (variant === 'light' || variant === 'horizontal') {
-    src = '/brand/everything-local-logo-horizontal.svg';
+    src = showTagline ? '/brand/everything-local-logo-horizontal.svg' : '/brand/everything-local-logo-compact.svg';
   } else if (variant === 'monochrome') {
     src = '/brand/everything-local-monochrome.svg';
+  } else if (variant === 'merchant') {
+    src = '/brand/everything-local-merchant-logo.svg';
   }
 
   // Dimension mapping
@@ -49,16 +53,28 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           heightClass = 'h-14 w-auto';
           break;
       }
+    } else if (variant === 'compact') {
+      switch (size) {
+        case 'small':
+          heightClass = 'h-8 w-auto';
+          break;
+        case 'medium':
+          heightClass = 'h-10 w-auto';
+          break;
+        case 'large':
+          heightClass = 'h-12 w-auto';
+          break;
+      }
     } else {
       switch (size) {
         case 'small':
-          heightClass = 'h-8 w-auto max-w-[145px]';
+          heightClass = 'h-9 w-auto';
           break;
         case 'medium':
-          heightClass = 'h-10 w-auto max-w-[185px]';
+          heightClass = 'h-12 w-auto';
           break;
         case 'large':
-          heightClass = 'h-14 w-auto max-w-[250px]';
+          heightClass = 'h-16 w-auto';
           break;
       }
     }

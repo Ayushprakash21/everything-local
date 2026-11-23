@@ -290,7 +290,7 @@ export const MerchantPortalView: React.FC<MerchantPortalViewProps> = ({
       <div className="text-center mb-8 space-y-3">
         <div className="flex justify-center mb-2">
           <div className="p-3 bg-white rounded-3xl shadow-sm border border-slate-200">
-            <BrandLogo variant="horizontal" size="large" />
+            <BrandLogo variant="merchant" size="medium" />
           </div>
         </div>
         <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-900 border border-amber-200 px-3 py-1 rounded-full text-xs font-bold">

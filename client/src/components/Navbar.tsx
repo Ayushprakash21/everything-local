@@ -143,12 +143,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               }}
               title="Everything Local — Indore"
             >
-              {/* Desktop / Large Screen: Clean Horizontal Logo */}
+              {/* Desktop / Large Screen: Clean Compact Header Logo */}
               <div className="hidden sm:flex items-center gap-2">
                 <BrandLogo
-                  variant="horizontal"
+                  variant="compact"
                   size="medium"
-                  className="h-10 sm:h-11 w-auto max-w-[215px] group-hover:scale-[1.02] transition-transform"
+                  className="h-10 sm:h-11 w-auto group-hover:scale-[1.02] transition-transform"
                 />
                 <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs self-center">
                   Indore

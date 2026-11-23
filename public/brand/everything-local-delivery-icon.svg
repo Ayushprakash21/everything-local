@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="riderBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0284C7"/>
+      <stop offset="100%" stop-color="#0369A1"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="115" fill="url(#riderBg)"/>
+
+  <!-- Scooter Rider Silhouette -->
+  <g transform="translate(60, 60) scale(3.0)" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="36" cy="88" r="14"/>
+    <circle cx="92" cy="88" r="14"/>
+    <path d="M 36 88 L 52 68 L 76 68 L 92 88"/>
+    <path d="M 76 68 L 80 40 L 94 40"/>
+    <rect x="22" y="46" width="22" height="22" rx="4" fill="#FFFFFF"/>
+    <circle cx="70" cy="30" r="8" fill="#FFFFFF"/>
+  </g>
+</svg>
