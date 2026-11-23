@@ -152,6 +152,35 @@ class MerchantViewModel(
         }
     }
 
+    fun updateProductPrice(productId: String, pricePaise: Int, mrpPaise: Int) {
+        viewModelScope.launch {
+            try {
+                repository.updateProduct(productId, mapOf(
+                    "price" to (pricePaise / 100.0).toString(),
+                    "mrp" to (mrpPaise / 100.0).toString()
+                ))
+                val updatedList = _uiState.value.products.map {
+                    if (it.id == productId) it.copy(pricePaise = pricePaise, mrpPaise = mrpPaise) else it
+                }
+                _uiState.value = _uiState.value.copy(products = updatedList, statusMessage = "Product updated successfully!")
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(errorMessage = "Update failed: ${e.message}")
+            }
+        }
+    }
+
+    fun deleteProduct(productId: String) {
+        viewModelScope.launch {
+            try {
+                repository.deleteProduct(productId)
+                val updatedList = _uiState.value.products.filter { it.id != productId }
+                _uiState.value = _uiState.value.copy(products = updatedList, statusMessage = "Product removed from store catalogue")
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(errorMessage = "Delete failed: ${e.message}")
+            }
+        }
+    }
+
     fun updateOrderStatus(orderId: String, newStatus: String) {
         viewModelScope.launch {
             try {
@@ -168,5 +197,43 @@ class MerchantViewModel(
 
     fun clearMessages() {
         _uiState.value = _uiState.value.copy(statusMessage = null, errorMessage = null)
+    }
+
+    fun login(emailOrPhone: String, pass: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            try {
+                val user = repository.login(emailOrPhone, pass)
+                if (user.role != "MERCHANT" && user.role != "ADMIN") {
+                    onError("Account is registered as ${user.role}. Only approved MERCHANT partners can access the merchant console.")
+                    _uiState.value = _uiState.value.copy(isLoading = false)
+                    return@launch
+                }
+                loadDashboard()
+                onSuccess()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = e.message)
+                onError(e.message ?: "Authentication failed")
+            }
+        }
+    }
+
+    fun logout(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            repository.logout()
+            _uiState.value = MerchantUiState()
+            onSuccess()
+        }
+    }
+
+    fun setCustomBaseUrl(url: String?) {
+        viewModelScope.launch {
+            repository.sessionManager.setCustomBaseUrl(url)
+            loadDashboard()
+        }
+    }
+
+    suspend fun getCustomBaseUrl(): String? {
+        return repository.sessionManager.getCustomBaseUrl()
     }
 }

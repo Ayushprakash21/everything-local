@@ -5,3 +5,10 @@ build/
 local.properties
 *.hprof
 hs_err_pid*
+
+# Keystore & Signing Secrets
+*.jks
+*.keystore
+keystore.properties
+keystore/keystore.properties
+

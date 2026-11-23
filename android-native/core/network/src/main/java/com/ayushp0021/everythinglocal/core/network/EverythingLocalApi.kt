@@ -121,4 +121,12 @@ interface EverythingLocalApi {
 
     @POST("onboarding/application/{ref}/submit")
     suspend fun submitOnboardingApplication(@Path("ref") ref: String): ApplicationResponse
+
+    @Multipart
+    @POST("onboarding/application/{ref}/documents")
+    suspend fun uploadOnboardingDocument(
+        @Path("ref") ref: String,
+        @Part document: MultipartBody.Part,
+        @Part("docType") docType: okhttp3.RequestBody
+    ): ApplicationResponse
 }

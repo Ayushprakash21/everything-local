@@ -4,10 +4,76 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#F59E0B"
-        android:pathData="M0,0h108v108h-108z" />
-    <path
-        android:fillColor="#064E3B"
-        android:pathData="M30,30h48v48h-48z" />
+    <group
+        android:scaleX="0.33"
+        android:scaleY="0.33"
+        android:translateX="25"
+        android:translateY="20">
+        <!-- Awning Roof -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 10,22 L 150,22 L 145,46 C 142,52 134,53 130,48 C 126,53 118,53 114,48 C 110,53 102,53 98,48 C 94,53 86,53 82,48 C 78,53 70,53 66,48 C 62,53 54,53 50,48 C 46,53 38,53 34,48 C 30,53 22,53 18,48 C 14,53 6,52 3,46 Z" />
+        <!-- Orange Stripes -->
+        <path android:fillColor="#EA580C" android:pathData="M 24,22 L 41,22 L 39,46 C 37,48 32,48 30,46 Z" />
+        <path android:fillColor="#EA580C" android:pathData="M 56,22 L 73,22 L 71,46 C 69,48 64,48 62,46 Z" />
+        <path android:fillColor="#EA580C" android:pathData="M 88,22 L 105,22 L 103,46 C 101,48 96,48 94,46 Z" />
+        <path android:fillColor="#EA580C" android:pathData="M 120,22 L 137,22 L 135,46 C 133,48 128,48 126,46 Z" />
+
+        <!-- EL Monogram with Shopping Frame -->
+        <group android:translateY="35">
+            <path
+                android:pathData="M 72,32 C 72,12 108,12 108,32"
+                android:strokeColor="#F5B82E"
+                android:strokeWidth="8.5"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M 54,34 L 124,34 C 134,34 140,42 144,58 L 149,86 C 152,98 146,108 132,112"
+                android:strokeColor="#F5B82E"
+                android:strokeWidth="7.5"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round" />
+            <path
+                android:pathData="M 46,54 L 39,86 C 35,98 42,108 56,112"
+                android:strokeColor="#F5B82E"
+                android:strokeWidth="7.5"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round" />
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M 57,44 L 93,44 L 90,56 L 73,56 L 70,69 L 86,69 L 83,80 L 67,80 L 64,93 L 91,93 L 88,104 L 42,104 Z" />
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M 99,44 L 113,44 L 99,93 L 128,93 L 125,104 L 83,104 Z" />
+            <path
+                android:fillColor="#10B981"
+                android:pathData="M 28,96 C 18,114 30,134 60,140 C 84,144 110,138 122,129 C 97,137 69,137 45,129 C 29,121 22,108 28,96 Z" />
+            <group android:translateX="26" android:translateY="95">
+                <path
+                    android:fillColor="#F5B82E"
+                    android:pathData="M 0,-11 C -6,-11 -11,-6 -11,0 C -11,7 0,17 0,17 C 0,17 11,7 11,0 C 11,-6 6,-11 0,-11 Z" />
+                <path
+                    android:fillColor="#FFFFFF"
+                    android:pathData="M 0,-3.8 A 3.8,3.8 0 1,0 0,3.8 A 3.8,3.8 0 1,0 0,-3.8 Z" />
+            </group>
+            <path
+                android:fillColor="#F5B82E"
+                android:pathData="M 64,125 C 95,135 131,131 155,113 C 171,99 178,79 175,61 C 177,77 168,95 149,107 C 127,121 93,125 64,125 Z" />
+        </group>
+
+        <!-- Merchant Tag Pill -->
+        <group android:translateY="175" android:translateX="18">
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M 12,0 L 112,0 C 118,0 124,5 124,12 C 124,19 118,24 112,24 L 12,24 C 6,24 0,19 0,12 C 0,5 6,0 12,0 Z" />
+            <path
+                android:fillColor="#9A3412"
+                android:pathData="M 20,6 L 24,6 L 27,14 L 30,6 L 34,6 L 34,18 L 31,18 L 31,10 L 28,18 L 26,18 L 23,10 L 23,18 L 20,18 Z" />
+            <path
+                android:fillColor="#9A3412"
+                android:pathData="M 38,6 L 47,6 L 47,9 L 41,9 L 41,11 L 46,11 L 46,13 L 41,13 L 41,15 L 47,15 L 47,18 L 38,18 Z" />
+            <path
+                android:fillColor="#9A3412"
+                android:pathData="M 51,6 L 57,6 C 60,6 62,8 62,10 C 62,12 60,13 58,14 L 62,18 L 58,18 L 55,14 L 54,14 L 54,18 L 51,18 Z M 54,8 L 54,12 L 57,12 C 58,12 59,11 59,10 C 59,9 58,8 57,8 Z" />
+        </group>
+    </group>
 </vector>

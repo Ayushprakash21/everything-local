@@ -12,7 +12,13 @@ import java.util.UUID
 class CustomerRepository(
     private val sessionManager: SessionManager,
     private val networkClient: NetworkClient = NetworkClient(
-        tokenProvider = { kotlinx.coroutines.runBlocking { sessionManager.getToken() } }
+        tokenProvider = { kotlinx.coroutines.runBlocking { sessionManager.getToken() } },
+        baseUrlProvider = {
+            kotlinx.coroutines.runBlocking {
+                sessionManager.getCustomBaseUrl() ?: com.ayushp0021.everythinglocal.BuildConfig.API_BASE_URL
+            }
+        },
+        isDebug = com.ayushp0021.everythinglocal.BuildConfig.DEBUG
     )
 ) {
     private val api: EverythingLocalApi = networkClient.api

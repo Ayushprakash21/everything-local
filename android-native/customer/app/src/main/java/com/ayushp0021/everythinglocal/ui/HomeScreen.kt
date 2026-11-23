@@ -16,12 +16,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.ayushp0021.everythinglocal.core.common.Formatters
 import com.ayushp0021.everythinglocal.core.designsystem.*
+import com.ayushp0021.everythinglocal.core.models.Product
 import com.ayushp0021.everythinglocal.core.models.Store
 
 @Composable
@@ -32,6 +35,8 @@ fun HomeScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var showLocationDialog by remember { mutableStateOf(false) }
+    var selectedProduct by remember { mutableStateOf<Product?>(null) }
+    var selectedStore by remember { mutableStateOf<Store?>(null) }
 
     val categories = listOf(
         CategoryItem("all", "All Stores", Icons.Default.Storefront, Color(0xFFFEF3C7), AmberDark),
@@ -52,45 +57,13 @@ fun HomeScreen(
                     .background(Color.White)
                     .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
-                // Top Location & ETA row
+                // Official Customer Brand Logo & Cart Icon
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { showLocationDialog = true }
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(ForestGreenLight),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.LocationOn, contentDescription = null, tint = ForestGreen)
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Delivery in 15-20 Mins",
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 14.sp,
-                                    color = TextDark
-                                )
-                                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = TextMuted)
-                            }
-                            Text(
-                                text = state.selectedNeighborhood,
-                                fontSize = 12.sp,
-                                color = TextMuted,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
+                    CustomerBrandLogo(variant = LogoVariant.COMPACT)
 
                     IconButton(
                         onClick = onNavigateToCart,
@@ -109,6 +82,45 @@ fun HomeScreen(
                         ) {
                             Icon(Icons.Default.ShoppingCart, contentDescription = "Cart", tint = AmberDark)
                         }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Location & ETA row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showLocationDialog = true },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(ForestGreenLight),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.LocationOn, contentDescription = null, tint = ForestGreen, modifier = Modifier.size(18.dp))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Delivery in 15–20 Mins",
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 13.sp,
+                                color = TextDark
+                            )
+                            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = TextMuted, modifier = Modifier.size(16.dp))
+                        }
+                        Text(
+                            text = state.selectedNeighborhood,
+                            fontSize = 11.sp,
+                            color = TextMuted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
 
@@ -144,6 +156,40 @@ fun HomeScreen(
                 .padding(padding)
                 .background(SurfaceOffWhite)
         ) {
+            // Backend Connectivity Warning Banner
+            if (state.errorMessage != null) {
+                item {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.CloudOff, contentDescription = null, tint = Color(0xFFDC2626), modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Backend Connectivity Alert", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFF991B1B))
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(state.errorMessage ?: "Server is unavailable.", fontSize = 11.sp, color = Color(0xFF7F1D1D))
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(
+                                onClick = { viewModel.loadHomeData() },
+                                colors = ButtonDefaults.buttonColors(containerColor = ForestGreen),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(14.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Retry Connection", fontSize = 11.sp)
+                            }
+                        }
+                    }
+                }
+            }
+
             // Promotional Banner
             item {
                 Box(
@@ -178,17 +224,11 @@ fun HomeScreen(
                             fontSize = 17.sp,
                             lineHeight = 22.sp
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            "Free delivery on orders above ₹299",
-                            color = Color(0xFFE2E8F0),
-                            fontSize = 12.sp
-                        )
                     }
                 }
             }
 
-            // Department Categories Grid / Row
+            // Category Bar
             item {
                 Text(
                     text = "Explore Categories",
@@ -247,6 +287,9 @@ fun HomeScreen(
                                 onDecrement = {
                                     cartItem?.let { viewModel.removeFromCart(it.id) }
                                 },
+                                onClick = {
+                                    selectedProduct = product
+                                },
                                 modifier = Modifier.width(160.dp)
                             )
                         }
@@ -254,7 +297,7 @@ fun HomeScreen(
                 }
             }
 
-            // Stores List
+            // Neighborhood Stores List
             item {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
@@ -267,9 +310,15 @@ fun HomeScreen(
             }
 
             items(state.stores) { store ->
-                StoreItemCard(store = store, onAddToCart = { prodId ->
-                    viewModel.addToCart(store.id, prodId)
-                })
+                StoreItemCard(
+                    store = store,
+                    onAddToCart = { prodId ->
+                        viewModel.addToCart(store.id, prodId)
+                    },
+                    onClick = {
+                        selectedStore = store
+                    }
+                )
             }
 
             item {
@@ -278,6 +327,7 @@ fun HomeScreen(
         }
     }
 
+    // Location Picker Dialog
     if (showLocationDialog) {
         LocationSelectorDialog(
             current = state.selectedNeighborhood,
@@ -285,6 +335,130 @@ fun HomeScreen(
             onSelect = { name, lat, lng ->
                 viewModel.setNeighborhood(name, lat, lng)
                 showLocationDialog = false
+            }
+        )
+    }
+
+    // Product Detail Bottom Sheet / Modal
+    selectedProduct?.let { prod ->
+        val cartItem = state.cart.items.find { it.productId == prod.id }
+        AlertDialog(
+            onDismissRequest = { selectedProduct = null },
+            title = {
+                Text(prod.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            },
+            text = {
+                Column {
+                    if (!prod.imageUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = prod.imageUrl,
+                            contentDescription = prod.name,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(160.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            Formatters.formatPaise(prod.pricePaise),
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 18.sp,
+                            color = ForestGreen
+                        )
+                        if (prod.mrpPaise > prod.pricePaise) {
+                            Text(
+                                "MRP: ${Formatters.formatPaise(prod.mrpPaise)}",
+                                fontSize = 12.sp,
+                                color = TextMuted
+                            )
+                        }
+                    }
+                    if (!prod.packageSize.isNullOrBlank()) {
+                        Text("Pack Size: ${prod.packageSize}", fontSize = 12.sp, color = TextMuted)
+                    }
+                    if (!prod.brand.isNullOrBlank()) {
+                        Text("Brand: ${prod.brand}", fontSize = 12.sp, color = TextMuted)
+                    }
+                    prod.store?.let { s ->
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Sold by: ${s.name} (${s.addressLine})", fontSize = 11.sp, color = ForestGreen, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            },
+            confirmButton = {
+                val sId = prod.storeId.ifBlank { prod.store?.id ?: "" }
+                Button(
+                    onClick = {
+                        if (sId.isNotBlank()) {
+                            viewModel.addToCart(sId, prod.id)
+                        }
+                        selectedProduct = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = ForestGreen),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text(if (cartItem != null) "Add Another (${cartItem.quantity} in Cart)" else "Add to Cart ➔")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { selectedProduct = null }) { Text("Close") }
+            }
+        )
+    }
+
+    // Store Catalogue Modal
+    selectedStore?.let { store ->
+        AlertDialog(
+            onDismissRequest = { selectedStore = null },
+            title = {
+                Column {
+                    Text(store.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("${store.category.replaceFirstChar { it.uppercase() }} • ${store.addressLine}", fontSize = 11.sp, color = TextMuted)
+                }
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text("Store Inventory (${store.sampleProducts.size} Items):", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    if (store.sampleProducts.isEmpty()) {
+                        Text("No items currently available from this store.", fontSize = 12.sp, color = TextMuted)
+                    } else {
+                        store.sampleProducts.forEach { item ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(item.name, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                                    Text(Formatters.formatPaise(item.pricePaise), fontSize = 12.sp, color = ForestGreen, fontWeight = FontWeight.Bold)
+                                }
+                                Button(
+                                    onClick = {
+                                        viewModel.addToCart(store.id, item.id)
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = ForestGreen),
+                                    shape = RoundedCornerShape(8.dp),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                                ) {
+                                    Text("Add", fontSize = 11.sp)
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { selectedStore = null }) { Text("Close") }
             }
         )
     }
@@ -301,12 +475,14 @@ data class CategoryItem(
 @Composable
 fun StoreItemCard(
     store: Store,
-    onAddToCart: (String) -> Unit
+    onAddToCart: (String) -> Unit,
+    onClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
@@ -364,6 +540,8 @@ fun StoreItemCard(
                 Icon(Icons.Default.Schedule, contentDescription = null, tint = TextMuted, modifier = Modifier.size(14.dp))
                 Spacer(modifier = Modifier.width(4.dp))
                 Text("15–20 min", fontSize = 12.sp, color = TextMuted)
+                Spacer(modifier = Modifier.weight(1f))
+                Text("View Store ➔", fontSize = 11.sp, color = ForestGreen, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -397,17 +575,13 @@ fun LocationSelectorDialog(
                             .padding(vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            Icons.Default.LocationOn,
-                            contentDescription = null,
-                            tint = if (name == current) ForestGreen else TextMuted
+                        RadioButton(
+                            selected = current == name,
+                            onClick = { onSelect(name, lat, lng) },
+                            colors = RadioButtonDefaults.colors(selectedColor = ForestGreen)
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = name,
-                            fontWeight = if (name == current) FontWeight.Bold else FontWeight.Normal,
-                            color = if (name == current) ForestGreen else TextDark
-                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(name, fontSize = 14.sp)
                     }
                 }
             }

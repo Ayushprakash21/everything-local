@@ -18,10 +18,16 @@ import java.io.FileOutputStream
 
 class MerchantRepository(
     private val context: Context,
-    private val sessionManager: SessionManager,
+    val sessionManager: SessionManager,
     private val networkClient: NetworkClient = NetworkClient(
         tokenProvider = { kotlinx.coroutines.runBlocking { sessionManager.getToken() } },
-        storeIdProvider = { kotlinx.coroutines.runBlocking { sessionManager.getStoreId() } }
+        storeIdProvider = { kotlinx.coroutines.runBlocking { sessionManager.getStoreId() } },
+        baseUrlProvider = {
+            kotlinx.coroutines.runBlocking {
+                sessionManager.getCustomBaseUrl() ?: com.ayushp0021.everythinglocal.merchant.BuildConfig.API_BASE_URL
+            }
+        },
+        isDebug = com.ayushp0021.everythinglocal.merchant.BuildConfig.DEBUG
     )
 ) {
     private val api: EverythingLocalApi = networkClient.api
@@ -140,5 +146,31 @@ class MerchantRepository(
 
     suspend fun submitOnboardingApplication(ref: String): MerchantApplicationDto = withContext(Dispatchers.IO) {
         api.submitOnboardingApplication(ref).application
+    }
+
+    suspend fun uploadOnboardingDocument(ref: String, docType: String, uri: Uri): MerchantApplicationDto = withContext(Dispatchers.IO) {
+        val contentResolver = context.contentResolver
+        val inputStream = contentResolver.openInputStream(uri)
+            ?: throw IllegalStateException("Cannot open document file from selected URI")
+
+        val mime = contentResolver.getType(uri) ?: "application/pdf"
+        val extension = when {
+            mime.contains("jpeg") || mime.contains("jpg") -> ".jpg"
+            mime.contains("png") -> ".png"
+            mime.contains("webp") -> ".webp"
+            else -> ".pdf"
+        }
+        val tempFile = File.createTempFile("statutory_doc_", extension, context.cacheDir)
+        FileOutputStream(tempFile).use { output ->
+            inputStream.copyTo(output)
+        }
+
+        val requestFile = tempFile.asRequestBody(mime.toMediaTypeOrNull())
+        val body = MultipartBody.Part.createFormData("document", tempFile.name, requestFile)
+        val docTypeBody = docType.toRequestBody("text/plain".toMediaTypeOrNull())
+
+        val res = api.uploadOnboardingDocument(ref, body, docTypeBody)
+        tempFile.delete()
+        res.application
     }
 }

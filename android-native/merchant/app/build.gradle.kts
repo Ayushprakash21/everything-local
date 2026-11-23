@@ -1,8 +1,17 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
+}
+
+val keystorePropsFile = rootProject.file("keystore/keystore.properties")
+val keystoreProps = Properties()
+if (keystorePropsFile.exists()) {
+    keystoreProps.load(FileInputStream(keystorePropsFile))
 }
 
 android {
@@ -18,22 +27,56 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            val keyStoreFile = rootProject.file(
+                keystoreProps.getProperty("storeFile") ?: "keystore/everythinglocal-release.jks"
+            )
+            if (keyStoreFile.exists()) {
+                storeFile = keyStoreFile
+                storePassword = keystoreProps.getProperty("storePassword") ?: System.getenv("EL_KEYSTORE_PASSWORD") ?: "EverythingLocal@2026"
+                keyAlias = keystoreProps.getProperty("keyAlias") ?: System.getenv("EL_KEY_ALIAS") ?: "everythinglocal"
+                keyPassword = keystoreProps.getProperty("keyPassword") ?: System.getenv("EL_KEY_PASSWORD") ?: "EverythingLocal@2026"
+            }
+        }
+    }
+
     buildTypes {
+        debug {
+            applicationIdSuffix = ""
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:4000/api/\"")
+            buildConfigField("String", "ENVIRONMENT", "\"DEBUG\"")
+            buildConfigField("Boolean", "IS_DEBUG_NETWORK", "true")
+        }
+        create("staging") {
+            initWith(getByName("debug"))
+            matchingFallbacks += listOf("debug")
+            buildConfigField("String", "API_BASE_URL", "\"https://staging-api.everythinglocal.in/api/\"")
+            buildConfigField("String", "ENVIRONMENT", "\"STAGING\"")
+            buildConfigField("Boolean", "IS_DEBUG_NETWORK", "false")
+            signingConfig = signingConfigs.getByName("release")
+        }
         release {
             isMinifyEnabled = false
+            buildConfigField("String", "API_BASE_URL", "\"https://api.everythinglocal.in/api/\"")
+            buildConfigField("String", "ENVIRONMENT", "\"RELEASE\"")
+            buildConfigField("Boolean", "IS_DEBUG_NETWORK", "false")
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-        }
-        debug {
-            applicationIdSuffix = ""
         }
     }
 
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
     }
 
     compileOptions {

@@ -21,12 +21,14 @@ class SessionManager(private val context: Context) {
         private val KEY_USER_NAME = stringPreferencesKey("user_name")
         private val KEY_USER_ROLE = stringPreferencesKey("user_role")
         private val KEY_STORE_ID = stringPreferencesKey("store_id")
+        private val KEY_CUSTOM_BASE_URL = stringPreferencesKey("custom_base_url")
     }
 
     val tokenFlow: Flow<String?> = context.dataStore.data.map { prefs -> prefs[KEY_TOKEN] }
     val userRoleFlow: Flow<String?> = context.dataStore.data.map { prefs -> prefs[KEY_USER_ROLE] }
     val storeIdFlow: Flow<String?> = context.dataStore.data.map { prefs -> prefs[KEY_STORE_ID] }
     val userNameFlow: Flow<String?> = context.dataStore.data.map { prefs -> prefs[KEY_USER_NAME] }
+    val customBaseUrlFlow: Flow<String?> = context.dataStore.data.map { prefs -> prefs[KEY_CUSTOM_BASE_URL] }
 
     suspend fun saveSession(
         token: String,
@@ -58,7 +60,32 @@ class SessionManager(private val context: Context) {
         return context.dataStore.data.map { it[KEY_STORE_ID] }.firstOrNull()
     }
 
+    suspend fun getUserRole(): String? {
+        return context.dataStore.data.map { it[KEY_USER_ROLE] }.firstOrNull()
+    }
+
+    suspend fun setCustomBaseUrl(url: String?) {
+        context.dataStore.edit { prefs ->
+            if (url.isNullOrBlank()) {
+                prefs.remove(KEY_CUSTOM_BASE_URL)
+            } else {
+                prefs[KEY_CUSTOM_BASE_URL] = url.trim()
+            }
+        }
+    }
+
+    suspend fun getCustomBaseUrl(): String? {
+        return context.dataStore.data.map { it[KEY_CUSTOM_BASE_URL] }.firstOrNull()
+    }
+
     suspend fun clearSession() {
-        context.dataStore.edit { it.clear() }
+        context.dataStore.edit { prefs ->
+            // Keep customBaseUrl preference when clearing auth session
+            val customUrl = prefs[KEY_CUSTOM_BASE_URL]
+            prefs.clear()
+            if (customUrl != null) {
+                prefs[KEY_CUSTOM_BASE_URL] = customUrl
+            }
+        }
     }
 }
