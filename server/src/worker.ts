@@ -837,6 +837,775 @@ app.get('/api/merchant/catalogue/search', authMiddleware, async (c) => {
   }
 });
 
+// ==========================================
+// 5. HYPERLOCAL SERVICES MARKETPLACE ENGINE
+// ==========================================
+
+export function calculateDistanceKm(
+  coord1: { latitude: number; longitude: number },
+  coord2: { latitude: number; longitude: number }
+): number {
+  const toRad = (degree: number) => (degree * Math.PI) / 180;
+  const lat1 = coord1.latitude;
+  const lon1 = coord1.longitude;
+  const lat2 = coord2.latitude;
+  const lon2 = coord2.longitude;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = 6371.0 * c;
+  return Math.round(distance * 100) / 100;
+}
+
+// 5.1 List Active Service Categories
+app.get('/api/services/categories', async (c) => {
+  const prisma = c.get('prisma');
+  try {
+    const categories = await prisma.serviceCategory.findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: 'asc' },
+      include: {
+        _count: {
+          select: { services: { where: { isActive: true } } }
+        }
+      }
+    });
+    return c.json({ categories });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to fetch service categories', message: err.message }, 500);
+  }
+});
+
+// 5.2 Search & Discover Service Providers
+app.get('/api/services/providers', async (c) => {
+  const prisma = c.get('prisma');
+  const q = (c.req.query('q') || '').trim().toLowerCase();
+  const categorySlug = c.req.query('category');
+  const fulfillmentType = c.req.query('fulfillment');
+  const lat = parseFloat(c.req.query('lat') || '');
+  const lng = parseFloat(c.req.query('lng') || '');
+
+  const hasCoords = !isNaN(lat) && !isNaN(lng);
+  const customerCoord = hasCoords ? { latitude: lat, longitude: lng } : null;
+
+  const whereClause: any = {
+    isOpen: true,
+    verificationStatus: 'VERIFIED'
+  };
+
+  if (categorySlug && categorySlug !== 'all') {
+    whereClause.categorySlug = categorySlug;
+  }
+  if (fulfillmentType === 'SHOP_VISIT') {
+    whereClause.hasShopVisit = true;
+  } else if (fulfillmentType === 'HOME_VISIT') {
+    whereClause.hasHomeVisit = true;
+  }
+
+  try {
+    const providers = await prisma.serviceProvider.findMany({
+      where: whereClause,
+      include: {
+        services: {
+          where: { isActive: true },
+          take: 6
+        },
+        staff: {
+          where: { isActive: true }
+        },
+        reviews: {
+          select: { rating: true }
+        }
+      }
+    });
+
+    const evaluated = providers.map((provider: any) => {
+      let distanceKm: number | undefined = undefined;
+      let isHomeVisitServiceable = provider.hasHomeVisit;
+      let isShopVisitServiceable = provider.hasShopVisit;
+
+      if (customerCoord && provider.shopLatitude && provider.shopLongitude) {
+        distanceKm = calculateDistanceKm(
+          { latitude: provider.shopLatitude, longitude: provider.shopLongitude },
+          customerCoord
+        );
+        if (provider.hasHomeVisit) {
+          isHomeVisitServiceable = distanceKm <= provider.homeVisitRadiusKm;
+        }
+      }
+
+      const matchesQuery = !q ||
+        provider.businessName.toLowerCase().includes(q) ||
+        (provider.description && provider.description.toLowerCase().includes(q)) ||
+        provider.services.some((s: any) => s.title.toLowerCase().includes(q) || (s.description && s.description.toLowerCase().includes(q)));
+
+      return {
+        id: provider.id,
+        businessName: provider.businessName,
+        slug: provider.slug,
+        description: provider.description,
+        profileImageUrl: provider.profileImageUrl,
+        categorySlug: provider.categorySlug,
+        rating: provider.rating,
+        reviewCount: provider.reviewCount || provider.reviews.length,
+        hasShopVisit: provider.hasShopVisit,
+        shopAddressLine: provider.shopAddressLine,
+        shopCity: provider.shopCity,
+        shopPincode: provider.shopPincode,
+        hasHomeVisit: provider.hasHomeVisit,
+        homeVisitRadiusKm: provider.homeVisitRadiusKm,
+        homeVisitFeePaise: provider.homeVisitFeePaise,
+        distanceKm,
+        isHomeVisitServiceable,
+        isShopVisitServiceable,
+        servicesCount: provider.services.length,
+        featuredServices: provider.services,
+        matchesQuery
+      };
+    });
+
+    const filtered = evaluated.filter((p: any) => p.matchesQuery);
+    if (hasCoords) {
+      filtered.sort((a: any, b: any) => (a.distanceKm || 999) - (b.distanceKm || 999));
+    } else {
+      filtered.sort((a: any, b: any) => b.rating - a.rating);
+    }
+
+    return c.json({ total: filtered.length, providers: filtered });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to discover service providers', message: err.message }, 500);
+  }
+});
+
+// 5.3 Provider Profile & Listings
+app.get('/api/services/providers/:id', async (c) => {
+  const prisma = c.get('prisma');
+  const id = c.req.param('id');
+  const lat = parseFloat(c.req.query('lat') || '');
+  const lng = parseFloat(c.req.query('lng') || '');
+
+  try {
+    const provider = await prisma.serviceProvider.findFirst({
+      where: {
+        OR: [{ id }, { slug: id }]
+      },
+      include: {
+        services: {
+          where: { isActive: true },
+          include: { category: true }
+        },
+        staff: {
+          where: { isActive: true }
+        },
+        reviews: {
+          include: {
+            customer: { select: { id: true, name: true } }
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 10
+        }
+      }
+    });
+
+    if (!provider) {
+      return c.json({ error: 'Service provider not found' }, 404);
+    }
+
+    let distanceKm: number | undefined = undefined;
+    let isHomeVisitServiceable = provider.hasHomeVisit;
+
+    if (!isNaN(lat) && !isNaN(lng) && provider.shopLatitude && provider.shopLongitude) {
+      distanceKm = calculateDistanceKm(
+        { latitude: provider.shopLatitude, longitude: provider.shopLongitude },
+        { latitude: lat, longitude: lng }
+      );
+      isHomeVisitServiceable = distanceKm <= provider.homeVisitRadiusKm;
+    }
+
+    return c.json({
+      provider: {
+        ...provider,
+        distanceKm,
+        isHomeVisitServiceable
+      }
+    });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to fetch provider profile', message: err.message }, 500);
+  }
+});
+
+// 5.4 Appointment Slots
+app.get('/api/services/slots', async (c) => {
+  const prisma = c.get('prisma');
+  const providerId = c.req.query('providerId');
+  const date = c.req.query('date');
+
+  if (!providerId || !date) {
+    return c.json({ error: 'providerId and date (YYYY-MM-DD) are required' }, 400);
+  }
+
+  const standardSlots = [
+    '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM',
+    '02:30 PM', '03:30 PM', '04:30 PM', '05:30 PM', '06:30 PM'
+  ];
+
+  try {
+    const booked = await prisma.serviceBooking.findMany({
+      where: {
+        providerId,
+        bookingDate: date,
+        status: { notIn: ['CANCELLED', 'REJECTED'] }
+      },
+      select: { timeSlot: true }
+    });
+
+    const bookedSet = new Set(booked.map((b: any) => b.timeSlot));
+    const slots = standardSlots.map((timeSlot) => ({
+      timeSlot,
+      date,
+      isAvailable: !bookedSet.has(timeSlot)
+    }));
+
+    return c.json({ date, slots });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to fetch available slots', message: err.message }, 500);
+  }
+});
+
+// 5.5 Create Service Booking
+app.post('/api/services/bookings', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  const prisma = c.get('prisma');
+  const userId = user.userId || user.id;
+
+  try {
+    const body = await c.req.json();
+    const {
+      providerId,
+      serviceId,
+      fulfillmentType,
+      bookingDate,
+      timeSlot,
+      customerAddressLine,
+      customerLocality,
+      customerCity = 'Indore',
+      customerPincode,
+      customerLat,
+      customerLng,
+      instructions,
+      staffId
+    } = body;
+
+    if (!providerId || !serviceId || !fulfillmentType || !bookingDate || !timeSlot) {
+      return c.json({ error: 'providerId, serviceId, fulfillmentType, bookingDate, and timeSlot are required' }, 400);
+    }
+
+    const provider = await prisma.serviceProvider.findUnique({
+      where: { id: providerId }
+    });
+    if (!provider || !provider.isOpen || provider.verificationStatus !== 'VERIFIED') {
+      return c.json({ error: 'Provider is currently not accepting bookings' }, 400);
+    }
+
+    const service = await prisma.serviceListing.findFirst({
+      where: { id: serviceId, providerId, isActive: true }
+    });
+    if (!service) {
+      return c.json({ error: 'Service listing not found or inactive' }, 404);
+    }
+
+    if (fulfillmentType === 'SHOP_VISIT' && !service.allowsShopVisit) {
+      return c.json({ error: 'This service does not support shop visits' }, 400);
+    }
+    if (fulfillmentType === 'HOME_VISIT' && (!service.allowsHomeVisit || !provider.hasHomeVisit)) {
+      return c.json({ error: 'This service does not support home visits' }, 400);
+    }
+
+    const serviceFeePaise = service.pricePaise;
+    const travelFeePaise = fulfillmentType === 'HOME_VISIT' ? provider.homeVisitFeePaise : 0;
+    const totalAmountPaise = serviceFeePaise + travelFeePaise;
+    const commissionPaise = Math.round((totalAmountPaise * provider.commissionRatePct) / 100);
+    const providerPayablePaise = totalAmountPaise - commissionPaise;
+    const platformRevenuePaise = commissionPaise;
+
+    const bookingNumber = `BKG-IND-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const newBooking = await prisma.serviceBooking.create({
+      data: {
+        bookingNumber,
+        customerId: userId,
+        providerId,
+        serviceId,
+        staffId: staffId || null,
+        fulfillmentType,
+        bookingDate,
+        timeSlot,
+        status: 'CONFIRMED',
+        customerAddressLine,
+        customerLocality,
+        customerCity,
+        customerPincode,
+        customerLat: customerLat !== undefined ? parseFloat(customerLat) : null,
+        customerLng: customerLng !== undefined ? parseFloat(customerLng) : null,
+        instructions,
+        serviceFeePaise,
+        travelFeePaise,
+        totalAmountPaise,
+        commissionPaise,
+        providerPayablePaise,
+        platformRevenuePaise,
+        paymentStatus: 'PENDING'
+      },
+      include: {
+        provider: true,
+        service: true,
+        staff: true
+      }
+    });
+
+    await prisma.bookingStatusEvent.create({
+      data: {
+        bookingId: newBooking.id,
+        status: 'CONFIRMED',
+        actorId: userId,
+        actorRole: 'CUSTOMER',
+        note: `Appointment confirmed for ${bookingDate} at ${timeSlot} (${fulfillmentType.replace(/_/g, ' ')})`
+      }
+    });
+
+    await prisma.providerEarning.create({
+      data: {
+        providerId,
+        bookingId: newBooking.id,
+        amountPaise: totalAmountPaise,
+        commissionPaise,
+        netEarningPaise: providerPayablePaise,
+        payoutStatus: 'PENDING',
+        reference: bookingNumber
+      }
+    });
+
+    return c.json({ message: 'Service appointment successfully booked', booking: newBooking }, 201);
+  } catch (err: any) {
+    return c.json({ error: 'Booking creation failed', message: err.message }, 400);
+  }
+});
+
+// 5.6 Customer Bookings History
+app.get('/api/services/bookings', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  const prisma = c.get('prisma');
+  const userId = user.userId || user.id;
+
+  try {
+    const bookings = await prisma.serviceBooking.findMany({
+      where: { customerId: userId },
+      include: {
+        provider: true,
+        service: true,
+        staff: true,
+        review: true,
+        events: { orderBy: { createdAt: 'desc' } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    return c.json({ bookings });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to fetch customer bookings', message: err.message }, 500);
+  }
+});
+
+// 5.7 Cancel Booking
+app.post('/api/services/bookings/:id/cancel', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  const prisma = c.get('prisma');
+  const userId = user.userId || user.id;
+  const id = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+
+  try {
+    const booking = await prisma.serviceBooking.findFirst({
+      where: { id, customerId: userId }
+    });
+
+    if (!booking) {
+      return c.json({ error: 'Booking not found' }, 404);
+    }
+    if (['COMPLETED', 'CANCELLED', 'REJECTED'].includes(booking.status)) {
+      return c.json({ error: `Cannot cancel booking in status: ${booking.status}` }, 400);
+    }
+
+    const updated = await prisma.serviceBooking.update({
+      where: { id },
+      data: {
+        status: 'CANCELLED',
+        cancellationReason: body.reason || 'Cancelled by customer'
+      }
+    });
+
+    await prisma.bookingStatusEvent.create({
+      data: {
+        bookingId: id,
+        status: 'CANCELLED',
+        actorId: userId,
+        actorRole: 'CUSTOMER',
+        note: body.reason || 'Cancelled by customer'
+      }
+    });
+
+    return c.json({ message: 'Booking successfully cancelled', booking: updated });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to cancel booking', message: err.message }, 500);
+  }
+});
+
+// 5.8 Reschedule Booking
+app.post('/api/services/bookings/:id/reschedule', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  const prisma = c.get('prisma');
+  const userId = user.userId || user.id;
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const targetDate = body.bookingDate || body.newDate;
+  const targetSlot = body.timeSlot || body.newTimeSlot;
+
+  if (!targetDate || !targetSlot) {
+    return c.json({ error: 'bookingDate and timeSlot are required' }, 400);
+  }
+
+  try {
+    const booking = await prisma.serviceBooking.findFirst({
+      where: { id, customerId: userId }
+    });
+    if (!booking || ['COMPLETED', 'CANCELLED'].includes(booking.status)) {
+      return c.json({ error: 'Cannot reschedule this booking' }, 400);
+    }
+
+    const updated = await prisma.serviceBooking.update({
+      where: { id },
+      data: {
+        bookingDate: targetDate,
+        timeSlot: targetSlot
+      }
+    });
+
+    await prisma.bookingStatusEvent.create({
+      data: {
+        bookingId: id,
+        status: booking.status,
+        actorId: userId,
+        actorRole: 'CUSTOMER',
+        note: `Rescheduled to ${targetDate} at ${targetSlot}`
+      }
+    });
+
+    return c.json({ message: 'Booking successfully rescheduled', booking: updated });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to reschedule booking', message: err.message }, 500);
+  }
+});
+
+// 5.9 Review Service
+app.post('/api/services/bookings/:id/review', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  const prisma = c.get('prisma');
+  const userId = user.userId || user.id;
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const { rating, comment } = body;
+
+  if (!rating || rating < 1 || rating > 5) {
+    return c.json({ error: 'Valid rating between 1 and 5 required' }, 400);
+  }
+
+  try {
+    const booking = await prisma.serviceBooking.findFirst({
+      where: { id, customerId: userId }
+    });
+    if (!booking || booking.status !== 'COMPLETED') {
+      return c.json({ error: 'Reviews can only be submitted for completed services' }, 400);
+    }
+
+    const review = await prisma.serviceReview.create({
+      data: {
+        bookingId: id,
+        providerId: booking.providerId,
+        customerId: userId,
+        rating: Math.round(rating),
+        comment: comment ? String(comment).trim() : null
+      }
+    });
+
+    const allReviews = await prisma.serviceReview.findMany({
+      where: { providerId: booking.providerId },
+      select: { rating: true }
+    });
+    const avg = allReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / allReviews.length;
+    await prisma.serviceProvider.update({
+      where: { id: booking.providerId },
+      data: {
+        rating: Math.round(avg * 10) / 10,
+        reviewCount: allReviews.length
+      }
+    });
+
+    return c.json({ message: 'Review recorded', review }, 201);
+  } catch (err: any) {
+    return c.json({ error: 'Failed to submit review', message: err.message }, 400);
+  }
+});
+
+// 5.10 Service Partner Console Data
+app.get('/api/services/provider/console', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  const prisma = c.get('prisma');
+  const userId = user.userId || user.id;
+
+  try {
+    const provider = await prisma.serviceProvider.findFirst({
+      where: {
+        OR: [
+          { ownerId: userId },
+          { ownerId: user.id },
+          ...(user.email ? [{ contactEmail: user.email }] : [])
+        ]
+      },
+      include: {
+        services: true,
+        staff: true,
+        bookings: {
+          include: {
+            customer: { select: { id: true, name: true, phone: true } },
+            service: true,
+            staff: true
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 50
+        },
+        earnings: {
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    });
+
+    if (!provider) {
+      return c.json({ error: 'No service provider profile registered for this account' }, 404);
+    }
+
+    const completedBookings = provider.bookings.filter((b: any) => b.status === 'COMPLETED');
+    const totalRevenuePaise = completedBookings.reduce((sum: number, b: any) => sum + b.totalAmountPaise, 0);
+    const totalNetEarningsPaise = completedBookings.reduce((sum: number, b: any) => sum + b.providerPayablePaise, 0);
+    const pendingBookingsCount = provider.bookings.filter((b: any) =>
+      ['PENDING_CONFIRMATION', 'CONFIRMED', 'IN_PROGRESS', 'PROVIDER_ASSIGNED'].includes(b.status)
+    ).length;
+
+    return c.json({
+      provider,
+      metrics: {
+        totalBookings: provider.bookings.length,
+        completedBookings: completedBookings.length,
+        pendingBookings: pendingBookingsCount,
+        totalRevenuePaise,
+        totalNetEarningsPaise
+      }
+    });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to fetch provider console data', message: err.message }, 500);
+  }
+});
+
+// 5.11 Provider Update Booking Status
+app.post('/api/services/provider/bookings/:id/status', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  const prisma = c.get('prisma');
+  const userId = user.userId || user.id;
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const { status, note, staffId } = body;
+
+  try {
+    const provider = await prisma.serviceProvider.findFirst({
+      where: {
+        OR: [
+          { ownerId: userId },
+          { ownerId: user.id },
+          ...(user.email ? [{ contactEmail: user.email }] : [])
+        ]
+      }
+    });
+
+    if (!provider) {
+      return c.json({ error: 'Unauthorized: Only registered providers can update bookings' }, 403);
+    }
+
+    const booking = await prisma.serviceBooking.findFirst({
+      where: { id, providerId: provider.id }
+    });
+
+    if (!booking) {
+      return c.json({ error: 'Booking not found' }, 404);
+    }
+
+    const updated = await prisma.serviceBooking.update({
+      where: { id },
+      data: {
+        status,
+        ...(staffId !== undefined ? { staffId } : {})
+      }
+    });
+
+    await prisma.bookingStatusEvent.create({
+      data: {
+        bookingId: id,
+        status,
+        actorId: userId,
+        actorRole: 'PROVIDER',
+        note: note || `Status updated to ${status.replace(/_/g, ' ')}`
+      }
+    });
+
+    if (status === 'COMPLETED') {
+      await prisma.providerEarning.updateMany({
+        where: { bookingId: id },
+        data: { payoutStatus: 'PROCESSED' }
+      });
+    }
+
+    return c.json({ message: 'Booking status updated successfully', booking: updated });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to update booking status', message: err.message }, 500);
+  }
+});
+
+// 5.12 Provider Create Service Listing
+app.post('/api/services/provider/services', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  const prisma = c.get('prisma');
+  const userId = user.userId || user.id;
+  const body = await c.req.json();
+
+  try {
+    const provider = await prisma.serviceProvider.findFirst({
+      where: {
+        OR: [
+          { ownerId: userId },
+          { ownerId: user.id },
+          ...(user.email ? [{ contactEmail: user.email }] : [])
+        ]
+      }
+    });
+
+    if (!provider) {
+      return c.json({ error: 'Provider profile required' }, 403);
+    }
+
+    const { title, categoryId, description, pricePaise, mrpPaise, durationMinutes, allowsShopVisit, allowsHomeVisit } = body;
+
+    const service = await prisma.serviceListing.create({
+      data: {
+        providerId: provider.id,
+        categoryId,
+        title,
+        description,
+        pricePaise: parseInt(pricePaise, 10),
+        mrpPaise: mrpPaise ? parseInt(mrpPaise, 10) : null,
+        durationMinutes: parseInt(durationMinutes, 10) || 45,
+        allowsShopVisit: allowsShopVisit !== false,
+        allowsHomeVisit: allowsHomeVisit !== false
+      }
+    });
+
+    return c.json({ message: 'Service created successfully', service }, 201);
+  } catch (err: any) {
+    return c.json({ error: 'Failed to create service', message: err.message }, 500);
+  }
+});
+
+// 5.13 Admin Service Management
+app.get('/api/services/admin/providers', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  if (user.role !== 'ADMIN') return c.json({ error: 'Admin permission required' }, 403);
+  const prisma = c.get('prisma');
+
+  try {
+    const providers = await prisma.serviceProvider.findMany({
+      include: {
+        owner: { select: { id: true, name: true, email: true, phone: true } },
+        _count: {
+          select: { services: true, bookings: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    return c.json({ providers });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to load providers', message: err.message }, 500);
+  }
+});
+
+app.post('/api/services/admin/providers/:id/verify', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  if (user.role !== 'ADMIN') return c.json({ error: 'Admin permission required' }, 403);
+  const prisma = c.get('prisma');
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const { status } = body;
+
+  try {
+    const updated = await prisma.serviceProvider.update({
+      where: { id },
+      data: {
+        verificationStatus: status,
+        isVerified: status === 'VERIFIED'
+      }
+    });
+    return c.json({ message: `Provider status updated to ${status}`, provider: updated });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to update provider status', message: err.message }, 500);
+  }
+});
+
+app.get('/api/services/admin/bookings', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  if (user.role !== 'ADMIN') return c.json({ error: 'Admin permission required' }, 403);
+  const prisma = c.get('prisma');
+
+  try {
+    const bookings = await prisma.serviceBooking.findMany({
+      include: {
+        customer: { select: { id: true, name: true, email: true, phone: true } },
+        provider: { select: { id: true, businessName: true, contactPhone: true } },
+        service: { select: { id: true, title: true, pricePaise: true } }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100
+    });
+
+    const totalGmvPaise = bookings.reduce((sum: number, b: any) => sum + b.totalAmountPaise, 0);
+    const totalPlatformRevenuePaise = bookings.reduce((sum: number, b: any) => sum + b.platformRevenuePaise, 0);
+
+    return c.json({
+      bookings,
+      stats: {
+        totalBookings: bookings.length,
+        totalGmvPaise,
+        totalPlatformRevenuePaise
+      }
+    });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to load bookings', message: err.message }, 500);
+  }
+});
+
 // Helper: Strict R2 Object Key Sanitization to Prevent Directory Traversal in Cloudflare Workers
 export function sanitizeR2Key(prefix: string, rawSubPath: string): string | null {
   try {

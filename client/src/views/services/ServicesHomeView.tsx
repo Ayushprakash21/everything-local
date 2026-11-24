@@ -31,11 +31,13 @@ import {
 interface ServicesHomeViewProps {
   onSelectProvider: (providerId: string) => void;
   onOpenBookings: () => void;
+  onOpenProviderConsole?: () => void;
 }
 
 export const ServicesHomeView: React.FC<ServicesHomeViewProps> = ({
   onSelectProvider,
-  onOpenBookings
+  onOpenBookings,
+  onOpenProviderConsole
 }) => {
   const { coords, selectedLocation, setIsLocationModalOpen } = useLocation();
 
@@ -159,6 +161,16 @@ export const ServicesHomeView: React.FC<ServicesHomeViewProps> = ({
                 <Calendar className="w-3.5 h-3.5" />
                 <span>My Appointments</span>
               </button>
+
+              {onOpenProviderConsole && (
+                <button
+                  onClick={onOpenProviderConsole}
+                  className="px-4 py-2 bg-emerald-500/30 hover:bg-emerald-500/40 text-emerald-200 border border-emerald-400/30 font-bold text-xs rounded-xl transition flex items-center gap-1.5"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Partner Console</span>
+                </button>
+              )}
             </div>
           </div>
 

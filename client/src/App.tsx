@@ -366,6 +366,7 @@ function MainLayout() {
                   <ServicesHomeView
                     onSelectProvider={(id) => setSelectedServiceProviderId(id)}
                     onOpenBookings={() => setServicesTab('bookings')}
+                    onOpenProviderConsole={() => setServicesTab('provider')}
                   />
                 )}
               </>

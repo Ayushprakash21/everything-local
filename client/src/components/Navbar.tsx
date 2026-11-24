@@ -649,18 +649,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   My Appointments
                 </button>
-                {isProvider && (
-                  <button
-                    onClick={() => setServicesTab('provider')}
-                    className={`px-3 py-1 rounded-xl font-bold transition ${
-                      servicesTab === 'provider'
-                        ? 'bg-emerald-800 text-white shadow-2xs'
-                        : 'text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300'
-                    }`}
-                  >
-                    Partner Console
-                  </button>
-                )}
+                <button
+                  onClick={() => setServicesTab('provider')}
+                  className={`px-3 py-1 rounded-xl font-bold transition ${
+                    servicesTab === 'provider'
+                      ? 'bg-emerald-800 text-white shadow-2xs'
+                      : 'text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300'
+                  }`}
+                >
+                  Partner Console
+                </button>
               </div>
             )}
 

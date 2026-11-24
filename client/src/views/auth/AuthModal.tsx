@@ -113,6 +113,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultRo
               >
                 Admin (Super)
               </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('quickfix.electric@everythinglocal.in')}
+                className="px-2.5 py-1 text-xs bg-white text-emerald-800 rounded-lg border border-emerald-300 hover:bg-emerald-50 font-bold"
+              >
+                Service Partner (QuickFix)
+              </button>
             </div>
           </div>
 

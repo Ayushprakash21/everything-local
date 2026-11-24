@@ -45,6 +45,8 @@ export const ProviderConsoleView: React.FC<ProviderConsoleViewProps> = ({ openAu
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'BOOKINGS' | 'SERVICES' | 'STAFF' | 'EARNINGS'>('BOOKINGS');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isDemoSubmitting, setIsDemoSubmitting] = useState(false);
 
   // Add Service Modal State
   const [showAddService, setShowAddService] = useState(false);
@@ -132,10 +134,16 @@ export const ProviderConsoleView: React.FC<ProviderConsoleViewProps> = ({ openAu
   };
 
   const handleDemoLogin = async (email: string) => {
+    setAuthError(null);
+    setIsDemoSubmitting(true);
     try {
       await login(email, 'Password@123');
-    } catch (err) {
-      alert('Demo login failed. Make sure seed services have run.');
+      await fetchConsoleData();
+    } catch (err: any) {
+      console.error('Demo partner login error:', err);
+      setAuthError(err.message || 'Demo login failed. Please verify network or credentials.');
+    } finally {
+      setIsDemoSubmitting(false);
     }
   };
 
@@ -151,20 +159,29 @@ export const ProviderConsoleView: React.FC<ProviderConsoleViewProps> = ({ openAu
           Sign in to your EveryBazaar Services provider account to manage bookings, assign specialists and view earnings.
         </p>
 
+        {authError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center gap-2 text-left">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+            <span>{authError}</span>
+          </div>
+        )}
+
         <div className="space-y-3">
           <button
-            onClick={() => handleDemoLogin('glamour.salon@everythinglocal.in')}
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl text-xs transition flex items-center justify-between"
+            onClick={() => handleDemoLogin('quickfix.electric@everythinglocal.in')}
+            disabled={isDemoSubmitting}
+            className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold py-3 px-4 rounded-xl text-xs transition flex items-center justify-between shadow-xs"
           >
-            <span>Log in as Glamour & Glow Salon (Indore)</span>
+            <span>Log in as Indore QuickFix Electricians</span>
             <ArrowRight className="w-4 h-4 text-amber-400" />
           </button>
 
           <button
-            onClick={() => handleDemoLogin('quickfix.electric@everythinglocal.in')}
-            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 px-4 rounded-xl text-xs transition flex items-center justify-between"
+            onClick={() => handleDemoLogin('glamour.salon@everythinglocal.in')}
+            disabled={isDemoSubmitting}
+            className="w-full bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-800 font-bold py-3 px-4 rounded-xl text-xs transition flex items-center justify-between"
           >
-            <span>Log in as Indore QuickFix Electricians</span>
+            <span>Log in as Glamour & Glow Salon (Indore)</span>
             <ArrowRight className="w-4 h-4 text-slate-600" />
           </button>
 
@@ -188,25 +205,44 @@ export const ProviderConsoleView: React.FC<ProviderConsoleViewProps> = ({ openAu
         </div>
         <h2 className="text-xl font-black text-slate-900 mb-2">No Service Partner Profile Found</h2>
         <p className="text-xs text-slate-500 mb-6">
-          The current account ({user.email}) is not registered as a service provider yet. You can sign in with our pre-seeded Indore service providers below to test the full partner console:
+          The current account (<span className="font-semibold text-slate-800">{user.email}</span>) is not registered as a service provider yet. Switch to our pre-seeded Indore service providers below to view the verified partner console:
         </p>
+
+        {authError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center gap-2 text-left">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+            <span>{authError}</span>
+          </div>
+        )}
 
         <div className="space-y-3">
           <button
-            onClick={() => handleDemoLogin('glamour.salon@everythinglocal.in')}
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl text-xs transition flex items-center justify-between"
+            onClick={() => handleDemoLogin('quickfix.electric@everythinglocal.in')}
+            disabled={isDemoSubmitting}
+            className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold py-3 px-4 rounded-xl text-xs transition flex items-center justify-between shadow-xs"
           >
-            <span>Switch to Glamour & Glow Salon</span>
+            <span>Switch to QuickFix Electricians (Indore)</span>
             <ArrowRight className="w-4 h-4 text-amber-400" />
           </button>
 
           <button
-            onClick={() => handleDemoLogin('quickfix.electric@everythinglocal.in')}
-            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 px-4 rounded-xl text-xs transition flex items-center justify-between"
+            onClick={() => handleDemoLogin('glamour.salon@everythinglocal.in')}
+            disabled={isDemoSubmitting}
+            className="w-full bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-800 font-bold py-3 px-4 rounded-xl text-xs transition flex items-center justify-between"
           >
-            <span>Switch to QuickFix Electricians</span>
+            <span>Switch to Glamour & Glow Salon</span>
             <ArrowRight className="w-4 h-4 text-slate-600" />
           </button>
+
+          <div className="pt-2">
+            <button
+              onClick={() => fetchConsoleData()}
+              className="text-xs text-amber-600 font-bold hover:underline inline-flex items-center gap-1"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Retry Fetching Provider Profile</span>
+            </button>
+          </div>
         </div>
       </div>
     );
