@@ -1,4 +1,10 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '') : '';
+const defaultApiBase = typeof window !== 'undefined' && window.location.hostname.includes('workers.dev')
+  ? 'https://everybazaar-api-dev.everything-local.workers.dev'
+  : '';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL
+  ? import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
+  : defaultApiBase;
 const BASE_URL = `${API_BASE}/api`;
 
 export class ApiError extends Error {
