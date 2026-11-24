@@ -3,6 +3,7 @@ import { ProductCategory, Product, Store } from '../../types';
 import { request, formatPaise } from '../../api/client';
 import { ProductCard } from '../../components/ProductCard';
 import { ProductDetailModal } from '../../components/ProductDetailModal';
+import { getCategoryImageUrl } from '../../data/categoryImages';
 import {
   ArrowLeft,
   SlidersHorizontal,
@@ -150,11 +151,17 @@ export const CategoryListingView: React.FC<CategoryListingViewProps> = ({
       {data?.category && (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-amber-50 via-orange-50 to-amber-100/60 border border-amber-200/80 p-4 sm:p-6 mb-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-2.5 shadow-subtle border border-amber-200/60 flex-shrink-0 flex items-center justify-center">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-1.5 shadow-subtle border border-amber-200/60 flex-shrink-0 flex items-center justify-center overflow-hidden">
               <img
-                src={data.category.imageUrl}
+                src={getCategoryImageUrl(data.category.slug, data.category.imageUrl)}
                 alt={data.category.name}
-                className="w-full h-full object-contain filter drop-shadow-xs"
+                loading="lazy"
+                width={512}
+                height={512}
+                className="w-full h-full object-cover rounded-xl"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/category-images/grocery-daily-essentials.webp';
+                }}
               />
             </div>
             <div>

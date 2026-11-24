@@ -3,17 +3,17 @@ function resolveApiBase(): string {
     return import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '');
   }
   if (typeof window !== 'undefined') {
-    const host = window.location.hostname;
-    if (host.includes('dev') || host.includes('localhost') || host.includes('127.0.0.1')) {
-      return host.includes('workers.dev')
-        ? 'https://everybazaar-api-dev.everything-local.workers.dev'
-        : '';
+    const host = window.location.hostname.toLowerCase();
+    if (host.includes('localhost') || host.includes('127.0.0.1')) {
+      return '';
     }
-    if (host.includes('workers.dev') || host.includes('everybazar') || host.includes('everybazaar') || host.includes('everythinglocal')) {
-      return 'https://everything-local-api.everything-local.workers.dev';
+    if (host.includes('-dev.') || host.startsWith('dev.') || host.includes('everybazaar-dev')) {
+      return 'https://everybazaar-api-dev.everything-local.workers.dev';
     }
+    // Production default for all EveryBazaar / Cloudflare worker web domains
+    return 'https://everything-local-api.everything-local.workers.dev';
   }
-  return '';
+  return 'https://everything-local-api.everything-local.workers.dev';
 }
 
 const API_BASE = resolveApiBase();

@@ -160,12 +160,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               </div>
 
-              {/* Mobile: Compact Standalone Symbol with Indore Badge */}
+              {/* Mobile: Compact EveryBazaar Logo with Indore Badge */}
               <div className="flex sm:hidden items-center gap-1.5">
                 <BrandLogo
-                  variant="symbol"
+                  variant="compact"
                   size="small"
-                  className="h-9 w-auto group-hover:scale-105 transition-transform"
+                  className="h-8 w-auto group-hover:scale-105 transition-transform"
                 />
                 <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-300">
                   Indore

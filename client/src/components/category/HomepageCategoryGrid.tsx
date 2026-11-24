@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ProductCategory } from '../../types';
 import { request } from '../../api/client';
 import { Sparkles, ArrowRight, Layers } from 'lucide-react';
+import { getCategoryImageUrl } from '../../data/categoryImages';
 
 interface HomepageCategoryGridProps {
   onSelectCategory: (category: ProductCategory) => void;
@@ -141,21 +142,23 @@ export const HomepageCategoryGrid: React.FC<HomepageCategoryGridProps> = ({
             >
               {/* Tile Container */}
               <div
-                className={`w-full aspect-square rounded-2xl sm:rounded-3xl p-2 sm:p-2.5 flex items-center justify-center transition-all duration-200 relative overflow-hidden border ${
+                className={`w-full aspect-square rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 flex items-center justify-center transition-all duration-200 relative overflow-hidden border ${
                   isSelected
                     ? 'border-amber-500 bg-amber-100/70 shadow-md ring-2 ring-amber-400/50'
                     : `${palette.bg} border-slate-200/70 shadow-2xs ${palette.hoverBorder} group-hover:shadow-subtle`
                 }`}
               >
-                {/* Image */}
+                {/* Realistic Photographic Image */}
                 <img
-                  src={cat.imageUrl}
+                  src={getCategoryImageUrl(cat.slug, cat.imageUrl)}
                   alt={cat.name}
                   loading="lazy"
-                  className="w-full h-full object-contain filter drop-shadow-xs transition-transform duration-200 group-hover:scale-108"
+                  width={512}
+                  height={512}
+                  className="w-full h-full object-cover rounded-xl sm:rounded-2xl transition-transform duration-300 group-hover:scale-105"
                   onError={(e) => {
-                    // Fallback to placeholder if asset fails
-                    (e.currentTarget as HTMLImageElement).src = '/assets/categories/fruits-vegetables.svg';
+                    // Fallback to neutral branded placeholder if asset fails
+                    (e.currentTarget as HTMLImageElement).src = '/category-images/grocery-daily-essentials.webp';
                   }}
                 />
 
