@@ -31,8 +31,7 @@ const MerchantRegisterSchema = z.object({
   city: z.string().default('Indore'),
   pincode: z.string().min(6).default('452001'),
   latitude: z.number().optional().default(22.7196),
-  longitude: z.number().optional().default(75.8577),
-  autoVerify: z.boolean().optional().default(false)
+  longitude: z.number().optional().default(75.8577)
 });
 
 // Dedicated Merchant Registration & Store Onboarding
@@ -56,8 +55,7 @@ router.post('/register-merchant', async (req: Request, res: Response): Promise<v
       city,
       pincode,
       latitude,
-      longitude,
-      autoVerify
+      longitude
     } = parse.data;
 
     const existingUser = await prisma.user.findFirst({
@@ -101,7 +99,7 @@ router.post('/register-merchant', async (req: Request, res: Response): Promise<v
         latitude: latitude || 22.7196,
         longitude: longitude || 75.8577,
         isOpen: true,
-        isVerified: autoVerify === true, // Default false: Pending approval by admin
+        isVerified: false, // Statutory KYC: strictly false upon registration; requires ADMIN verification
         commissionRatePct: 3.5,
         serviceRadiusKm: 3.0
       }

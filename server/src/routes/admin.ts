@@ -898,7 +898,7 @@ router.get('/payouts/overview', async (_req: Request, res: Response): Promise<vo
     const stores = await prisma.store.findMany({
       include: {
         merchantChildOrders: {
-          where: { status: { in: ['DELIVERED', 'COMPLETED', 'READY_FOR_PICKUP'] } }
+          where: { status: { in: ['DELIVERED', 'COMPLETED', 'COLLECTED'] } }
         },
         settlementStatements: true
       }
@@ -959,7 +959,7 @@ router.get('/payouts/merchants', async (_req: Request, res: Response): Promise<v
           }
         },
         merchantChildOrders: {
-          where: { status: { in: ['DELIVERED', 'COMPLETED', 'READY_FOR_PICKUP'] } }
+          where: { status: { in: ['DELIVERED', 'COMPLETED', 'COLLECTED'] } }
         },
         settlementStatements: {
           orderBy: { createdAt: 'desc' }

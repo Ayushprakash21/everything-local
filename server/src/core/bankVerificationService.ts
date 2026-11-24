@@ -1,9 +1,31 @@
 import crypto from 'crypto';
 
 // Encryption configuration
-const ENCRYPTION_SECRET = process.env.BANK_ENCRYPTION_SECRET || 'everything-local-indore-fintech-sec-2026';
 const ALGORITHM = 'aes-256-gcm';
-const KEY = crypto.scryptSync(ENCRYPTION_SECRET, 'salt-el-merchant', 32);
+
+/**
+ * Derives the cryptographic master key for bank account encryption at rest (VULN-010).
+ * In production, fails closed if BANK_ENCRYPTION_SECRET is absent or under 32 characters.
+ */
+export function getEncryptionKey(): Buffer {
+  const secret = process.env.BANK_ENCRYPTION_SECRET;
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  if (isProduction) {
+    if (!secret || secret.trim().length < 32 || secret.includes('everything-local-indore-fintech-sec-2026')) {
+      throw new Error(
+        'CRITICAL SECURITY CONFIGURATION ERROR: BANK_ENCRYPTION_SECRET must be securely set with at least 32 characters in production environments.'
+      );
+    }
+    const salt = process.env.BANK_ENCRYPTION_SALT || crypto.createHash('sha256').update(secret).digest('hex').slice(0, 16);
+    return crypto.scryptSync(secret, salt, 32);
+  }
+
+  // Development/Test fallback with warning
+  const devSecret = secret || 'everything-local-dev-test-only-bank-secret-key-32b';
+  const devSalt = process.env.BANK_ENCRYPTION_SALT || 'salt-el-dev-merchant-vault';
+  return crypto.scryptSync(devSecret, devSalt, 32);
+}
 
 export interface BankLookupResult {
   isValid: boolean;
@@ -85,8 +107,9 @@ export class BankVerificationService {
    * Encrypt bank account number at rest using AES-256-GCM
    */
   static encryptAccountNumber(accountNumber: string): string {
+    const key = getEncryptionKey();
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv(ALGORITHM, KEY, iv);
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
     let encrypted = cipher.update(accountNumber.trim(), 'utf8', 'hex');
     encrypted += cipher.final('hex');
     const authTag = cipher.getAuthTag().toString('hex');
@@ -103,12 +126,29 @@ export class BankVerificationService {
       const iv = Buffer.from(parts[0], 'hex');
       const authTag = Buffer.from(parts[1], 'hex');
       const encrypted = parts[2];
-      const decipher = crypto.createDecipheriv(ALGORITHM, KEY, iv);
+      const key = getEncryptionKey();
+      const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
       decipher.setAuthTag(authTag);
       let decrypted = decipher.update(encrypted, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
       return decrypted;
     } catch {
+      // In development/test, attempt fallback for backward compatibility
+      if (process.env.NODE_ENV !== 'production') {
+        try {
+          const parts = encryptedString.split(':');
+          const iv = Buffer.from(parts[0], 'hex');
+          const authTag = Buffer.from(parts[1], 'hex');
+          const fallbackKey = crypto.scryptSync('everything-local-indore-fintech-sec-2026', 'salt-el-merchant', 32);
+          const decipher = crypto.createDecipheriv(ALGORITHM, fallbackKey, iv);
+          decipher.setAuthTag(authTag);
+          let decrypted = decipher.update(parts[2], 'hex', 'utf8');
+          decrypted += decipher.final('utf8');
+          return decrypted;
+        } catch {
+          return encryptedString;
+        }
+      }
       return encryptedString;
     }
   }

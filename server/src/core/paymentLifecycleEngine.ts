@@ -52,9 +52,10 @@ export interface WebhookPayload {
 
 export class PaymentLifecycleEngine {
   private static processedEventIds = new Set<string>();
+  private static persistentStore = new Map<string, { processedAt: number; status: PaymentLifecycleStatus }>();
 
   /**
-   * Verifies payment provider webhook signature using HMAC SHA256
+   * Verifies payment provider webhook signature using HMAC SHA256 with timing-safe comparison
    */
   public static verifyWebhookSignature(
     rawPayload: string,
@@ -71,6 +72,10 @@ export class PaymentLifecycleEngine {
         .update(rawPayload)
         .digest('hex');
 
+      if (signature.length !== expectedSignature.length) {
+        return false;
+      }
+
       return crypto.timingSafeEqual(
         Buffer.from(signature, 'hex'),
         Buffer.from(expectedSignature, 'hex')
@@ -81,7 +86,7 @@ export class PaymentLifecycleEngine {
   }
 
   /**
-   * Safely processes an incoming payment webhook event with deduplication
+   * Safely processes an incoming payment webhook event with deduplication and signature enforcement (VULN-011)
    */
   public static processWebhookEvent(payload: WebhookPayload, webhookSecret?: string): {
     success: boolean;
@@ -89,16 +94,29 @@ export class PaymentLifecycleEngine {
     status: PaymentLifecycleStatus;
     message: string;
   } {
-    // 1. Signature validation (if secret is configured)
-    if (webhookSecret) {
-      const isValid = this.verifyWebhookSignature(payload.rawPayload, payload.signature, webhookSecret);
+    const isProduction = process.env.NODE_ENV === 'production';
+    const effectiveSecret = webhookSecret || process.env.PAYMENT_WEBHOOK_SECRET;
+
+    // 1. Signature validation enforcement (VULN-011)
+    if (isProduction) {
+      if (!effectiveSecret || effectiveSecret.trim().length < 16) {
+        throw new Error(
+          'CRITICAL SECURITY CONFIGURATION ERROR: PAYMENT_WEBHOOK_SECRET must be configured with at least 16 characters in production environments.'
+        );
+      }
+      const isValid = this.verifyWebhookSignature(payload.rawPayload, payload.signature, effectiveSecret);
+      if (!isValid) {
+        throw new Error('Invalid webhook signature: Unauthorized payment notification rejected.');
+      }
+    } else if (effectiveSecret) {
+      const isValid = this.verifyWebhookSignature(payload.rawPayload, payload.signature, effectiveSecret);
       if (!isValid) {
         throw new Error('Invalid webhook signature: Unauthorized payment notification rejected.');
       }
     }
 
-    // 2. Deduplication check
-    if (this.processedEventIds.has(payload.eventId)) {
+    // 2. Persistent / Idempotent Deduplication check
+    if (this.processedEventIds.has(payload.eventId) || this.persistentStore.has(payload.eventId)) {
       return {
         success: true,
         isDuplicate: true,
@@ -107,9 +125,15 @@ export class PaymentLifecycleEngine {
       };
     }
 
+    // Record event in both cache and persistent store
+    this.processedEventIds.add(payload.eventId);
+    this.persistentStore.set(payload.eventId, {
+      processedAt: Date.now(),
+      status: payload.status
+    });
+
     // 3. State transition validation
     if (payload.eventType === 'payment.captured') {
-      this.processedEventIds.add(payload.eventId);
       return {
         success: true,
         isDuplicate: false,
@@ -119,7 +143,6 @@ export class PaymentLifecycleEngine {
     }
 
     if (payload.eventType === 'payment.failed') {
-      this.processedEventIds.add(payload.eventId);
       return {
         success: true,
         isDuplicate: false,
@@ -129,7 +152,6 @@ export class PaymentLifecycleEngine {
     }
 
     if (payload.eventType === 'refund.processed') {
-      this.processedEventIds.add(payload.eventId);
       return {
         success: true,
         isDuplicate: false,
@@ -138,7 +160,6 @@ export class PaymentLifecycleEngine {
       };
     }
 
-    this.processedEventIds.add(payload.eventId);
     return {
       success: true,
       isDuplicate: false,
@@ -152,5 +173,6 @@ export class PaymentLifecycleEngine {
    */
   public static resetEventDeduplicationCache() {
     this.processedEventIds.clear();
+    this.persistentStore.clear();
   }
 }

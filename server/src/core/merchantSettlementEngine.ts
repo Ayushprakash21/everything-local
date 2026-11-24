@@ -26,7 +26,7 @@ export class MerchantSettlementEngine {
         merchantChildOrders: {
           where: {
             createdAt: { gte: periodStart, lte: periodEnd },
-            status: { in: ['DELIVERED', 'COMPLETED', 'READY_FOR_PICKUP'] }
+            status: { in: ['DELIVERED', 'COMPLETED', 'COLLECTED'] }
           }
         }
       }

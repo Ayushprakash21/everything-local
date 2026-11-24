@@ -574,18 +574,29 @@ app.post('/api/upload', authMiddleware, async (c) => {
       return c.json({ error: 'File size exceeds 5MB limit' }, 400);
     }
 
+    const user = c.get('user')!;
     const isKyc = c.req.query('isKyc') === 'true';
-    const folder = isKyc ? 'kyc' : 'public';
     const ext = file.name.split('.').pop() || 'jpg';
-    const key = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    let key: string;
+
+    if (isKyc) {
+      const tenantId = user.storeId || user.userId;
+      key = `kyc/${tenantId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    } else {
+      key = `public/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    }
 
     await c.env.MEDIA_BUCKET.put(key, bytes, {
       httpMetadata: {
         contentType: file.type || 'application/octet-stream'
+      },
+      customMetadata: {
+        ownerId: user.userId,
+        storeId: user.storeId || ''
       }
     });
 
-    const url = isKyc ? `/media/kyc/${key}` : `/media/public/${key}`;
+    const url = `/media/${key}`;
     return c.json({ url, key, size: bytes.length, isPrivate: isKyc });
   } catch (err: any) {
     return c.json({ error: 'Upload failed', message: err.message }, 500);
@@ -605,7 +616,8 @@ export function sanitizeR2Key(prefix: string, rawSubPath: string): string | null
       return null;
     }
     const cleanPath = decoded.replace(/\/+/g, '/').replace(/^\//, '');
-    return `${prefix}/${cleanPath}`;
+    const strippedPath = cleanPath.startsWith(`${prefix}/`) ? cleanPath.slice(prefix.length + 1) : cleanPath;
+    return `${prefix}/${strippedPath}`;
   } catch {
     return null;
   }
@@ -632,10 +644,10 @@ app.get('/media/public/*', async (c) => {
   return new Response(object.body, { headers });
 });
 
-// Serve Private KYC from R2 (Authenticated Only)
+// Serve Private KYC from R2 (Strict Tenant Isolated Access)
 app.get('/media/kyc/*', authMiddleware, async (c) => {
   const user = c.get('user')!;
-  // Check authorization: only ADMIN or merchant owner
+  // Check authorization: only ADMIN or MERCHANT role allowed
   if (user.role !== 'ADMIN' && user.role !== 'MERCHANT') {
     return c.text('Forbidden: Unauthorized KYC Access', 403);
   }
@@ -649,6 +661,21 @@ app.get('/media/kyc/*', authMiddleware, async (c) => {
   const object = await c.env.MEDIA_BUCKET.get(objectKey);
   if (!object) {
     return c.text('KYC Document Not Found', 404);
+  }
+
+  // Tenant Isolation: Non-admin merchants can ONLY access their own KYC documents
+  if (user.role !== 'ADMIN') {
+    const keyWithoutPrefix = objectKey.slice('kyc/'.length);
+    const pathTenantId = keyWithoutPrefix.includes('/') ? keyWithoutPrefix.split('/')[0] : null;
+    const metaOwnerId = object.customMetadata?.ownerId;
+    const metaStoreId = object.customMetadata?.storeId;
+
+    const matchesPath = pathTenantId && ((user.storeId && pathTenantId === user.storeId) || (user.userId && pathTenantId === user.userId));
+    const matchesMeta = (metaOwnerId && metaOwnerId === user.userId) || (metaStoreId && user.storeId && metaStoreId === user.storeId);
+
+    if (!matchesPath && !matchesMeta) {
+      return c.text('Forbidden: Access to another tenant\'s KYC documents is denied', 403);
+    }
   }
 
   const headers = new Headers();

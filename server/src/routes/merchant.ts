@@ -123,7 +123,7 @@ router.post('/store', async (req: Request, res: Response): Promise<void> => {
         longitude,
         serviceRadiusKm,
         isOpen: true,
-        isVerified: req.body.autoVerify === true, // Default to pending approval unless explicitly verified
+        isVerified: false, // Statutory KYC: strictly false upon creation; requires ADMIN verification
         commissionRatePct: 3.5
       }
     });
@@ -243,10 +243,33 @@ router.post('/products', requireMerchantTenant, async (req: Request, res: Respon
   }
 });
 
-// 6. Update Product
+// 6. Update Product (Strict Schema Whitelist to Prevent Mass Assignment - VULN-007)
+const UpdateProductSchema = z.object({
+  name: z.string().min(2).optional(),
+  description: z.string().optional(),
+  category: z.string().min(2).optional(),
+  categoryId: z.string().optional().nullable(),
+  subcategoryId: z.string().optional().nullable(),
+  mrpPaise: z.number().int().min(0).optional(),
+  pricePaise: z.number().int().min(0).optional(),
+  stock: z.number().int().min(0).optional(),
+  isAvailable: z.boolean().optional(),
+  imageUrl: z.string().optional(),
+  sku: z.string().optional(),
+  barcode: z.string().optional(),
+  brand: z.string().optional(),
+  packageSize: z.string().optional()
+});
+
 router.put('/products/:id', requireMerchantTenant, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+
+    const parse = UpdateProductSchema.safeParse(req.body);
+    if (!parse.success) {
+      res.status(400).json({ error: 'Validation failed', details: parse.error.errors });
+      return;
+    }
 
     // Tenant check: ensure product belongs to this merchant's store
     const product = await prisma.product.findFirst({
@@ -258,9 +281,10 @@ router.put('/products/:id', requireMerchantTenant, async (req: Request, res: Res
       return;
     }
 
+    // Explicitly update only validated, whitelisted attributes
     const updated = await prisma.product.update({
       where: { id },
-      data: req.body
+      data: parse.data
     });
 
     res.json({ message: 'Product updated', product: updated });
@@ -323,8 +347,6 @@ const OrderStatusSchema = z.object({
     'REJECTED',
     'PREPARING',
     'READY_FOR_PICKUP',
-    'OUT_FOR_DELIVERY',
-    'DELIVERED',
     'COLLECTED'
   ]),
   note: z.string().optional()
@@ -334,7 +356,11 @@ router.post('/orders/:id/status', requireMerchantTenant, async (req: Request, re
   try {
     const parse = OrderStatusSchema.safeParse(req.body);
     if (!parse.success) {
-      res.status(400).json({ error: 'Invalid status', details: parse.error.errors });
+      res.status(400).json({
+        error: 'Invalid status',
+        details: parse.error.errors,
+        message: 'Merchants can only set ACCEPTED, REJECTED, PREPARING, READY_FOR_PICKUP, or COLLECTED (for counter pickups). Delivery orders must be completed via delivery partner verification.'
+      });
       return;
     }
 
@@ -352,6 +378,14 @@ router.post('/orders/:id/status', requireMerchantTenant, async (req: Request, re
       return;
     }
 
+    // Security Gate (VULN-008): Only PICKUP orders can be marked COLLECTED by the merchant.
+    if (status === 'COLLECTED' && order.fulfillmentMode !== 'PICKUP') {
+      res.status(400).json({
+        error: 'Forbidden status transition: Only PICKUP orders can be marked as COLLECTED by merchants. Platform delivery orders require delivery partner OTP completion.'
+      });
+      return;
+    }
+
     await prisma.$transaction(async (tx) => {
       // If REJECTED, rollback reserved inventory
       if (status === 'REJECTED' && order.status === 'PLACED') {
@@ -363,8 +397,8 @@ router.post('/orders/:id/status', requireMerchantTenant, async (req: Request, re
         }
       }
 
-      // If completing (DELIVERED or COLLECTED), write to FinancialLedger
-      if ((status === 'DELIVERED' || status === 'COLLECTED') && order.status !== 'DELIVERED' && order.status !== 'COLLECTED') {
+      // If completing (COLLECTED for counter pickup), write to FinancialLedger
+      if (status === 'COLLECTED' && order.status !== 'COLLECTED') {
         // Record Merchant Order Sale credit
         await tx.financialLedgerEntry.create({
           data: {
