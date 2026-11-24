@@ -47,6 +47,8 @@ interface NavbarProps {
   openAI?: () => void;
   openHousehold?: () => void;
   openCommunity?: () => void;
+  onNavigateHome?: () => void;
+  onNavigateAbout?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -65,7 +67,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   setSearchQuery,
   openAI,
   openHousehold,
-  openCommunity
+  openCommunity,
+  onNavigateHome,
+  onNavigateAbout
 }) => {
   const { user, logout } = useAuth();
   const {
@@ -137,6 +141,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div
               className="flex items-center gap-2 cursor-pointer group"
               onClick={() => {
+                if (onNavigateHome) onNavigateHome();
                 if (discoveryMode === 'shop') setCurrentTab('customer');
                 else if (discoveryMode === 'pharmacy' && setPharmacyTab) setPharmacyTab('explore');
                 else setServicesTab('explore');
@@ -391,6 +396,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                     >
                       <Clock className="w-3.5 h-3.5 text-slate-400" />
                       <span>My Orders</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (onNavigateAbout) onNavigateAbout();
+                        setShowUserMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded-xl flex items-center gap-2 text-slate-700"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-red-500" />
+                      <span>About Everything Local</span>
                     </button>
 
                     {/* Role Gated Dashboards */}

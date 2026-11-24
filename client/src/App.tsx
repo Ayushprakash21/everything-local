@@ -29,8 +29,10 @@ import { PharmacistConsoleView } from './views/pharmacy/PharmacistConsoleView';
 import { RiderAppView } from './views/rider/RiderAppView';
 import { HouseholdView } from './views/customer/HouseholdView';
 import { CommunityDealsView } from './views/customer/CommunityDealsView';
+import { AboutUsView } from './views/about/AboutUsView';
 import { AIAssistantModal } from './components/AIAssistantModal';
 import { BrandLogo } from './components/BrandLogo';
+import { Footer } from './components/layout/Footer';
 
 import { request } from './api/client';
 import { Cart, Order, ServiceBooking } from './types';
@@ -86,22 +88,94 @@ function MainLayout() {
   const [isCategoriesSheetOpen, setIsCategoriesSheetOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Support URL hash navigation for direct linking: e.g. #merchant, #admin, #orders
-  React.useEffect(() => {
-    const handleHash = () => {
-      const hash = window.location.hash.toLowerCase();
-      if (hash.includes('merchant')) {
-        setCurrentTab('merchant');
+  // Support real URL path routing (e.g. /about-us) & hash navigation
+  const [currentRoute, setCurrentRoute] = useState<'main' | 'about'>(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.pathname.toLowerCase().startsWith('/about-us') ? 'about' : 'main';
+    }
+    return 'main';
+  });
+
+  const navigateTo = (pathAndHash: string) => {
+    const [pathPart, hashPart] = pathAndHash.split('#');
+    const targetPath = pathPart || (pathAndHash.startsWith('#') ? window.location.pathname : '/');
+    const fullUrl = hashPart ? `${targetPath}#${hashPart}` : targetPath;
+
+    if (window.location.pathname !== targetPath || window.location.hash !== (hashPart ? `#${hashPart}` : '')) {
+      window.history.pushState(null, '', fullUrl);
+    }
+
+    if (targetPath === '/about-us' || targetPath.startsWith('/about-us')) {
+      setCurrentRoute('about');
+      if (hashPart) {
+        setTimeout(() => {
+          const el = document.getElementById(hashPart);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else {
+      setCurrentRoute('main');
+      if (hashPart) {
+        const lowerHash = hashPart.toLowerCase();
+        if (lowerHash.includes('merchant')) {
+          setDiscoveryMode('shop');
+          setCurrentTab('merchant');
+        } else if (lowerHash.includes('rider')) {
+          setDiscoveryMode('rider');
+          setCurrentTab('customer');
+        } else if (lowerHash.includes('admin')) {
+          setCurrentTab('admin');
+        } else if (lowerHash.includes('orders')) {
+          setCurrentTab('orders');
+        }
+      } else {
         setDiscoveryMode('shop');
-      } else if (hash.includes('admin')) {
-        setCurrentTab('admin');
-      } else if (hash.includes('orders')) {
-        setCurrentTab('orders');
+        setCurrentTab('customer');
+        setSelectedStoreId(null);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Support URL hash & pathname navigation for direct linking and browser history
+  React.useEffect(() => {
+    const handleUrlChange = () => {
+      const pathname = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+
+      if (pathname === '/about-us' || pathname.startsWith('/about-us')) {
+        setCurrentRoute('about');
+        if (hash) {
+          setTimeout(() => {
+            const el = document.getElementById(hash.replace('#', ''));
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 80);
+        }
+      } else {
+        setCurrentRoute('main');
+        if (hash.includes('merchant')) {
+          setCurrentTab('merchant');
+          setDiscoveryMode('shop');
+        } else if (hash.includes('admin')) {
+          setCurrentTab('admin');
+        } else if (hash.includes('orders')) {
+          setCurrentTab('orders');
+        } else if (hash.includes('rider')) {
+          setDiscoveryMode('rider');
+          setCurrentTab('customer');
+        }
       }
     };
-    handleHash();
-    window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
+
+    handleUrlChange();
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
+    };
   }, []);
 
   const handleAddToCart = async (storeId: string, productId: string) => {
@@ -178,6 +252,8 @@ function MainLayout() {
           setCurrentTab('customer');
           setCustomerSubView('community');
         }}
+        onNavigateHome={() => navigateTo('/')}
+        onNavigateAbout={() => navigateTo('/about-us')}
         searchQuery={searchQuery}
         setSearchQuery={(q) => {
           setSearchQuery(q);
@@ -192,10 +268,17 @@ function MainLayout() {
       />
 
       <main className="flex-1">
-        {/* ==================================================== */}
-        {/* 1. SHOP DISCOVERY ECOSYSTEM (RETAIL COMMERCE)       */}
-        {/* ==================================================== */}
-        {discoveryMode === 'shop' && (
+        {currentRoute === 'about' ? (
+          <AboutUsView
+            onNavigateHome={() => navigateTo('/')}
+            onNavigateMerchant={() => navigateTo('/#merchant')}
+          />
+        ) : (
+          <>
+            {/* ==================================================== */}
+            {/* 1. SHOP DISCOVERY ECOSYSTEM (RETAIL COMMERCE)       */}
+            {/* ==================================================== */}
+            {discoveryMode === 'shop' && (
           <>
             {currentTab === 'customer' && (
               <>
@@ -349,10 +432,12 @@ function MainLayout() {
         {discoveryMode === 'rider' && (
           <RiderAppView openAuth={() => setIsAuthOpen(true)} />
         )}
+          </>
+        )}
       </main>
 
       {/* Floating Ask Tara Assistant Button (Shop Mode) */}
-      {discoveryMode === 'shop' && currentTab === 'customer' && (
+      {discoveryMode === 'shop' && currentTab === 'customer' && currentRoute !== 'about' && (
         <button
           onClick={() => setIsAIOpen(true)}
           className={`fixed ${
@@ -366,7 +451,7 @@ function MainLayout() {
       )}
 
       {/* Floating Bottom Cart Bar (Mobile) - only active in shop mode */}
-      {cartCount > 0 && discoveryMode === 'shop' && currentTab === 'customer' && (
+      {cartCount > 0 && discoveryMode === 'shop' && currentTab === 'customer' && currentRoute !== 'about' && (
         <div className="md:hidden fixed bottom-16 left-3 right-3 z-40 animate-in slide-in-from-bottom-3 duration-200">
           <button
             onClick={() => setIsCartOpen(true)}
@@ -394,72 +479,16 @@ function MainLayout() {
         </div>
       )}
 
-      {/* Global Footer */}
-      <footer className="mt-20 border-t border-slate-200 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-3">
-              <BrandLogo size="md" />
-              <p className="text-sm font-black text-slate-900 tracking-tight">
-                Made for India. Rooted in Local.
-              </p>
-              <p className="text-xs font-medium text-slate-600">
-                Discover neighbourhood stores, shop locally and get what you need.
-              </p>
-              <p className="text-[11px] text-slate-500 leading-relaxed pt-1">
-                Hyperlocal neighbourhood commerce and instant services platform for Indore, Madhya Pradesh.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-3">Shop Local</h4>
-              <ul className="text-xs text-slate-600 space-y-2">
-                <li><button onClick={() => { setDiscoveryMode('shop'); setCurrentTab('customer'); }} className="hover:text-emerald-700">Grocery & Daily Staples</button></li>
-                <li><button onClick={() => { setDiscoveryMode('shop'); setCurrentTab('customer'); }} className="hover:text-emerald-700">Fresh Produce & Dairy</button></li>
-                <li><button onClick={() => { setDiscoveryMode('pharmacy'); setCurrentTab('customer'); }} className="hover:text-emerald-700">Apollo & Local Pharmacy</button></li>
-                <li><button onClick={() => { setDiscoveryMode('services'); setCurrentTab('customer'); }} className="hover:text-emerald-700">Home & Personal Services</button></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-3">Partner With Us</h4>
-              <ul className="text-xs text-slate-600 space-y-2">
-                <li>
-                  <button
-                    onClick={() => {
-                      setDiscoveryMode('shop');
-                      setCurrentTab('merchant');
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
-                  >
-                    <span>Become a Merchant Partner</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
-                </li>
-                <li><button onClick={() => { setDiscoveryMode('rider'); setCurrentTab('customer'); }} className="hover:text-emerald-700">Drive with Us (Rider Partner)</button></li>
-                <li><button onClick={() => { setDiscoveryMode('services'); setCurrentTab('customer'); }} className="hover:text-emerald-700">Service Provider Registration</button></li>
-                <li><span className="text-slate-400">Indore Partner Desk: +91 731 400 8899</span></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-3">Operations & Trust</h4>
-              <ul className="text-xs text-slate-500 space-y-1.5 leading-relaxed">
-                <li>Hub: Palasia & Vijay Nagar, Indore</li>
-                <li>Service Radius: 3.0 km Instant Delivery</li>
-                <li>Payments: UPI, Cards & Cash on Delivery</li>
-                <li>Settlements: Daily T+1 IMPS/NEFT</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500">
-            <p>© 2026 Everything Local Technologies Pvt Ltd. All rights reserved.</p>
-            <p className="font-semibold text-slate-700">Made for India. Rooted in Local. • Indore Pilot</p>
-          </div>
-        </div>
-      </footer>
+      {/* Modern Multi-Column Global Footer: Made for India. Rooted in Local. — Discover neighbourhood stores, shop locally and get what you need. */}
+      <Footer
+        onNavigate={navigateTo}
+        onOpenMerchant={() => {
+          navigateTo('/#merchant');
+        }}
+        onOpenRider={() => {
+          navigateTo('/#rider');
+        }}
+      />
 
       {/* Cart Drawer */}
       <CartCheckoutDrawer
