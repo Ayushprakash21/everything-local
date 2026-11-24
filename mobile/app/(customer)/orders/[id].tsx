@@ -6,13 +6,28 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert
+  Alert,
+  Platform,
+  StatusBar
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Order } from '../../../src/types';
 import { request } from '../../../src/api/client';
 import { formatPaise } from '../../../src/utils/format';
-import { ArrowLeft, CheckCircle2, Clock, MapPin, Store, XCircle, RefreshCw } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Clock,
+  MapPin,
+  Store,
+  XCircle,
+  RefreshCw,
+  Phone,
+  Truck,
+  Package,
+  AlertTriangle,
+  Receipt
+} from 'lucide-react-native';
 
 export default function OrderTrackingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -26,7 +41,7 @@ export default function OrderTrackingScreen() {
       const res = await request<{ order: Order }>(`/customer/orders/${id}`);
       setOrder(res.order);
     } catch (e) {
-      console.error(e);
+      console.error('Failed to load order:', e);
     } finally {
       setLoading(false);
     }
@@ -41,7 +56,7 @@ export default function OrderTrackingScreen() {
   const handleCancelOrder = async () => {
     Alert.alert(
       'Cancel Order',
-      'Are you sure you want to cancel this order? Any reserved items will be re-released to the store.',
+      'Are you sure you want to cancel this order? Any reserved items will be returned to the store inventory.',
       [
         { text: 'Keep Order', style: 'cancel' },
         {
@@ -66,24 +81,25 @@ export default function OrderTrackingScreen() {
   if (loading || !order) {
     return (
       <View style={styles.centerBox}>
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color="#064E3B" />
+        <Text style={styles.loadingText}>Loading live order details...</Text>
       </View>
     );
   }
 
   const steps = [
-    { key: 'PLACED', label: 'Order Placed', sub: 'Sent to merchant' },
-    { key: 'ACCEPTED', label: 'Accepted', sub: 'Stock confirmed' },
-    { key: 'PREPARING', label: 'Preparing', sub: 'Packing your order' },
+    { key: 'PLACED', label: 'Order Received', sub: 'Merchant notified' },
+    { key: 'ACCEPTED', label: 'Order Accepted', sub: 'Items reserved in stock' },
+    { key: 'PREPARING', label: 'Packing Order', sub: 'Packed with care at local store' },
     {
       key: order.fulfillmentMode === 'PICKUP' ? 'READY_FOR_PICKUP' : 'OUT_FOR_DELIVERY',
       label: order.fulfillmentMode === 'PICKUP' ? 'Ready for Pickup' : 'Out for Delivery',
-      sub: order.fulfillmentMode === 'PICKUP' ? 'Counter ready' : 'Rider dispatched'
+      sub: order.fulfillmentMode === 'PICKUP' ? 'Ready at checkout counter' : 'Delivery rider on the way'
     },
     {
       key: order.fulfillmentMode === 'PICKUP' ? 'COLLECTED' : 'DELIVERED',
       label: order.fulfillmentMode === 'PICKUP' ? 'Collected' : 'Delivered',
-      sub: 'Completed'
+      sub: 'Order completed'
     }
   ];
 
@@ -102,26 +118,36 @@ export default function OrderTrackingScreen() {
 
   const currentStep = getStepIndex(order.status);
   const isCancelled = order.status === 'CANCELLED' || order.status === 'REJECTED';
+  const canCancel = order.status === 'PLACED' || order.status === 'ACCEPTED';
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <ArrowLeft size={20} color="#0f172a" />
+          <ArrowLeft size={20} color="#0F172A" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Order Tracking</Text>
+        <View style={{ alignItems: 'center' }}>
+          <Text style={styles.headerTitle}>Order #{order.orderNumber}</Text>
+          <Text style={styles.headerSub}>Live Tracking</Text>
+        </View>
         <TouchableOpacity onPress={fetchOrder} style={styles.refreshBtn}>
-          <RefreshCw size={18} color="#059669" />
+          <RefreshCw size={18} color="#064E3B" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Status Card */}
         <View style={styles.statusCard}>
           <View style={styles.statusHeader}>
-            <View>
-              <Text style={styles.orderNum}>{order.orderNumber}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.etaHeader}>
+                {isCancelled
+                  ? 'Order Cancelled'
+                  : currentStep === 4
+                  ? 'Delivered Successfully! 🎉'
+                  : 'Estimated Handover: 15-20 mins'}
+              </Text>
               <Text style={styles.storeName}>{order.store?.name}</Text>
             </View>
 
@@ -135,7 +161,7 @@ export default function OrderTrackingScreen() {
           {/* Stepper Timeline */}
           {!isCancelled ? (
             <View style={styles.stepperBox}>
-              <Text style={styles.stepperTitle}>LIVE ORDER PROGRESSION</Text>
+              <Text style={styles.stepperTitle}>LIVE FULFILLMENT TIMELINE</Text>
               <View style={styles.stepsList}>
                 {steps.map((st, idx) => {
                   const isDone = currentStep >= idx;
@@ -146,7 +172,7 @@ export default function OrderTrackingScreen() {
                       <View style={styles.stepIndicatorCol}>
                         <View style={[styles.stepCircle, isDone && styles.stepCircleDone]}>
                           {isDone ? (
-                            <CheckCircle2 size={16} color="#ffffff" />
+                            <CheckCircle2 size={16} color="#FFFFFF" />
                           ) : (
                             <Text style={styles.stepNum}>{idx + 1}</Text>
                           )}
@@ -169,57 +195,89 @@ export default function OrderTrackingScreen() {
             </View>
           ) : (
             <View style={styles.cancelledBox}>
-              <XCircle size={24} color="#ef4444" />
-              <View style={{ flex: 1 }}>
+              <XCircle size={28} color="#DC2626" />
+              <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={styles.cancelledTitle}>Order Cancelled</Text>
                 <Text style={styles.cancelledSub}>
-                  This order has been cancelled and inventory released.
+                  This order was cancelled. Any reserved items have been re-stocked.
                 </Text>
               </View>
             </View>
           )}
-
-          {/* Cancel button if order is in PLACED status */}
-          {order.status === 'PLACED' && (
-            <TouchableOpacity
-              onPress={handleCancelOrder}
-              disabled={cancelling}
-              style={styles.cancelBtn}
-            >
-              <Text style={styles.cancelBtnText}>
-                {cancelling ? 'Cancelling...' : 'Cancel Order'}
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
 
-        {/* Itemized Invoice */}
+        {/* Store & Location Card */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Itemized Invoice</Text>
+          <View style={styles.storeRow}>
+            <View style={styles.storeIconBox}>
+              <Store size={22} color="#064E3B" />
+            </View>
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={styles.cardTitle}>{order.store?.name}</Text>
+              <Text style={styles.cardSub}>{order.store?.addressLine}, Indore</Text>
+              <Text style={styles.modeText}>Mode: {order.fulfillmentMode}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Itemized Order Items */}
+        <View style={styles.card}>
+          <View style={styles.receiptHeader}>
+            <Receipt size={18} color="#064E3B" />
+            <Text style={styles.receiptTitle}>Items Ordered ({order.items?.length || 0})</Text>
+          </View>
+
           <View style={styles.itemsList}>
-            {order.items.map((item) => (
+            {order.items?.map((item) => (
               <View key={item.id} style={styles.itemRow}>
-                <Text style={styles.itemName} numberOfLines={1}>{item.productName} x {item.quantity}</Text>
-                <Text style={styles.itemTotal}>{formatPaise(item.totalPricePaise)}</Text>
+                <View style={styles.qtyBadge}>
+                  <Text style={styles.qtyText}>{item.quantity}x</Text>
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={styles.itemName}>{item.productName || item.product?.name || 'Item'}</Text>
+                  <Text style={styles.itemUnitPrice}>{formatPaise(item.unitPricePaise || item.pricePaise || 0)} each</Text>
+                </View>
+                <Text style={styles.itemTotal}>{formatPaise(item.totalPricePaise || item.totalPaise || 0)}</Text>
               </View>
             ))}
           </View>
 
-          <View style={styles.breakdownBox}>
-            <View style={styles.billRow}>
-              <Text style={styles.billLabel}>Item Subtotal</Text>
-              <Text style={styles.billVal}>{formatPaise(order.itemSubtotalPaise)}</Text>
-            </View>
-            <View style={styles.billRow}>
-              <Text style={styles.billLabel}>Fulfillment Fee ({order.fulfillmentMode})</Text>
-              <Text style={styles.billVal}>{formatPaise(order.deliveryFeePaise)}</Text>
-            </View>
-            <View style={[styles.billRow, styles.totalBillRow]}>
-              <Text style={styles.totalLabel}>Total Paid</Text>
-              <Text style={styles.totalVal}>{formatPaise(order.totalAmountPaise)}</Text>
-            </View>
+          <View style={styles.divider} />
+
+          {/* Bill Summary */}
+          <View style={styles.billRow}>
+            <Text style={styles.billLabel}>Item Subtotal</Text>
+            <Text style={styles.billValue}>{formatPaise(order.itemSubtotalPaise)}</Text>
+          </View>
+          <View style={styles.billRow}>
+            <Text style={styles.billLabel}>Delivery Fee</Text>
+            <Text style={[styles.billValue, order.deliveryFeePaise === 0 && styles.freeBadge]}>
+              {order.deliveryFeePaise === 0 ? 'FREE' : formatPaise(order.deliveryFeePaise)}
+            </Text>
+          </View>
+          <View style={[styles.billRow, styles.totalBillRow]}>
+            <Text style={styles.totalBillLabel}>Total Amount Paid</Text>
+            <Text style={styles.totalBillValue}>{formatPaise(order.totalAmountPaise)}</Text>
           </View>
         </View>
+
+        {/* Cancel Button if eligible */}
+        {canCancel && (
+          <TouchableOpacity
+            onPress={handleCancelOrder}
+            disabled={cancelling}
+            style={styles.cancelBtn}
+          >
+            {cancelling ? (
+              <ActivityIndicator size="small" color="#DC2626" />
+            ) : (
+              <>
+                <XCircle size={18} color="#DC2626" style={{ marginRight: 8 }} />
+                <Text style={styles.cancelBtnText}>Cancel Order</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );
@@ -228,257 +286,332 @@ export default function OrderTrackingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#F8F9FA'
   },
   header: {
+    backgroundColor: '#FFFFFF',
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 48,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 52,
-    paddingBottom: 14,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: '#F1F5F9',
+    elevation: 2
   },
   backBtn: {
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   refreshBtn: {
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    backgroundColor: '#ecfdf5',
+    backgroundColor: '#ECFDF5',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '800',
-    color: '#0f172a',
+    color: '#0F172A'
+  },
+  headerSub: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#064E3B',
+    marginTop: 2
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
-    gap: 16,
+    paddingBottom: 40
   },
   statusCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    gap: 16,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2
   },
   statusHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingBottom: 14,
+    marginBottom: 16
   },
-  orderNum: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#94a3b8',
-    letterSpacing: 0.5,
+  etaHeader: {
+    fontSize: 17,
+    fontWeight: '900',
+    color: '#0F172A'
   },
   storeName: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#0f172a',
-    marginTop: 2,
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 2
   },
   statusBadge: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: '#DCFCE7',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 10,
+    borderRadius: 16
   },
   statusBadgeCancelled: {
-    backgroundColor: '#fef2f2',
+    backgroundColor: '#FEE2E2'
   },
   statusBadgeText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#92400e',
-    textTransform: 'uppercase',
+    color: '#064E3B'
   },
   statusBadgeTextCancelled: {
-    color: '#b91c1c',
+    color: '#DC2626'
   },
   stepperBox: {
-    gap: 12,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    padding: 14
   },
   stepperTitle: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
-    color: '#94a3b8',
-    letterSpacing: 0.5,
+    color: '#94A3B8',
+    letterSpacing: 0.8,
+    marginBottom: 16
   },
   stepsList: {
-    gap: 0,
+    gap: 0
   },
   stepRow: {
     flexDirection: 'row',
-    gap: 14,
+    alignItems: 'flex-start'
   },
   stepIndicatorCol: {
     alignItems: 'center',
     width: 28,
+    marginRight: 12
   },
   stepCircle: {
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#E2E8F0',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   stepCircleDone: {
-    backgroundColor: '#059669',
+    backgroundColor: '#064E3B'
   },
   stepNum: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#64748b',
+    color: '#64748B'
   },
   stepLine: {
     width: 2,
-    height: 28,
-    backgroundColor: '#e2e8f0',
+    height: 32,
+    backgroundColor: '#E2E8F0',
+    marginVertical: 2
   },
   stepLineDone: {
-    backgroundColor: '#059669',
+    backgroundColor: '#064E3B'
   },
   stepTextCol: {
     flex: 1,
-    paddingTop: 3,
-    paddingBottom: 16,
+    paddingTop: 2,
+    paddingBottom: 16
   },
   stepLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#64748b',
+    color: '#64748B'
   },
   stepLabelCurrent: {
-    color: '#059669',
-    fontWeight: '800',
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#0F172A'
   },
   stepSub: {
-    fontSize: 11,
-    color: '#94a3b8',
-    marginTop: 2,
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 2
   },
   cancelledBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#fef2f2',
+    backgroundColor: '#FEF2F2',
     padding: 14,
-    borderRadius: 16,
+    borderRadius: 12
   },
   cancelledTitle: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '800',
-    color: '#b91c1c',
+    color: '#DC2626'
   },
   cancelledSub: {
-    fontSize: 11,
-    color: '#dc2626',
-    marginTop: 2,
-  },
-  cancelBtn: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#fecaca',
-    backgroundColor: '#fff5f5',
-  },
-  cancelBtnText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#dc2626',
+    color: '#991B1B',
+    marginTop: 2
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    gap: 12,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2
+  },
+  storeRow: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  storeIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#DCFCE7',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   cardTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A'
+  },
+  cardSub: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2
+  },
+  modeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#064E3B',
+    marginTop: 4
+  },
+  receiptHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14
+  },
+  receiptTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#0f172a',
+    color: '#0F172A'
   },
   itemsList: {
-    gap: 8,
+    gap: 12
   },
   itemRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'center'
+  },
+  qtyBadge: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8
+  },
+  qtyText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0F172A'
   },
   itemName: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#334155',
-    flex: 1,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0F172A'
+  },
+  itemUnitPrice: {
+    fontSize: 11,
+    color: '#94A3B8'
   },
   itemTotal: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#0f172a',
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0F172A'
   },
-  breakdownBox: {
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-    paddingTop: 10,
-    gap: 6,
+  divider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginVertical: 12
   },
   billRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingVertical: 4
   },
   billLabel: {
-    fontSize: 12,
-    color: '#64748b',
+    fontSize: 13,
+    color: '#64748B'
   },
-  billVal: {
-    fontSize: 12,
+  billValue: {
+    fontSize: 13,
     fontWeight: '700',
-    color: '#0f172a',
+    color: '#0F172A'
+  },
+  freeBadge: {
+    color: '#064E3B',
+    fontWeight: '800'
   },
   totalBillRow: {
-    marginTop: 4,
     paddingTop: 8,
+    marginTop: 6,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    borderTopColor: '#F1F5F9'
   },
-  totalLabel: {
+  totalBillLabel: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#0F172A'
+  },
+  totalBillValue: {
+    fontSize: 17,
+    fontWeight: '900',
+    color: '#064E3B'
+  },
+  cancelBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 14,
+    paddingVertical: 14,
+    marginTop: 6
+  },
+  cancelBtnText: {
     fontSize: 14,
-    fontWeight: '900',
-    color: '#0f172a',
-  },
-  totalVal: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: '#059669',
+    fontWeight: '800',
+    color: '#DC2626'
   },
   centerBox: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    padding: 32
   },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '600'
+  }
 });

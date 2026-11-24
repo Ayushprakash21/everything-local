@@ -5,6 +5,8 @@ import { authenticateToken } from '../middleware/auth';
 import { GeospatialEngine } from '../core/geospatial';
 import { FinancialEngine } from '../core/finance';
 import { DeliveryServiceAdapter } from '../core/deliveryAdapter';
+import { DeliveryPriorityEngine } from '../core/deliveryPriorityEngine';
+import { MultiStoreOrderEngine } from '../core/multiStoreOrderEngine';
 
 const router = Router();
 
@@ -46,9 +48,12 @@ router.get('/stores', async (req: Request, res: Response): Promise<void> => {
         store.serviceRadiusKm
       );
 
-      const avgRating = store.reviews.length
-        ? store.reviews.reduce((acc, r) => acc + r.rating, 0) / store.reviews.length
-        : 4.8; // Default initial merchant rating
+      // P1 Remediation: Honest reviews and ratings (no fabricated 4.8 or 24 review defaults)
+      const reviewCount = store.reviews.length;
+      const avgRating = reviewCount > 0
+        ? Math.round((store.reviews.reduce((acc, r) => acc + r.rating, 0) / reviewCount) * 10) / 10
+        : null;
+      const ratingDisplay = reviewCount > 0 ? `${avgRating}` : 'New store';
 
       return {
         id: store.id,
@@ -65,8 +70,9 @@ router.get('/stores', async (req: Request, res: Response): Promise<void> => {
         isServiceable: serviceability.isServiceable,
         isPickupAvailable: serviceability.isPickupAvailable,
         serviceRadiusKm: store.serviceRadiusKm,
-        rating: Math.round(avgRating * 10) / 10,
-        reviewCount: store.reviews.length || 24,
+        rating: avgRating,
+        ratingDisplay,
+        reviewCount,
         sampleProducts: store.products
       };
     });
@@ -187,7 +193,11 @@ router.get('/cart', authenticateToken, async (req: Request, res: Response): Prom
         store: true,
         items: {
           include: {
-            product: true
+            product: {
+              include: {
+                store: true
+              }
+            }
           }
         }
       }
@@ -200,7 +210,11 @@ router.get('/cart', authenticateToken, async (req: Request, res: Response): Prom
           store: true,
           items: {
             include: {
-              product: true
+              product: {
+                include: {
+                  store: true
+                }
+              }
             }
           }
         }
@@ -210,6 +224,18 @@ router.get('/cart', authenticateToken, async (req: Request, res: Response): Prom
     const subtotalPaise = cart.items.reduce((sum, item) => sum + item.unitPricePaise * item.quantity, 0);
     const movCheck = FinancialEngine.validateMinimumOrderValue(subtotalPaise);
 
+    // Multi-store merchant breakdown
+    const merchantGroups: Record<string, { merchantId: string; merchantName: string; subtotalPaise: number; itemCount: number }> = {};
+    for (const item of cart.items) {
+      const mId = item.product.storeId;
+      const mName = item.product.store?.name || 'Local Store';
+      if (!merchantGroups[mId]) {
+        merchantGroups[mId] = { merchantId: mId, merchantName: mName, subtotalPaise: 0, itemCount: 0 };
+      }
+      merchantGroups[mId].itemCount += item.quantity;
+      merchantGroups[mId].subtotalPaise += item.unitPricePaise * item.quantity;
+    }
+
     res.json({
       cart,
       subtotalPaise,
@@ -217,18 +243,20 @@ router.get('/cart', authenticateToken, async (req: Request, res: Response): Prom
       minimumOrderValuePaise: FinancialEngine.DEFAULT_MIN_ORDER_VALUE_PAISE,
       meetsMinimumOrderValue: movCheck.isValid,
       shortfallPaise: movCheck.shortfallPaise,
-      shortfallFormatted: FinancialEngine.formatPaiseToRupees(movCheck.shortfallPaise)
+      shortfallFormatted: FinancialEngine.formatPaiseToRupees(movCheck.shortfallPaise),
+      distinctMerchantCount: Object.keys(merchantGroups).length,
+      merchantBreakdowns: Object.values(merchantGroups)
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch cart' });
   }
 });
 
-// 5. Add or Update Item in Cart (Enforces Single-Store Cart Rule)
+// 5. Add or Update Item in Cart (Enforces Single-Store Cart Rule & Stock Limits)
 const AddToCartSchema = z.object({
   storeId: z.string(),
   productId: z.string(),
-  quantity: z.number().int().min(1)
+  quantity: z.number().int().min(0)
 });
 
 router.post('/cart/items', authenticateToken, async (req: Request, res: Response): Promise<void> => {
@@ -252,6 +280,15 @@ router.post('/cart/items', authenticateToken, async (req: Request, res: Response
       return;
     }
 
+    // Stock availability validation
+    if (quantity > 0 && product.stock > 0 && quantity > product.stock) {
+      res.status(400).json({
+        error: `Only ${product.stock} unit(s) available in stock.`,
+        availableStock: product.stock
+      });
+      return;
+    }
+
     if (product.storeId !== storeId) {
       res.status(400).json({ error: 'Product store mismatch' });
       return;
@@ -259,41 +296,70 @@ router.post('/cart/items', authenticateToken, async (req: Request, res: Response
 
     let cart = await prisma.cart.findFirst({
       where: { userId },
-      include: { items: true, store: true }
+      include: {
+        items: {
+          include: {
+            product: {
+              include: {
+                store: true
+              }
+            }
+          }
+        },
+        store: true
+      }
     });
 
     if (!cart) {
       cart = await prisma.cart.create({
         data: { userId, storeId },
-        include: { items: true, store: true }
+        include: {
+          items: {
+            include: {
+              product: {
+                include: {
+                  store: true
+                }
+              }
+            }
+          },
+          store: true
+        }
       });
     }
 
-    // SINGLE-STORE CART VALIDATION
-    if (cart.storeId && cart.storeId !== storeId && cart.items.length > 0) {
-      res.status(409).json({
-        error: 'Single-store checkout rule',
-        storeConflict: true,
-        currentStore: cart.store?.name,
-        message: `Your cart contains items from ${cart.store?.name}. Everything Local supports ordering from one neighborhood store at a time. Clear your cart to add items from this store.`
-      });
-      return;
-    }
-
-    // Update cart's storeId if empty
-    if (!cart.storeId) {
+    // MULTI-STORE CART: Customers can freely add products from Store A, Store B, Store C...
+    // No single-store restriction is enforced. Each CartItem retains its product and merchant reference.
+    if (!cart.storeId && quantity > 0) {
       await prisma.cart.update({
         where: { id: cart.id },
         data: { storeId }
       });
+      cart.storeId = storeId;
     }
 
-    // Upsert cart item
+    // Upsert or remove cart item
     const existingItem = await prisma.cartItem.findFirst({
       where: { cartId: cart.id, productId }
     });
 
-    if (existingItem) {
+    if (quantity === 0) {
+      // Remove item if quantity becomes zero
+      if (existingItem) {
+        await prisma.cartItem.delete({
+          where: { id: existingItem.id }
+        });
+      }
+      const remainingCount = await prisma.cartItem.count({
+        where: { cartId: cart.id }
+      });
+      if (remainingCount === 0) {
+        await prisma.cart.update({
+          where: { id: cart.id },
+          data: { storeId: null }
+        });
+      }
+    } else if (existingItem) {
       await prisma.cartItem.update({
         where: { id: existingItem.id },
         data: {
@@ -312,12 +378,20 @@ router.post('/cart/items', authenticateToken, async (req: Request, res: Response
       });
     }
 
-    // Return updated cart
+    // Return updated cart with full product and store metadata
     const updatedCart = await prisma.cart.findUnique({
       where: { id: cart.id },
       include: {
         store: true,
-        items: { include: { product: true } }
+        items: {
+          include: {
+            product: {
+              include: {
+                store: true
+              }
+            }
+          }
+        }
       }
     });
 
@@ -325,6 +399,81 @@ router.post('/cart/items', authenticateToken, async (req: Request, res: Response
   } catch (error) {
     console.error('Error adding to cart:', error);
     res.status(500).json({ error: 'Failed to update cart' });
+  }
+});
+
+// 5b. Validate Multi-Merchant Stock (Checks each store independently without removing other items)
+router.post('/cart/validate', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+
+    const cart = await prisma.cart.findFirst({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: {
+                store: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!cart || cart.items.length === 0) {
+      res.json({ isValid: true, items: [], unavailableCount: 0, availableSubtotalPaise: 0 });
+      return;
+    }
+
+    const itemStatusList = [];
+    let availableSubtotalPaise = 0;
+    let unavailableCount = 0;
+
+    for (const item of cart.items) {
+      const prod = item.product;
+      const isAvailable = prod.isAvailable && (prod.stock === null || prod.stock === undefined || prod.stock >= item.quantity);
+
+      if (!isAvailable) {
+        unavailableCount++;
+        itemStatusList.push({
+          cartItemId: item.id,
+          productId: prod.id,
+          productName: prod.name,
+          storeId: prod.storeId,
+          storeName: prod.store?.name || 'Local Store',
+          requestedQuantity: item.quantity,
+          availableStock: prod.stock ?? 0,
+          unitPricePaise: item.unitPricePaise,
+          isAvailable: false,
+          reason: !prod.isAvailable ? 'Item currently not available' : `Only ${prod.stock} unit(s) available in stock`
+        });
+      } else {
+        availableSubtotalPaise += item.unitPricePaise * item.quantity;
+        itemStatusList.push({
+          cartItemId: item.id,
+          productId: prod.id,
+          productName: prod.name,
+          storeId: prod.storeId,
+          storeName: prod.store?.name || 'Local Store',
+          requestedQuantity: item.quantity,
+          availableStock: prod.stock ?? 999,
+          unitPricePaise: item.unitPricePaise,
+          isAvailable: true
+        });
+      }
+    }
+
+    res.json({
+      isValid: unavailableCount === 0,
+      unavailableCount,
+      items: itemStatusList,
+      availableSubtotalPaise,
+      availableSubtotalFormatted: FinancialEngine.formatPaiseToRupees(availableSubtotalPaise)
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to validate cart stock' });
   }
 });
 
@@ -382,11 +531,21 @@ router.post('/orders/quote', authenticateToken, async (req: Request, res: Respon
       where: { userId },
       include: {
         store: true,
-        items: { include: { product: true } }
+        items: {
+          include: {
+            product: {
+              include: {
+                store: true
+              }
+            }
+          }
+        }
       }
     });
 
-    if (!cart || cart.items.length === 0 || !cart.store) {
+    const primaryStore = cart?.store || cart?.items[0]?.product?.store;
+
+    if (!cart || cart.items.length === 0 || !primaryStore) {
       res.status(400).json({ error: 'Cart is empty' });
       return;
     }
@@ -416,17 +575,17 @@ router.post('/orders/quote', authenticateToken, async (req: Request, res: Respon
     let distanceKm = 1.0;
     if (customerLat !== undefined && customerLng !== undefined) {
       distanceKm = GeospatialEngine.calculateDistanceKm(
-        { latitude: cart.store.latitude, longitude: cart.store.longitude },
+        { latitude: primaryStore.latitude, longitude: primaryStore.longitude },
         { latitude: customerLat, longitude: customerLng }
       );
 
-      if (fulfillmentMode !== 'PICKUP' && distanceKm > cart.store.serviceRadiusKm) {
+      if (fulfillmentMode !== 'PICKUP' && distanceKm > primaryStore.serviceRadiusKm) {
         res.status(400).json({
           error: 'Out of delivery service area',
           distanceKm,
-          maxRadiusKm: cart.store.serviceRadiusKm,
+          maxRadiusKm: primaryStore.serviceRadiusKm,
           isPickupAvailable: true,
-          message: `Delivery is unavailable beyond ${cart.store.serviceRadiusKm} km. You can still choose Store Pickup!`
+          message: `Delivery is unavailable beyond ${primaryStore.serviceRadiusKm} km. You can still choose Store Pickup!`
         });
         return;
       }
@@ -438,14 +597,17 @@ router.post('/orders/quote', authenticateToken, async (req: Request, res: Respon
       items: itemInputs,
       fulfillmentMode,
       deliveryFeePaise: deliveryQuote.feePaise,
-      commissionRatePct: cart.store.commissionRatePct
+      commissionRatePct: primaryStore.commissionRatePct
     });
 
     res.json({
+      quoteId: `QUOTE-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      validUntil: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15-minute price guarantee
+      pricingVersion: '2.0',
       store: {
-        id: cart.store.id,
-        name: cart.store.name,
-        category: cart.store.category
+        id: primaryStore.id,
+        name: primaryStore.name,
+        category: primaryStore.category
       },
       fulfillmentMode,
       distanceKm,
@@ -496,11 +658,21 @@ router.post('/orders/checkout', authenticateToken, async (req: Request, res: Res
       where: { userId },
       include: {
         store: true,
-        items: { include: { product: true } }
+        items: {
+          include: {
+            product: {
+              include: {
+                store: true
+              }
+            }
+          }
+        }
       }
     });
 
-    if (!cart || cart.items.length === 0 || !cart.store) {
+    const primaryStore = cart?.store || cart?.items[0]?.product?.store;
+
+    if (!cart || cart.items.length === 0 || !primaryStore) {
       res.status(400).json({ error: 'Your cart is empty' });
       return;
     }
@@ -525,10 +697,10 @@ router.post('/orders/checkout', authenticateToken, async (req: Request, res: Res
     let distanceKm = 1.0;
     if (customerLat !== undefined && customerLng !== undefined) {
       distanceKm = GeospatialEngine.calculateDistanceKm(
-        { latitude: cart.store.latitude, longitude: cart.store.longitude },
+        { latitude: primaryStore.latitude, longitude: primaryStore.longitude },
         { latitude: customerLat, longitude: customerLng }
       );
-      if (fulfillmentMode !== 'PICKUP' && distanceKm > cart.store.serviceRadiusKm) {
+      if (fulfillmentMode !== 'PICKUP' && distanceKm > primaryStore.serviceRadiusKm) {
         res.status(400).json({ error: 'Customer location is outside delivery radius' });
         return;
       }
@@ -539,7 +711,7 @@ router.post('/orders/checkout', authenticateToken, async (req: Request, res: Res
       items: itemInputs,
       fulfillmentMode,
       deliveryFeePaise: deliveryQuote.feePaise,
-      commissionRatePct: cart.store.commissionRatePct
+      commissionRatePct: primaryStore.commissionRatePct
     });
 
     const orderNumber = `ORD-IND-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
@@ -551,7 +723,7 @@ router.post('/orders/checkout', authenticateToken, async (req: Request, res: Res
         data: {
           orderNumber,
           customerId: userId,
-          storeId: cart.storeId!,
+          storeId: cart.storeId || primaryStore.id,
           status: 'PLACED',
           fulfillmentMode,
           deliveryAddressId,
@@ -579,6 +751,14 @@ router.post('/orders/checkout', authenticateToken, async (req: Request, res: Res
             totalPricePaise: item.product.pricePaise * item.quantity
           }
         });
+
+        // Validate live stock inside atomic transaction before decrementing
+        const liveProd = await tx.product.findUnique({ where: { id: item.productId } });
+        if (!liveProd || liveProd.stock < item.quantity) {
+          throw new Error(
+            `Insufficient stock for "${item.product.name}". Available: ${liveProd?.stock || 0}, Requested: ${item.quantity}`
+          );
+        }
 
         // Decrement stock atomically
         await tx.product.update({
@@ -639,6 +819,76 @@ router.get('/orders', authenticateToken, async (req: Request, res: Response): Pr
     res.json({ orders });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch customer orders' });
+  }
+});
+
+// 19. List Customer Parent Multi-Store Orders
+router.get('/orders/multi-store', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const parentOrders = await prisma.parentOrder.findMany({
+      where: { customerId: userId },
+      include: {
+        childOrders: {
+          include: {
+            store: true,
+            items: true
+          }
+        },
+        deliveryTasks: {
+          include: {
+            rider: {
+              include: {
+                user: { select: { name: true, phone: true } },
+                vehicles: { where: { isActive: true }, take: 1 }
+              }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({ orders: parentOrders, parentOrders });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 20. Get Single Parent Multi-Store Order
+router.get('/orders/multi-store/:id', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const parentOrder = await prisma.parentOrder.findFirst({
+      where: { id: req.params.id, customerId: userId },
+      include: {
+        childOrders: {
+          include: {
+            store: true,
+            items: true
+          }
+        },
+        deliveryTasks: {
+          include: {
+            rider: {
+              include: {
+                user: { select: { name: true, phone: true } },
+                vehicles: { where: { isActive: true }, take: 1 }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!parentOrder) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+
+    res.json({ order: parentOrder });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -716,6 +966,265 @@ router.post('/orders/:id/cancel', authenticateToken, async (req: Request, res: R
     res.json({ message: 'Order successfully cancelled' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to cancel order' });
+  }
+});
+
+// 13. List Customer Saved Addresses
+router.get('/addresses', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const addresses = await prisma.customerAddress.findMany({
+      where: { userId: req.user!.userId },
+      orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }]
+    });
+    res.json({ addresses });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch saved addresses' });
+  }
+});
+
+// 14. Create Saved Customer Address
+const createAddressSchema = z.object({
+  label: z.string().default('Home'),
+  addressLine: z.string().min(3),
+  landmark: z.string().optional(),
+  city: z.string().default('Indore'),
+  pincode: z.string().min(6).max(6),
+  latitude: z.number(),
+  longitude: z.number(),
+  isDefault: z.boolean().optional().default(false)
+});
+
+router.post('/addresses', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const parsed = createAddressSchema.parse(req.body);
+
+    if (parsed.isDefault) {
+      // Unset previous defaults
+      await prisma.customerAddress.updateMany({
+        where: { userId: req.user!.userId, isDefault: true },
+        data: { isDefault: false }
+      });
+    }
+
+    const address = await prisma.customerAddress.create({
+      data: {
+        userId: req.user!.userId,
+        label: parsed.label,
+        addressLine: parsed.addressLine,
+        landmark: parsed.landmark,
+        city: parsed.city,
+        pincode: parsed.pincode,
+        latitude: parsed.latitude,
+        longitude: parsed.longitude,
+        isDefault: parsed.isDefault
+      }
+    });
+
+    res.status(201).json({ address });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message || 'Invalid address data' });
+  }
+});
+
+// 15. Set Address as Default
+router.put('/addresses/:id/default', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.userId;
+
+    const exists = await prisma.customerAddress.findFirst({
+      where: { id, userId }
+    });
+
+    if (!exists) {
+      res.status(404).json({ error: 'Address not found' });
+      return;
+    }
+
+    await prisma.$transaction([
+      prisma.customerAddress.updateMany({
+        where: { userId, isDefault: true },
+        data: { isDefault: false }
+      }),
+      prisma.customerAddress.update({
+        where: { id },
+        data: { isDefault: true }
+      })
+    ]);
+
+    res.json({ message: 'Default address updated' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to set default address' });
+  }
+});
+
+// 16. Delete Saved Address
+router.delete('/addresses/:id', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.userId;
+
+    const exists = await prisma.customerAddress.findFirst({
+      where: { id, userId }
+    });
+
+    if (!exists) {
+      res.status(404).json({ error: 'Address not found' });
+      return;
+    }
+
+    await prisma.customerAddress.delete({
+      where: { id }
+    });
+
+    res.json({ message: 'Address removed successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete address' });
+  }
+});
+
+// ============================================================
+// EVERYTHING LOCAL VERSION 1.0 MULTI-STORE & DELIVERY PRIORITY
+// ============================================================
+
+// 17. Calculate 4-Tier Delivery Priority & Dynamic Pricing Quote
+router.post('/delivery/quote', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const merchantIds = req.body.merchantIds || req.body.storeIds || [];
+    if (!Array.isArray(merchantIds) || merchantIds.length === 0) {
+      res.status(400).json({ error: 'Merchant IDs array is required' });
+      return;
+    }
+
+    const customerCoordinates = req.body.customerCoordinates || (
+      req.body.customerLat && req.body.customerLng
+        ? { latitude: Number(req.body.customerLat), longitude: Number(req.body.customerLng) }
+        : {
+            latitude: GeospatialEngine.INDORE_LANDMARKS.PALASIA.latitude,
+            longitude: GeospatialEngine.INDORE_LANDMARKS.PALASIA.longitude
+          }
+    );
+
+    const quotes = await DeliveryPriorityEngine.calculateAllTiers({
+      customerCoordinates,
+      merchantIds,
+      totalWeightKg: req.body.totalWeightKg ? Number(req.body.totalWeightKg) : 2.0
+    });
+
+    const mappedQuotes = quotes.map((q) => ({
+      ...q,
+      tier: q.tierCode,
+      feasible: q.isServiceable,
+      unfeasibleReason: q.unserviceableReason,
+      pricing: {
+        ...q.pricing,
+        extraPickupStopPaise: q.pricing.additionalPickupChargePaise || 0
+      }
+    }));
+
+    res.json({ quotes: mappedQuotes });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 18. Multi-Store Unified Cart Checkout
+const MultiStoreCheckoutItemSchema = z.object({
+  productId: z.string().min(1, 'Product ID is required'),
+  storeId: z.string().optional(),
+  merchantId: z.string().optional(),
+  productName: z.string().optional(),
+  quantity: z
+    .number()
+    .int('Quantity must be an integer')
+    .min(1, 'Quantity must be at least 1')
+    .max(100, 'Exceeds maximum limit of 100 items per line'),
+  unitPricePaise: z.number().optional() // Ignored on server; canonical DB price always enforced
+});
+
+const MultiStoreCheckoutSchema = z.object({
+  deliveryAddress: z.string().min(3, 'Delivery address is required').optional(),
+  deliveryLatitude: z.number().optional(),
+  deliveryLongitude: z.number().optional(),
+  customerLat: z.number().optional(),
+  customerLng: z.number().optional(),
+  deliveryTier: z.enum(['EXPRESS_20', 'PRIORITY_40', 'STANDARD_60', 'SCHEDULED_120']).optional(),
+  deliveryPriorityTier: z.enum(['EXPRESS_20', 'PRIORITY_40', 'STANDARD_60', 'SCHEDULED_120']).optional(),
+  paymentMethod: z.enum(['ONLINE', 'UPI', 'COD', 'CARD']).default('ONLINE'),
+  items: z.array(MultiStoreCheckoutItemSchema).optional()
+});
+
+router.post('/orders/multi-store', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const parse = MultiStoreCheckoutSchema.safeParse(req.body);
+    if (!parse.success) {
+      res.status(400).json({ error: 'Validation failed', details: parse.error.errors });
+      return;
+    }
+
+    const userId = req.user!.userId;
+    const {
+      deliveryAddress,
+      deliveryLatitude,
+      deliveryLongitude,
+      customerLat,
+      customerLng,
+      deliveryTier,
+      deliveryPriorityTier,
+      paymentMethod,
+      items
+    } = parse.data;
+
+    let orderItems = items;
+    if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
+      const cart = await prisma.cart.findFirst({
+        where: { userId },
+        include: { items: { include: { product: true } } }
+      });
+      if (cart && cart.items.length > 0) {
+        orderItems = cart.items.map((i) => ({
+          productId: i.productId,
+          merchantId: i.product.storeId,
+          storeId: i.product.storeId,
+          productName: i.product.name,
+          quantity: i.quantity,
+          unitPricePaise: i.product.pricePaise
+        }));
+      }
+    }
+
+    if (!orderItems || orderItems.length === 0) {
+      res.status(400).json({ error: 'Cannot place order with empty items' });
+      return;
+    }
+
+    const orderResult = await MultiStoreOrderEngine.checkout({
+      customerId: userId,
+      deliveryAddress: deliveryAddress || 'Selected Address, Indore',
+      deliveryLatitude: deliveryLatitude || customerLat || GeospatialEngine.INDORE_LANDMARKS.PALASIA.latitude,
+      deliveryLongitude: deliveryLongitude || customerLng || GeospatialEngine.INDORE_LANDMARKS.PALASIA.longitude,
+      deliveryTier: deliveryTier || deliveryPriorityTier || 'STANDARD_60',
+      paymentMethod: paymentMethod || 'ONLINE',
+      items: orderItems
+    });
+
+    // Clear active cart upon successful multi-store checkout
+    const userCart = await prisma.cart.findFirst({ where: { userId } });
+    if (userCart) {
+      await prisma.cartItem.deleteMany({ where: { cartId: userCart.id } });
+      await prisma.cart.update({ where: { id: userCart.id }, data: { storeId: null } });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Multi-store order successfully created',
+      order: orderResult.parentOrder,
+      parentOrder: orderResult.parentOrder,
+      merchantChildOrders: orderResult.childOrders,
+      childOrders: orderResult.childOrders
+    });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
   }
 });
 

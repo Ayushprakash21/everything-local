@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Store, Order, Product } from '../../types';
+import { Store, Order, Product, ProductCategory } from '../../types';
 import { request, formatPaise } from '../../api/client';
+import { BrandLogo } from '../../components/BrandLogo';
+import { ELLogo } from '../../components/ELLogo';
+import { MerchantPortalView } from './MerchantPortalView';
 import {
   Store as StoreIcon,
   Package,
@@ -21,11 +24,15 @@ import {
   Image as ImageIcon,
   TrendingUp,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
 
-export const MerchantDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth }) => {
-  const { user } = useAuth();
+export const MerchantDashboard: React.FC<{ openAuth: () => void; onReturnToShop?: () => void }> = ({
+  openAuth,
+  onReturnToShop
+}) => {
+  const { user, logout } = useAuth();
   const [store, setStore] = useState<Store | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -37,7 +44,10 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth
   // New product form state
   const [newProdName, setNewProdName] = useState('');
   const [newProdBrand, setNewProdBrand] = useState('');
+  const [approvedCategories, setApprovedCategories] = useState<ProductCategory[]>([]);
   const [newProdCategory, setNewProdCategory] = useState('Grocery Staples');
+  const [newProdCategoryId, setNewProdCategoryId] = useState('');
+  const [newProdSubcategoryId, setNewProdSubcategoryId] = useState('');
   const [newProdPackageSize, setNewProdPackageSize] = useState('1 kg');
   const [newProdMrp, setNewProdMrp] = useState('');
   const [newProdPrice, setNewProdPrice] = useState('');
@@ -49,21 +59,37 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth
   const [catalogueStatus, setCatalogueStatus] = useState<string | null>(null);
 
   const fetchMerchantData = async () => {
-    if (!user || user.role !== 'MERCHANT') return;
+    if (!user || user.role !== 'MERCHANT') {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
-      const storeRes = await request<{ store: Store }>('/merchant/store');
+      const [storeRes, catRes] = await Promise.all([
+        request<{ store: Store }>('/merchant/store'),
+        request<{ categories: ProductCategory[] }>('/categories/merchant/approved').catch(() => ({ categories: [] }))
+      ]);
       setStore(storeRes.store);
+      if (catRes.categories && catRes.categories.length > 0) {
+        setApprovedCategories(catRes.categories);
+        if (!newProdCategoryId) {
+          setNewProdCategoryId(catRes.categories[0].id);
+          setNewProdCategory(catRes.categories[0].name);
+          if (catRes.categories[0].children && catRes.categories[0].children.length > 0) {
+            setNewProdSubcategoryId(catRes.categories[0].children[0].id);
+          }
+        }
+      }
 
-      if (storeRes.store) {
+      if (storeRes.store && storeRes.store.isVerified) {
         const [ordersRes, prodsRes, finRes] = await Promise.all([
           request<{ orders: Order[] }>('/merchant/orders'),
           request<{ products: Product[] }>('/merchant/products'),
           request<any>('/merchant/finance/statements')
         ]);
-        setOrders(ordersRes.orders);
-        setProducts(prodsRes.products);
-        setStatements(finRes.summary);
+        setOrders(ordersRes.orders || []);
+        setProducts(prodsRes.products || []);
+        setStatements(finRes.summary || null);
       }
     } catch (err) {
       console.error('Failed to load merchant data:', err);
@@ -147,7 +173,8 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth
       formData.append('image', file);
 
       const token = localStorage.getItem('el_auth_token');
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+      const apiBase = import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '') : (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') : '');
+      const apiUrl = apiBase ? `${apiBase}/api` : '/api';
 
       const res = await fetch(`${apiUrl}/upload/image`, {
         method: 'POST',
@@ -182,6 +209,8 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth
         body: JSON.stringify({
           name: newProdName,
           category: newProdCategory,
+          categoryId: newProdCategoryId || undefined,
+          subcategoryId: newProdSubcategoryId || undefined,
           brand: newProdBrand || undefined,
           packageSize: newProdPackageSize || undefined,
           barcode: newProdBarcode || undefined,
@@ -232,23 +261,22 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth
     }
   };
 
-  if (!user || user.role !== 'MERCHANT') {
+  if (loading && user && user.role === 'MERCHANT') {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
-        <div className="w-16 h-16 rounded-3xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
-          <StoreIcon className="w-8 h-8" />
-        </div>
-        <h3 className="font-black text-slate-900 text-xl">Merchant Console Access</h3>
-        <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
-          Sign in with your verified merchant partner credentials to manage your Indore neighbourhood store.
-        </p>
-        <button
-          onClick={openAuth}
-          className="px-6 py-3 bg-forest-900 hover:bg-forest-950 text-white rounded-2xl text-xs font-black shadow-md transition active:scale-95"
-        >
-          Sign In as Merchant
-        </button>
+      <div className="max-w-md mx-auto py-24 text-center space-y-4">
+        <div className="w-12 h-12 rounded-full border-4 border-amber-500 border-t-transparent animate-spin mx-auto" />
+        <p className="text-xs font-bold text-slate-600">Loading merchant store console...</p>
       </div>
+    );
+  }
+
+  if (!user || user.role !== 'MERCHANT' || !store || !store.isVerified) {
+    return (
+      <MerchantPortalView
+        store={store}
+        onRefreshStore={fetchMerchantData}
+        onReturnToShop={onReturnToShop}
+      />
     );
   }
 
@@ -260,9 +288,7 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth
       {/* 1. Merchant Header & Operating Controls */}
       <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-card">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shadow-xs border border-amber-400">
-            <StoreIcon className="w-7 h-7" />
-          </div>
+          <BrandLogo variant="symbol" size="large" className="shrink-0" />
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
@@ -279,23 +305,34 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth
           </div>
         </div>
 
-        {/* Operating Status Toggle */}
-        <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-          <div className="text-left">
-            <span className="text-[10px] font-black uppercase text-slate-400 block">Accepting Orders</span>
-            <span className="text-xs font-black text-slate-800">
-              {store?.isOpen ? 'Store is OPEN' : 'Store is CLOSED'}
-            </span>
+        {/* Operating Status Toggle & Logout */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+            <div className="text-left">
+              <span className="text-[10px] font-black uppercase text-slate-400 block">Accepting Orders</span>
+              <span className="text-xs font-black text-slate-800">
+                {store?.isOpen ? 'Store is OPEN' : 'Store is CLOSED'}
+              </span>
+            </div>
+            <button
+              onClick={toggleStoreOpen}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all shadow-xs active:scale-95 ${
+                store?.isOpen
+                  ? 'bg-forest-900 text-white hover:bg-forest-950'
+                  : 'bg-rose-600 text-white hover:bg-rose-700'
+              }`}
+            >
+              {store?.isOpen ? 'Switch to Closed' : 'Open Store'}
+            </button>
           </div>
+
           <button
-            onClick={toggleStoreOpen}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all shadow-xs active:scale-95 ${
-              store?.isOpen
-                ? 'bg-forest-900 text-white hover:bg-forest-950'
-                : 'bg-rose-600 text-white hover:bg-rose-700'
-            }`}
+            onClick={logout}
+            title="Sign out of merchant console"
+            className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 text-xs font-bold"
           >
-            {store?.isOpen ? 'Switch to Closed' : 'Open Store'}
+            <LogOut className="w-4 h-4 text-slate-500" />
+            <span className="hidden sm:inline">Sign Out</span>
           </button>
         </div>
       </div>
@@ -799,32 +836,66 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth
               </div>
 
               {/* Category & Pack Size */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Category</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Approved Category *</label>
                   <select
-                    value={newProdCategory}
-                    onChange={(e) => setNewProdCategory(e.target.value)}
+                    value={newProdCategoryId}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      setNewProdCategoryId(selectedId);
+                      const cat = approvedCategories.find((c) => c.id === selectedId);
+                      if (cat) {
+                        setNewProdCategory(cat.name);
+                        if (cat.children && cat.children.length > 0) {
+                          setNewProdSubcategoryId(cat.children[0].id);
+                        } else {
+                          setNewProdSubcategoryId('');
+                        }
+                      }
+                    }}
                     className="w-full text-xs border border-slate-200 rounded-xl p-2.5 focus:outline-forest-700 font-semibold"
                   >
-                    <option value="Grocery Staples">Grocery Staples</option>
-                    <option value="Dairy & Bakery">Dairy & Bakery</option>
-                    <option value="Fruits & Vegetables">Fruits & Vegetables</option>
-                    <option value="Beverages & Snacks">Beverages & Snacks</option>
-                    <option value="Personal Care">Personal Care</option>
-                    <option value="Household">Household</option>
+                    {approvedCategories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Pack Size</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 500ml, 1 kg, 5 kg"
-                    value={newProdPackageSize}
-                    onChange={(e) => setNewProdPackageSize(e.target.value)}
-                    className="w-full text-xs border border-slate-200 rounded-xl p-2.5 focus:outline-forest-700 font-medium"
-                  />
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Approved Subcategory</label>
+                  <select
+                    value={newProdSubcategoryId}
+                    onChange={(e) => setNewProdSubcategoryId(e.target.value)}
+                    className="w-full text-xs border border-slate-200 rounded-xl p-2.5 focus:outline-forest-700 font-semibold"
+                  >
+                    {(() => {
+                      const currentCat = approvedCategories.find((c) => c.id === newProdCategoryId);
+                      const subs = currentCat?.children || [];
+                      if (subs.length === 0) {
+                        return <option value="">General (No subcategory)</option>;
+                      }
+                      return subs.map((sub) => (
+                        <option key={sub.id} value={sub.id}>
+                          {sub.name}
+                        </option>
+                      ));
+                    })()}
+                  </select>
                 </div>
+              </div>
+
+              {/* Pack Size */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Pack Size</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 500ml, 1 kg, 5 kg"
+                  value={newProdPackageSize}
+                  onChange={(e) => setNewProdPackageSize(e.target.value)}
+                  className="w-full text-xs border border-slate-200 rounded-xl p-2.5 focus:outline-forest-700 font-medium"
+                />
               </div>
 
               {/* Pricing (MRP and Selling Price) */}

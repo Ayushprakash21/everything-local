@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Store, Product } from '../../types';
 import { request, formatPaise } from '../../api/client';
+import { useLocation } from '../../context/LocationContext';
 import { ProductCard } from '../../components/ProductCard';
 import { ProductDetailModal } from '../../components/ProductDetailModal';
+import { MainContentContainer } from '../../components/layout/MainContentContainer';
 import {
   ArrowLeft,
   Star,
@@ -27,6 +29,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
   onBack,
   onAddToCart
 }) => {
+  const { coords } = useLocation();
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -36,7 +39,9 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
     const fetchStore = async () => {
       setLoading(true);
       try {
-        const res = await request<{ store: Store }>(`/customer/stores/${storeId}`);
+        const res = await request<{ store: Store }>(
+          `/customer/stores/${storeId}?lat=${coords.latitude}&lng=${coords.longitude}`
+        );
         setStore(res.store);
       } catch (err) {
         console.error('Failed to load store:', err);
@@ -45,11 +50,11 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
       }
     };
     fetchStore();
-  }, [storeId]);
+  }, [storeId, coords.latitude, coords.longitude]);
 
   if (loading || !store) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8 animate-pulse space-y-6">
+      <MainContentContainer className="py-8 animate-pulse space-y-6">
         <div className="h-8 w-32 bg-slate-200 rounded-xl"></div>
         <div className="h-44 bg-slate-200 rounded-3xl"></div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -57,7 +62,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
             <div key={i} className="h-60 bg-slate-200 rounded-2xl"></div>
           ))}
         </div>
-      </div>
+      </MainContentContainer>
     );
   }
 
@@ -70,7 +75,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+    <MainContentContainer className="py-6 space-y-8">
       {/* Back button */}
       <button
         onClick={onBack}
@@ -206,6 +211,6 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
           onSelectSimilarProduct={(p) => setSelectedProductForModal(p)}
         />
       )}
-    </div>
+    </MainContentContainer>
   );
 };

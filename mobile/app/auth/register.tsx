@@ -70,9 +70,9 @@ export default function RegisterScreen() {
         </View>
 
         <View style={styles.heroBox}>
-          <Text style={styles.title}>Join Everything Local</Text>
+          <Text style={styles.title}>Join EveryBazaar</Text>
           <Text style={styles.subtitle}>
-            Connect directly with your Indore neighbourhood retail ecosystem.
+            Shop more. Save more. Live better.
           </Text>
         </View>
 

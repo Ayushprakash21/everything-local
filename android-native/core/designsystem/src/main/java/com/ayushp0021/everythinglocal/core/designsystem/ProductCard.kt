@@ -61,9 +61,10 @@ fun ProductCard(
                     .background(Color(0xFFF1F5F9)),
                 contentAlignment = Alignment.Center
             ) {
-                if (!product.imageUrl.isNullOrBlank()) {
+                val resolvedUrl = ImageUrlResolver.resolve(product.imageUrl)
+                if (!resolvedUrl.isNullOrBlank()) {
                     AsyncImage(
-                        model = product.imageUrl,
+                        model = resolvedUrl,
                         contentDescription = product.name,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop

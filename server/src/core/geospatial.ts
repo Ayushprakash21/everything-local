@@ -65,6 +65,16 @@ export class GeospatialEngine {
   }
 
   /**
+   * P1 Remediation: Separate straight-line geographic pre-filtering from real road routing.
+   * Urban road networks in Indore have an empirical detour index of ~1.28x.
+   */
+  public static calculateRoadDistanceKm(coord1: Coordinates, coord2: Coordinates): number {
+    const straightLine = this.calculateDistanceKm(coord1, coord2);
+    const urbanRoadDetourFactor = 1.28;
+    return Math.round(straightLine * urbanRoadDetourFactor * 100) / 100;
+  }
+
+  /**
    * Determine serviceability for delivery and pickup
    */
   public static evaluateServiceability(

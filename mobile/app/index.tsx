@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
+import { ELLogo } from '../src/components/ELLogo';
 
 export default function IndexGateway() {
   const router = useRouter();
@@ -20,10 +21,8 @@ export default function IndexGateway() {
   return (
     <View style={styles.container}>
       <View style={styles.brandBox}>
-        <View style={styles.logoBadge}>
-          <Text style={styles.logoText}>EL</Text>
-        </View>
-        <Text style={styles.brandTitle}>Everything Local</Text>
+        <ELLogo variant="dark" size={88} style={{ marginBottom: 16 }} />
+        <Text style={styles.brandTitle}>EveryBazaar</Text>
         <Text style={styles.tagline}>Shop more. Save more. Live better.</Text>
       </View>
       <ActivityIndicator size="large" color="#059669" style={styles.spinner} />

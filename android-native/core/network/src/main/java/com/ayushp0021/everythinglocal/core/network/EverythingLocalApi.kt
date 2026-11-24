@@ -101,4 +101,78 @@ interface EverythingLocalApi {
     suspend fun uploadImage(
         @Part image: MultipartBody.Part
     ): ImageUploadResponse
+
+    // --- Merchant Partner Onboarding Endpoints ---
+    @POST("onboarding/start")
+    suspend fun startOnboarding(@Body req: StartOnboardingRequest): StartOnboardingResponse
+
+    @POST("onboarding/verify-phone-otp")
+    suspend fun verifyPhoneOtp(@Body req: VerifyPhoneOtpRequest): ApplicationResponse
+
+    @GET("onboarding/application/{ref}")
+    suspend fun getApplication(@Path("ref") ref: String): ApplicationResponse
+
+    @PUT("onboarding/application/{ref}/step/{stepNum}")
+    suspend fun updateOnboardingStep(
+        @Path("ref") ref: String,
+        @Path("stepNum") stepNum: Int,
+        @Body body: Map<String, String>
+    ): ApplicationResponse
+
+    @POST("onboarding/application/{ref}/submit")
+    suspend fun submitOnboardingApplication(@Path("ref") ref: String): ApplicationResponse
+
+    @Multipart
+    @POST("onboarding/application/{ref}/documents")
+    suspend fun uploadOnboardingDocument(
+        @Path("ref") ref: String,
+        @Part document: MultipartBody.Part,
+        @Part("docType") docType: okhttp3.RequestBody
+    ): ApplicationResponse
+
+    // --- Delivery Partner Endpoints ---
+    @POST("delivery-partner/auth/send-otp")
+    suspend fun sendDeliveryOtp(@Body req: Map<String, String>): Map<String, String>
+
+    @POST("delivery-partner/auth/verify-otp")
+    suspend fun verifyDeliveryOtp(@Body req: Map<String, String>): DeliveryAuthResponse
+
+    @GET("delivery-partner/profile")
+    suspend fun getDeliveryProfile(): DeliveryProfileResponse
+
+    @POST("delivery-partner/onboarding/apply")
+    suspend fun applyDeliveryOnboarding(@Body req: DeliveryOnboardingRequest): DeliveryOnboardingResponse
+
+    @POST("delivery-partner/availability")
+    suspend fun updateDeliveryAvailability(@Body req: Map<String, String>): Map<String, String>
+
+    @POST("delivery-partner/location")
+    suspend fun updateDeliveryLocation(@Body req: Map<String, String>): Map<String, String>
+
+    @GET("delivery-partner/tasks/requests")
+    suspend fun getDeliveryTaskOffers(): DeliveryTaskOffersResponse
+
+    @POST("delivery-partner/tasks/{id}/accept")
+    suspend fun acceptDeliveryTask(@Path("id") id: String): DeliveryTaskResponse
+
+    @POST("delivery-partner/tasks/{id}/reject")
+    suspend fun rejectDeliveryTask(@Path("id") id: String, @Body req: Map<String, String>): DeliveryTaskResponse
+
+    @POST("delivery-partner/tasks/{id}/at-store")
+    suspend fun arriveAtStore(@Path("id") id: String): DeliveryTaskResponse
+
+    @POST("delivery-partner/tasks/{id}/pickup")
+    suspend fun confirmPickup(@Path("id") id: String, @Body req: Map<String, String>): DeliveryTaskResponse
+
+    @POST("delivery-partner/tasks/{id}/deliver")
+    suspend fun verifyDeliveryAndComplete(@Path("id") id: String, @Body req: Map<String, String>): DeliveryTaskResponse
+
+    @POST("delivery-partner/tasks/{id}/incident")
+    suspend fun reportDeliveryIncident(@Path("id") id: String, @Body req: Map<String, String>): Map<String, String>
+
+    @GET("delivery-partner/earnings")
+    suspend fun getDeliveryEarnings(): DeliveryEarningsResponse
+
+    @GET("delivery-partner/settlements")
+    suspend fun getDeliverySettlements(): DeliverySettlementsResponse
 }

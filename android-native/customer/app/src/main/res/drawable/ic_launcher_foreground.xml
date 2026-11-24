@@ -4,10 +4,57 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#064E3B"
-        android:pathData="M0,0h108v108h-108z" />
-    <path
-        android:fillColor="#F59E0B"
-        android:pathData="M30,30h48v48h-48z" />
+    <!-- Centered within 72dp safe zone (18dp margin on all sides) -->
+    <group
+        android:scaleX="0.35"
+        android:scaleY="0.35"
+        android:translateX="23"
+        android:translateY="25">
+        <!-- Shopping Bag Handle -->
+        <path
+            android:pathData="M 72,32 C 72,12 108,12 108,32"
+            android:strokeColor="#F5B82E"
+            android:strokeWidth="8.5"
+            android:strokeLineCap="round" />
+        <!-- Shopping Bag Frame -->
+        <path
+            android:pathData="M 54,34 L 124,34 C 134,34 140,42 144,58 L 149,86 C 152,98 146,108 132,112"
+            android:strokeColor="#F5B82E"
+            android:strokeWidth="7.5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M 46,54 L 39,86 C 35,98 42,108 56,112"
+            android:strokeColor="#F5B82E"
+            android:strokeWidth="7.5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <!-- Slanted E -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 57,44 L 93,44 L 90,56 L 73,56 L 70,69 L 86,69 L 83,80 L 67,80 L 64,93 L 91,93 L 88,104 L 42,104 Z" />
+        <!-- Slanted L -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 99,44 L 113,44 L 99,93 L 128,93 L 125,104 L 83,104 Z" />
+        <!-- Dynamic Green Swoosh -->
+        <path
+            android:fillColor="#10B981"
+            android:pathData="M 28,96 C 18,114 30,134 60,140 C 84,144 110,138 122,129 C 97,137 69,137 45,129 C 29,121 22,108 28,96 Z" />
+        <!-- Location Pin -->
+        <group
+            android:translateX="26"
+            android:translateY="95">
+            <path
+                android:fillColor="#F5B82E"
+                android:pathData="M 0,-11 C -6,-11 -11,-6 -11,0 C -11,7 0,17 0,17 C 0,17 11,7 11,0 C 11,-6 6,-11 0,-11 Z" />
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M 0,-3.8 A 3.8,3.8 0 1,0 0,3.8 A 3.8,3.8 0 1,0 0,-3.8 Z" />
+        </group>
+        <!-- Dynamic Amber Swoosh -->
+        <path
+            android:fillColor="#F5B82E"
+            android:pathData="M 64,125 C 95,135 131,131 155,113 C 171,99 178,79 175,61 C 177,77 168,95 149,107 C 127,121 93,125 64,125 Z" />
+    </group>
 </vector>

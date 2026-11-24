@@ -45,6 +45,10 @@ export interface Product {
   isAvailable: boolean;
   imageUrl?: string;
   sku?: string;
+  barcode?: string;
+  brand?: string;
+  packageSize?: string;
+  store?: Store;
 }
 
 export interface CartItem {
@@ -84,6 +88,9 @@ export interface OrderItem {
   quantity: number;
   unitPricePaise: number;
   totalPricePaise: number;
+  pricePaise?: number;
+  totalPaise?: number;
+  product?: Product;
 }
 
 export interface OrderEvent {

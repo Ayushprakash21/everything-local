@@ -6,13 +6,24 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  ActivityIndicator
+  ActivityIndicator,
+  Platform,
+  StatusBar
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Order } from '../../../src/types';
 import { request } from '../../../src/api/client';
 import { formatPaise } from '../../../src/utils/format';
-import { Package, ArrowRight, ArrowLeft } from 'lucide-react-native';
+import {
+  Package,
+  ArrowRight,
+  ArrowLeft,
+  Store,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Truck
+} from 'lucide-react-native';
 
 export default function CustomerOrdersHistoryScreen() {
   const router = useRouter();
@@ -23,9 +34,9 @@ export default function CustomerOrdersHistoryScreen() {
   const fetchOrders = async () => {
     try {
       const res = await request<{ orders: Order[] }>('/customer/orders');
-      setOrders(res.orders);
+      setOrders(res.orders || []);
     } catch (e) {
-      console.error(e);
+      console.error('Failed to load orders:', e);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -41,79 +52,116 @@ export default function CustomerOrdersHistoryScreen() {
     fetchOrders();
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'DELIVERED':
+      case 'COLLECTED':
+        return { bg: '#DCFCE7', text: '#064E3B', label: 'Delivered', icon: CheckCircle2 };
+      case 'OUT_FOR_DELIVERY':
+      case 'READY_FOR_PICKUP':
+        return { bg: '#FEF3C7', text: '#B45309', label: status.replace(/_/g, ' '), icon: Truck };
+      case 'PREPARING':
+      case 'ACCEPTED':
+        return { bg: '#E0F2FE', text: '#0369A1', label: 'Preparing', icon: Clock };
+      case 'CANCELLED':
+      case 'REJECTED':
+        return { bg: '#FEE2E2', text: '#B91C1C', label: 'Cancelled', icon: XCircle };
+      default:
+        return { bg: '#F1F5F9', text: '#475569', label: status.replace(/_/g, ' '), icon: Clock };
+    }
+  };
+
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <ArrowLeft size={20} color="#0f172a" />
+          <ArrowLeft size={20} color="#0F172A" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Order History</Text>
-        <View style={{ width: 38 }} />
+        <Text style={styles.headerTitle}>Your Orders</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       {loading ? (
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color="#059669" />
+          <ActivityIndicator size="large" color="#064E3B" />
+          <Text style={styles.loadingText}>Fetching order history...</Text>
         </View>
       ) : (
         <FlatList
           data={orders}
           keyExtractor={(item) => item.id}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#059669']} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#064E3B']} />}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => {
-            const isCompleted = ['DELIVERED', 'COLLECTED'].includes(item.status);
-            const isCancelled = item.status === 'CANCELLED' || item.status === 'REJECTED';
+            const statusConfig = getStatusBadge(item.status);
+            const StatusIcon = statusConfig.icon;
+            const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-IN', {
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit'
+            }) : 'Recent';
 
             return (
               <TouchableOpacity
                 onPress={() => router.push(`/(customer)/orders/${item.id}`)}
-                style={styles.card}
+                style={styles.orderCard}
+                activeOpacity={0.7}
               >
                 <View style={styles.cardTop}>
-                  <View>
-                    <Text style={styles.orderNumber}>{item.orderNumber}</Text>
-                    <Text style={styles.storeName}>{item.store?.name}</Text>
+                  <View style={styles.storeRow}>
+                    <View style={styles.storeIconBox}>
+                      <Store size={18} color="#064E3B" />
+                    </View>
+                    <View style={{ flex: 1, marginLeft: 10 }}>
+                      <Text style={styles.storeName}>{item.store?.name || 'Local Store'}</Text>
+                      <Text style={styles.orderNumber}>#{item.orderNumber} • {dateStr}</Text>
+                    </View>
                   </View>
 
-                  <View
-                    style={[
-                      styles.statusPill,
-                      isCompleted && styles.statusCompleted,
-                      isCancelled && styles.statusCancelled
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.statusText,
-                        isCompleted && styles.statusTextCompleted,
-                        isCancelled && styles.statusTextCancelled
-                      ]}
-                    >
-                      {item.status.replace(/_/g, ' ')}
+                  <View style={[styles.statusPill, { backgroundColor: statusConfig.bg }]}>
+                    <StatusIcon size={12} color={statusConfig.text} style={{ marginRight: 4 }} />
+                    <Text style={[styles.statusPillText, { color: statusConfig.text }]}>
+                      {statusConfig.label}
                     </Text>
                   </View>
                 </View>
 
-                <Text style={styles.itemsSummary} numberOfLines={2}>
-                  {item.items.map((i) => `${i.productName} (x${i.quantity})`).join(', ')}
-                </Text>
+                {/* Items Summary */}
+                <View style={styles.itemsSummary}>
+                  <Text style={styles.itemsText} numberOfLines={2}>
+                    {item.items?.map((it) => `${it.productName || it.product?.name || 'Item'} (${it.quantity})`).join(', ') || 'Grocery essentials'}
+                  </Text>
+                </View>
 
                 <View style={styles.cardBottom}>
-                  <Text style={styles.modeText}>Mode: <Text style={{ color: '#0f172a' }}>{item.fulfillmentMode}</Text></Text>
-                  <View style={styles.priceRow}>
-                    <Text style={styles.totalText}>{formatPaise(item.totalAmountPaise)}</Text>
-                    <ArrowRight size={14} color="#059669" />
+                  <View>
+                    <Text style={styles.amountLabel}>Total Paid</Text>
+                    <Text style={styles.amountValue}>{formatPaise(item.totalAmountPaise)}</Text>
+                  </View>
+
+                  <View style={styles.trackBtn}>
+                    <Text style={styles.trackBtnText}>Track Order</Text>
+                    <ArrowRight size={14} color="#064E3B" />
                   </View>
                 </View>
               </TouchableOpacity>
             );
           }}
           ListEmptyComponent={
-            <View style={styles.centerBox}>
-              <Package size={48} color="#cbd5e1" />
+            <View style={styles.emptyBox}>
+              <Package size={52} color="#CBD5E1" />
               <Text style={styles.emptyTitle}>No Orders Yet</Text>
-              <Text style={styles.emptySub}>Your neighbourhood order history will appear here.</Text>
+              <Text style={styles.emptySub}>
+                When you order groceries and essentials from your local stores, they will appear here.
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push('/(customer)')}
+                style={styles.shopNowBtn}
+              >
+                <Text style={styles.shopNowText}>Start Shopping</Text>
+              </TouchableOpacity>
             </View>
           }
         />
@@ -125,128 +173,175 @@ export default function CustomerOrdersHistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#F8F9FA'
   },
   header: {
+    backgroundColor: '#FFFFFF',
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 48,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 52,
-    paddingBottom: 14,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: '#F1F5F9',
+    elevation: 2
   },
   backBtn: {
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '900',
-    color: '#0f172a',
+    fontWeight: '800',
+    color: '#0F172A'
   },
   listContent: {
     padding: 16,
-    gap: 12,
+    paddingBottom: 40
   },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
+  orderCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 16,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    gap: 8,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2
   },
   cardTop: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    marginBottom: 12
   },
-  orderNumber: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#94a3b8',
-    letterSpacing: 0.5,
+  storeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 8
+  },
+  storeIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: '#DCFCE7',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   storeName: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#0f172a',
-    marginTop: 2,
+    color: '#0F172A'
+  },
+  orderNumber: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2
   },
   statusPill: {
-    backgroundColor: '#fef3c7',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20
   },
-  statusCompleted: {
-    backgroundColor: '#ecfdf5',
-  },
-  statusCancelled: {
-    backgroundColor: '#fef2f2',
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#92400e',
-    textTransform: 'uppercase',
-  },
-  statusTextCompleted: {
-    color: '#047857',
-  },
-  statusTextCancelled: {
-    color: '#b91c1c',
+  statusPillText: {
+    fontSize: 11,
+    fontWeight: '800'
   },
   itemsSummary: {
-    fontSize: 12,
-    color: '#64748b',
-    lineHeight: 16,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 12
+  },
+  itemsText: {
+    fontSize: 13,
+    color: '#475569',
+    lineHeight: 18
   },
   cardBottom: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    borderTopColor: '#F1F5F9'
   },
-  modeText: {
+  amountLabel: {
     fontSize: 11,
-    color: '#64748b',
-    fontWeight: '600',
+    fontWeight: '700',
+    color: '#94A3B8'
   },
-  priceRow: {
+  amountValue: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#0F172A'
+  },
+  trackBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 4
   },
-  totalText: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#0f172a',
+  trackBtnText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#064E3B'
   },
   centerBox: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
-    gap: 8,
+    padding: 32
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '600'
+  },
+  emptyBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 64,
+    paddingHorizontal: 24
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '800',
-    color: '#0f172a',
+    color: '#0F172A',
+    marginTop: 16
   },
   emptySub: {
-    fontSize: 13,
-    color: '#64748b',
+    fontSize: 14,
+    color: '#64748B',
     textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20
   },
+  shopNowBtn: {
+    backgroundColor: '#064E3B',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 20
+  },
+  shopNowText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF'
+  }
 });

@@ -189,7 +189,7 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
             <AlertCircle size={56} color="#F59E0B" />
             <Text style={styles.permissionTitle}>Camera Permission Required</Text>
             <Text style={styles.permissionText}>
-              Everything Local uses your camera to scan barcodes and look up products automatically from the catalogue.
+              EveryBazaar uses your camera to scan barcodes and look up products automatically from the catalogue.
             </Text>
             <TouchableOpacity style={styles.primaryButton} onPress={requestPermission}>
               <Text style={styles.primaryButtonText}>Grant Camera Access</Text>

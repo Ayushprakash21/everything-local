@@ -69,7 +69,7 @@ export default function LoginScreen() {
         <View style={styles.heroBox}>
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>
-            Everything Local • Hyperlocal Commerce for Indore
+            EveryBazaar • Shop more. Save more. Live better.
           </Text>
         </View>
 

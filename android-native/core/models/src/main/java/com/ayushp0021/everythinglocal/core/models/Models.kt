@@ -180,3 +180,196 @@ data class SingleOrderResponse(
 data class OrderStatusUpdateRequest(
     val status: String
 )
+
+@Serializable
+data class MerchantApplicationDto(
+    val id: String = "",
+    val referenceNumber: String = "",
+    val status: String = "DRAFT",
+    val currentStep: Int = 1,
+    val ownerName: String = "",
+    val ownerPhone: String = "",
+    val ownerEmail: String = "",
+    val isPhoneVerified: Boolean = false,
+    val businessName: String? = null,
+    val storeName: String? = null,
+    val panNumber: String? = null,
+    val gstin: String? = null,
+    val fssaiNumber: String? = null,
+    val drugLicenseNumber: String? = null,
+    val category: String? = "Grocery & Daily Staples",
+    val addressLine: String? = null,
+    val city: String? = "Indore",
+    val pincode: String? = "452001",
+    val deliveryRadiusKm: Double = 3.0,
+    val commissionRatePct: Double = 3.5,
+    val adminFeedback: String? = null,
+    val rejectionReason: String? = null
+)
+
+@Serializable
+data class StartOnboardingRequest(
+    val ownerName: String,
+    val ownerPhone: String,
+    val ownerEmail: String,
+    val password: String,
+    val communicationConsent: Boolean = true
+)
+
+@Serializable
+data class StartOnboardingResponse(
+    val message: String,
+    val token: String? = null,
+    val application: MerchantApplicationDto
+)
+
+@Serializable
+data class VerifyPhoneOtpRequest(
+    val referenceNumber: String,
+    val otp: String
+)
+
+@Serializable
+data class ApplicationResponse(
+    val application: MerchantApplicationDto
+)
+
+// --- Delivery Partner Models ---
+@Serializable
+data class DeliveryPartnerProfile(
+    val id: String,
+    val userId: String,
+    val riderCode: String,
+    val vehicleType: String = "SCOOTER",
+    val vehicleNumber: String = "",
+    val drivingLicenceNumber: String = "",
+    val panNumber: String? = null,
+    val bankAccountNumber: String? = null,
+    val bankIfsc: String? = null,
+    val isVerified: Boolean = false,
+    val isActive: Boolean = true,
+    val isOnline: Boolean = false,
+    val currentLatitude: Double? = null,
+    val currentLongitude: Double? = null,
+    val rating: Double = 5.0,
+    val totalDeliveries: Int = 0,
+    val approvalStatus: String = "UNDER_REVIEW",
+    val serviceArea: String = "Indore - All Zones"
+)
+
+@Serializable
+data class DeliveryTaskDto(
+    val id: String,
+    val taskNumber: String,
+    val parentOrderId: String? = null,
+    val merchantOrderId: String? = null,
+    val riderId: String? = null,
+    val status: String, // AVAILABLE, OFFERED, ACCEPTED, AT_STORE, PICKED_UP, EN_ROUTE, DELIVERED
+    val pickupLocationName: String,
+    val pickupAddress: String,
+    val pickupLatitude: Double = 0.0,
+    val pickupLongitude: Double = 0.0,
+    val deliveryAddress: String,
+    val deliveryLatitude: Double = 0.0,
+    val deliveryLongitude: Double = 0.0,
+    val estimatedDistanceKm: Double = 2.5,
+    val estimatedMinutes: Int = 30,
+    val riderBasePayoutPaise: Int = 3000,
+    val surgePayoutPaise: Int = 0,
+    val totalPayoutPaise: Int = 3000,
+    val pickupOtp: String? = null,
+    val deliveryOtpAttempts: Int = 0,
+    val deliveryOtpMaxAttempts: Int = 5,
+    val acceptanceDeadline: String? = null
+)
+
+@Serializable
+data class DeliveryTaskOfferDto(
+    val id: String,
+    val taskId: String,
+    val partnerId: String,
+    val status: String,
+    val expiresAt: String,
+    val task: DeliveryTaskDto
+)
+
+@Serializable
+data class DeliveryAuthResponse(
+    val success: Boolean,
+    val token: String,
+    val isNewUser: Boolean = false,
+    val user: User,
+    val partnerProfile: DeliveryPartnerProfile? = null
+)
+
+@Serializable
+data class DeliveryProfileResponse(
+    val partner: DeliveryPartnerProfile
+)
+
+@Serializable
+data class DeliveryTaskOffersResponse(
+    val offers: List<DeliveryTaskOfferDto> = emptyList()
+)
+
+@Serializable
+data class DeliveryTaskResponse(
+    val success: Boolean,
+    val task: DeliveryTaskDto,
+    val payoutPaise: Int? = null
+)
+
+@Serializable
+data class DeliveryEarningEntryDto(
+    val id: String,
+    val type: String,
+    val amountPaise: Int,
+    val description: String,
+    val settlementStatus: String,
+    val createdAt: String
+)
+
+@Serializable
+data class DeliveryEarningsResponse(
+    val partnerCode: String,
+    val rating: Double = 5.0,
+    val totalDeliveries: Int = 0,
+    val totalEarningsPaise: Int = 0,
+    val unsettledEarningsPaise: Int = 0,
+    val earnings: List<DeliveryEarningEntryDto> = emptyList()
+)
+
+@Serializable
+data class DeliverySettlementDto(
+    val id: String,
+    val payoutReference: String,
+    val netPayoutPaise: Int,
+    val status: String,
+    val processedAt: String
+)
+
+@Serializable
+data class DeliverySettlementsResponse(
+    val settlements: List<DeliverySettlementDto> = emptyList()
+)
+
+@Serializable
+data class DeliveryOnboardingRequest(
+    val name: String,
+    val drivingLicenceNumber: String,
+    val panNumber: String? = null,
+    val vehicleType: String,
+    val vehicleNumber: String,
+    val bankAccountNumber: String,
+    val bankIfsc: String,
+    val emergencyContactName: String? = null,
+    val emergencyContactPhone: String? = null,
+    val serviceArea: String = "Indore - All Zones"
+)
+
+@Serializable
+data class DeliveryOnboardingResponse(
+    val success: Boolean,
+    val message: String,
+    val profile: DeliveryPartnerProfile
+)

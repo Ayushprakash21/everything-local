@@ -1,29 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  ScrollView
+  TextInput,
+  Platform,
+  StatusBar
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Store, Product } from '../../../src/types';
 import { request } from '../../../src/api/client';
-import { formatPaise, calculateDiscountPct } from '../../../src/utils/format';
+import { formatDistance, formatPaise } from '../../../src/utils/format';
 import { useCart } from '../../../src/context/CartContext';
-import { ArrowLeft, Star, MapPin, Clock, Plus, Check, ShoppingBag, ShieldCheck } from 'lucide-react-native';
-import { SafeImage } from '../../../src/components/SafeImage';
+import { ProductCard } from '../../../src/components/ProductCard';
+import { FloatingCartBar } from '../../../src/components/FloatingCartBar';
+import {
+  ArrowLeft,
+  Star,
+  MapPin,
+  Clock,
+  ShieldCheck,
+  Search,
+  Store as StoreIcon,
+  ShoppingBag,
+  Bike,
+  CheckCircle2,
+  Phone
+} from 'lucide-react-native';
 
 export default function StorefrontDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { addItem, itemCount } = useCart();
+  const { itemCount } = useCart();
+
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [addedIds, setAddedIds] = useState<Record<string, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     const fetchStore = async () => {
@@ -39,42 +55,48 @@ export default function StorefrontDetailScreen() {
     fetchStore();
   }, [id]);
 
+  const products = store?.products || [];
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((p) => {
+      if (p.category) set.add(p.category);
+    });
+    return ['all', ...Array.from(set)];
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      const matchCat = selectedCategory === 'all' || p.category === selectedCategory;
+      const matchQuery = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()) || (p.brand && p.brand.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchCat && matchQuery;
+    });
+  }, [products, selectedCategory, searchQuery]);
+
   if (loading || !store) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color="#047857" />
+        <Text style={styles.loadingText}>Opening store catalog...</Text>
       </View>
     );
   }
 
-  const products = store.products || [];
-  const categories = ['all', ...Array.from(new Set(products.map((p) => p.category)))];
-
-  const filteredProducts = products.filter((p) => {
-    if (selectedCategory === 'all') return true;
-    return p.category === selectedCategory;
-  });
-
-  const handleAdd = async (productId: string) => {
-    const res = await addItem(store.id, productId, 1);
-    if (res.success) {
-      setAddedIds((prev) => ({ ...prev, [productId]: true }));
-      setTimeout(() => setAddedIds((prev) => ({ ...prev, [productId]: false })), 1200);
-    } else if (res.conflictMessage) {
-      alert(res.conflictMessage);
-    }
-  };
-
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+
       {/* Top Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
           <ArrowLeft size={20} color="#0f172a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>{store.name}</Text>
+        <View style={styles.headerTitleBox}>
+          <Text style={styles.headerTitle} numberOfLines={1}>{store.name}</Text>
+          <Text style={styles.headerSubtitle} numberOfLines={1}>{store.category.toUpperCase()} • Indore</Text>
+        </View>
         <TouchableOpacity onPress={() => router.push('/(customer)/cart')} style={styles.cartBtn}>
-          <ShoppingBag size={20} color="#059669" />
+          <ShoppingBag size={20} color="#064e3b" />
           {itemCount > 0 && (
             <View style={styles.cartBadge}>
               <Text style={styles.cartBadgeText}>{itemCount}</Text>
@@ -83,128 +105,135 @@ export default function StorefrontDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={filteredProducts}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={
-          <>
-            {/* Store Information Card */}
-            <View style={styles.storeHeroCard}>
-              <View style={styles.categoryBadgeRow}>
-                <Text style={styles.categoryBadge}>{store.category.toUpperCase()}</Text>
-                <View style={styles.verifiedBadge}>
-                  <ShieldCheck size={12} color="#059669" />
-                  <Text style={styles.verifiedText}>Verified Local Merchant</Text>
-                </View>
-              </View>
-
-              <Text style={styles.storeName}>{store.name}</Text>
-              {store.description && <Text style={styles.storeDesc}>{store.description}</Text>}
-
-              <View style={styles.infoRow}>
-                <MapPin size={14} color="#059669" />
-                <Text style={styles.infoText}>{store.addressLine}, {store.city}</Text>
-              </View>
-
-              <View style={styles.infoRow}>
-                <Clock size={14} color="#94a3b8" />
-                <Text style={styles.infoText}>Open Today: 8:00 AM - 10:00 PM</Text>
-              </View>
-
-              <View style={styles.pillsRow}>
-                <View style={styles.ratingBox}>
-                  <Star size={12} color="#f59e0b" fill="#f59e0b" />
-                  <Text style={styles.ratingText}>4.8 (120+ reviews)</Text>
-                </View>
-                <Text style={styles.radiusPill}>Radius: {store.serviceRadiusKm} km</Text>
-                <Text style={styles.pickupPill}>Pickup ₹0 FREE</Text>
-              </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Store Banner Hero Card */}
+        <View style={styles.storeHeroCard}>
+          <View style={styles.storeTitleRow}>
+            <View style={styles.storeLogoBox}>
+              <StoreIcon size={28} color="#047857" />
             </View>
+            <View style={styles.storeMainInfo}>
+              <View style={styles.nameVerifiedRow}>
+                <Text style={styles.storeMainName} numberOfLines={1}>{store.name}</Text>
+                {store.isVerified && (
+                  <ShieldCheck size={18} color="#047857" style={{ marginLeft: 4 }} />
+                )}
+              </View>
+              <Text style={styles.storeAddressText} numberOfLines={1}>
+                {store.addressLine}, {store.city} {store.pincode}
+              </Text>
+            </View>
+          </View>
 
-            {/* Category Filter Chips */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catScroll}>
-              {categories.map((cat) => (
-                <TouchableOpacity
-                  key={cat}
-                  onPress={() => setSelectedCategory(cat)}
-                  style={[styles.catChip, selectedCategory === cat && styles.catChipActive]}
-                >
-                  <Text style={[styles.catChipText, selectedCategory === cat && styles.catChipTextActive]}>
-                    {cat === 'all' ? 'All Items' : cat}
-                  </Text>
-                </TouchableOpacity>
+          {/* Quick Metrics Bar */}
+          <View style={styles.metricsBar}>
+            <View style={styles.metricItem}>
+              <View style={styles.ratingChip}>
+                <Star size={12} color="#d97706" fill="#d97706" />
+                <Text style={styles.ratingValue}>{store.rating || 4.8}</Text>
+              </View>
+              <Text style={styles.metricLabel}>{store.reviewCount || 24} ratings</Text>
+            </View>
+            <View style={styles.metricDivider} />
+            <View style={styles.metricItem}>
+              <View style={styles.metricIconRow}>
+                <Clock size={13} color="#047857" />
+                <Text style={styles.metricValue}>15-20 min</Text>
+              </View>
+              <Text style={styles.metricLabel}>Delivery ETA</Text>
+            </View>
+            <View style={styles.metricDivider} />
+            <View style={styles.metricItem}>
+              <View style={styles.metricIconRow}>
+                <MapPin size={13} color="#64748b" />
+                <Text style={styles.metricValue}>{formatDistance(store.distanceKm || 1.1)}</Text>
+              </View>
+              <Text style={styles.metricLabel}>Distance</Text>
+            </View>
+          </View>
+
+          {/* Fulfilment & Guarantee Badge */}
+          <View style={styles.guaranteeRow}>
+            <View style={styles.guaranteeItem}>
+              <CheckCircle2 size={14} color="#047857" />
+              <Text style={styles.guaranteeText}>Free pickup available</Text>
+            </View>
+            <View style={styles.guaranteeItem}>
+              <Bike size={14} color="#047857" />
+              <Text style={styles.guaranteeText}>Direct doorstep delivery</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* In-Store Search Bar */}
+        <View style={styles.searchWrapper}>
+          <View style={styles.storeSearchBar}>
+            <Search size={16} color="#94a3b8" />
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder={`Search items in ${store.name}...`}
+              placeholderTextColor="#94a3b8"
+              style={styles.storeSearchInput}
+            />
+          </View>
+        </View>
+
+        {/* Category Pills Navigation */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryPillsRow}
+        >
+          {categories.map((cat) => {
+            const isSelected = selectedCategory === cat;
+            return (
+              <TouchableOpacity
+                key={cat}
+                activeOpacity={0.8}
+                onPress={() => setSelectedCategory(cat)}
+                style={[styles.catPill, isSelected && styles.catPillSelected]}
+              >
+                <Text style={[styles.catPillText, isSelected && styles.catPillTextSelected]}>
+                  {cat === 'all' ? 'All Products' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {/* Products Grid */}
+        <View style={styles.productsSection}>
+          <Text style={styles.resultsCount}>
+            {filteredProducts.length} {filteredProducts.length === 1 ? 'Product' : 'Products'} available
+          </Text>
+
+          {filteredProducts.length === 0 ? (
+            <View style={styles.emptyState}>
+              <ShoppingBag size={48} color="#cbd5e1" />
+              <Text style={styles.emptyTitle}>No matching products</Text>
+              <Text style={styles.emptySubtitle}>Try searching for another item or category</Text>
+            </View>
+          ) : (
+            <View style={styles.productGrid}>
+              {filteredProducts.map((product) => (
+                <View key={product.id} style={styles.gridItem}>
+                  <ProductCard
+                    product={product}
+                    storeId={store.id}
+                    width={166}
+                  />
+                </View>
               ))}
-            </ScrollView>
-
-            <Text style={styles.catalogueTitle}>
-              Store Catalogue ({filteredProducts.length} items)
-            </Text>
-          </>
-        }
-        renderItem={({ item }) => {
-          const discountPct = calculateDiscountPct(item.mrpPaise, item.pricePaise);
-          const isAdded = addedIds[item.id];
-
-          return (
-            <View style={styles.productCard}>
-              <SafeImage
-                uri={item.imageUrl}
-                style={styles.prodThumb}
-                resizeMode="contain"
-                fallbackIconSize={22}
-              />
-              <View style={{ flex: 1, paddingHorizontal: 12 }}>
-                <View style={styles.prodMetaRow}>
-                  <Text style={styles.prodCategory}>{item.category.toUpperCase()}</Text>
-                  {discountPct > 0 && (
-                    <Text style={styles.discountBadge}>{discountPct}% OFF</Text>
-                  )}
-                </View>
-
-                <Text style={styles.prodTitle}>{item.name}</Text>
-                {item.description && (
-                  <Text style={styles.prodDescription} numberOfLines={2}>{item.description}</Text>
-                )}
-
-                <View style={styles.priceRow}>
-                  <Text style={styles.sellingPrice}>{formatPaise(item.pricePaise)}</Text>
-                  {item.mrpPaise > item.pricePaise && (
-                    <Text style={styles.mrpPrice}>{formatPaise(item.mrpPaise)}</Text>
-                  )}
-                </View>
-              </View>
-
-              <View style={styles.actionCol}>
-                <TouchableOpacity
-                  onPress={() => handleAdd(item.id)}
-                  disabled={!item.isAvailable || item.stock === 0}
-                  style={[
-                    styles.addButton,
-                    isAdded && styles.addButtonSuccess,
-                    (!item.isAvailable || item.stock === 0) && styles.addButtonDisabled
-                  ]}
-                >
-                  {isAdded ? (
-                    <Check size={16} color="#ffffff" />
-                  ) : item.isAvailable && item.stock > 0 ? (
-                    <>
-                      <Plus size={16} color="#059669" />
-                      <Text style={styles.addButtonText}>ADD</Text>
-                    </>
-                  ) : (
-                    <Text style={styles.outOfStockText}>OUT</Text>
-                  )}
-                </TouchableOpacity>
-
-                {item.stock > 0 && item.stock <= 5 && (
-                  <Text style={styles.lowStockText}>{item.stock} left</Text>
-                )}
-              </View>
             </View>
-          );
-        }}
-      />
+          )}
+        </View>
+
+        <View style={{ height: 120 }} />
+      </ScrollView>
+
+      {/* Persistent Floating Cart */}
+      <FloatingCartBar />
     </View>
   );
 }
@@ -212,297 +241,269 @@ export default function StorefrontDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff'
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#ffffff'
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '600'
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 52,
-    paddingBottom: 14,
+    paddingTop: Platform.OS === 'ios' ? 48 : 12,
+    paddingBottom: 10,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: '#f1f5f9'
   },
-  backBtn: {
+  headerBtn: {
     width: 38,
     height: 38,
-    borderRadius: 12,
-    backgroundColor: '#f1f5f9',
+    borderRadius: 19,
+    backgroundColor: '#f8fafc',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
+  },
+  headerTitleBox: {
+    flex: 1,
+    marginHorizontal: 12
   },
   headerTitle: {
     fontSize: 16,
-    fontWeight: '800',
-    color: '#0f172a',
-    flex: 1,
-    textAlign: 'center',
-    marginHorizontal: 10,
+    fontWeight: '900',
+    color: '#0f172a'
+  },
+  headerSubtitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#047857'
   },
   cartBtn: {
     width: 38,
     height: 38,
-    borderRadius: 12,
-    backgroundColor: '#ecfdf5',
+    borderRadius: 19,
+    backgroundColor: '#fef3c7',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
+    position: 'relative'
   },
   cartBadge: {
     position: 'absolute',
     top: -4,
     right: -4,
-    backgroundColor: '#f59e0b',
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
+    backgroundColor: '#047857',
+    borderRadius: 9,
+    minWidth: 18,
+    height: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 3
   },
   cartBadgeText: {
-    color: '#0f172a',
-    fontSize: 9,
-    fontWeight: '900',
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: '900'
   },
-  listContent: {
-    padding: 16,
-    paddingBottom: 40,
+  scrollContent: {
+    backgroundColor: '#f8fafc'
   },
   storeHeroCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    marginBottom: 20,
-    gap: 8,
-  },
-  categoryBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  categoryBadge: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#059669',
-    backgroundColor: '#ecfdf5',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  verifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  verifiedText: {
-    fontSize: 11,
-    color: '#059669',
-    fontWeight: '600',
-  },
-  storeName: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: '#0f172a',
-    letterSpacing: -0.5,
-  },
-  storeDesc: {
-    fontSize: 13,
-    color: '#64748b',
-    lineHeight: 18,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 2,
-  },
-  infoText: {
-    fontSize: 12,
-    color: '#475569',
-    fontWeight: '500',
-  },
-  pillsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 8,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-  },
-  ratingBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#fef3c7',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  ratingText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#92400e',
-  },
-  radiusPill: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#64748b',
-    backgroundColor: '#f1f5f9',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  pickupPill: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#059669',
-    backgroundColor: '#ecfdf5',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  catScroll: {
-    gap: 8,
-    marginBottom: 16,
-  },
-  catChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  catChipActive: {
-    backgroundColor: '#059669',
-    borderColor: '#059669',
-  },
-  catChipText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748b',
-  },
-  catChipTextActive: {
-    color: '#ffffff',
-  },
-  catalogueTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#0f172a',
-    marginBottom: 12,
-  },
-  productCard: {
-    backgroundColor: '#ffffff',
+    margin: 16,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2
+  },
+  storeTitleRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: 'center'
   },
-  prodThumb: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
-    backgroundColor: '#f8fafc',
-  },
-  prodMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
-  },
-  prodCategory: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#94a3b8',
-  },
-  discountBadge: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#b45309',
-    backgroundColor: '#fef3c7',
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  prodTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#0f172a',
-    marginBottom: 2,
-  },
-  prodDescription: {
-    fontSize: 11,
-    color: '#64748b',
-    lineHeight: 15,
-    marginBottom: 8,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
-  },
-  sellingPrice: {
-    fontSize: 15,
-    fontWeight: '900',
-    color: '#0f172a',
-  },
-  mrpPrice: {
-    fontSize: 11,
-    color: '#94a3b8',
-    textDecorationLine: 'line-through',
-  },
-  actionCol: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    borderWidth: 1.5,
-    borderColor: '#059669',
+  storeLogoBox: {
+    width: 50,
+    height: 50,
+    borderRadius: 14,
     backgroundColor: '#ecfdf5',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12
   },
-  addButtonSuccess: {
-    backgroundColor: '#059669',
-    borderColor: '#059669',
+  storeMainInfo: {
+    flex: 1
   },
-  addButtonDisabled: {
-    borderColor: '#cbd5e1',
-    backgroundColor: '#f1f5f9',
+  nameVerifiedRow: {
+    flexDirection: 'row',
+    alignItems: 'center'
   },
-  addButtonText: {
+  storeMainName: {
+    fontSize: 17,
+    fontWeight: '900',
+    color: '#0f172a'
+  },
+  storeAddressText: {
     fontSize: 12,
-    fontWeight: '800',
-    color: '#059669',
+    color: '#64748b',
+    fontWeight: '500',
+    marginTop: 2
   },
-  outOfStockText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#94a3b8',
+  metricsBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderRadius: 14,
+    paddingVertical: 10,
+    marginTop: 14
   },
-  lowStockText: {
+  metricItem: {
+    alignItems: 'center'
+  },
+  ratingChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6
+  },
+  ratingValue: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#92400e',
+    marginLeft: 3
+  },
+  metricIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  metricValue: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginLeft: 4
+  },
+  metricLabel: {
     fontSize: 10,
+    color: '#64748b',
+    fontWeight: '600',
+    marginTop: 2
+  },
+  metricDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#e2e8f0'
+  },
+  guaranteeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9'
+  },
+  guaranteeItem: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  guaranteeText: {
+    fontSize: 11,
+    color: '#047857',
     fontWeight: '700',
-    color: '#b45309',
+    marginLeft: 4
   },
+  searchWrapper: {
+    paddingHorizontal: 16,
+    marginBottom: 10
+  },
+  storeSearchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 42,
+    borderWidth: 1,
+    borderColor: '#e2e8f0'
+  },
+  storeSearchInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 13,
+    color: '#0f172a',
+    fontWeight: '500'
+  },
+  categoryPillsRow: {
+    paddingHorizontal: 16,
+    gap: 8,
+    paddingBottom: 8
+  },
+  catPill: {
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#e2e8f0'
+  },
+  catPillSelected: {
+    backgroundColor: '#064e3b',
+    borderColor: '#064e3b'
+  },
+  catPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#475569'
+  },
+  catPillTextSelected: {
+    color: '#ffffff'
+  },
+  productsSection: {
+    paddingHorizontal: 16,
+    marginTop: 8
+  },
+  resultsCount: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#64748b',
+    marginBottom: 12
+  },
+  productGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between'
+  },
+  gridItem: {
+    marginBottom: 12
+  },
+  emptyState: {
+    padding: 36,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginTop: 10
+  },
+  emptySubtitle: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 4
+  }
 });

@@ -7,15 +7,36 @@ export default {
   theme: {
     extend: {
       colors: {
+        // EveryBazaar Approved Brand Design System Tokens
+        brand: {
+          primary: '#0B1F3B',   // Primary Navy
+          navy: '#0B1F3B',
+          accent: '#F5B82E',    // Accent Orange
+          orange: '#F5B82E',
+          amber: '#F5B82E',
+          success: '#10B981',   // Success Green
+          green: '#10B981',
+          surface: '#F3F4F6',   // Surface
+          text: '#6B7280',      // Text Grey
+          textGrey: '#6B7280',
+          dark: '#071529',      // Dark Mode Background
+          50: '#fffbeb',
+          100: '#fef3c7',
+          500: '#F5B82E',
+          600: '#E0A31D',
+          700: '#b45309',
+          800: '#0B1F3B',
+          900: '#071529',
+        },
         forest: {
           50: '#f0fdf4',
           100: '#dcfce7',
           200: '#bbf7d0',
-          500: '#22c55e',
+          500: '#00b982',
           600: '#16a34a',
           700: '#15803d',
           800: '#065f46',
-          900: '#064e3b',
+          900: '#0B1F3A',
           950: '#022c22',
         },
         amber: {
@@ -24,25 +45,16 @@ export default {
           200: '#fde68a',
           300: '#fcd34d',
           400: '#fbbf24',
-          500: '#f59e0b',
+          500: '#FFB21A',
           600: '#d97706',
           700: '#b45309',
           800: '#92400e',
           900: '#78350f',
         },
-        brand: {
-          50: '#ecfdf5',
-          100: '#d1fae5',
-          500: '#10b981',
-          600: '#059669',
-          700: '#047857',
-          800: '#065f46',
-          900: '#064e3b',
-        },
         accent: {
           50: '#fffbeb',
           100: '#fef3c7',
-          500: '#f59e0b',
+          500: '#FFB21A',
           600: '#d97706',
         }
       },
@@ -50,9 +62,10 @@ export default {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
       boxShadow: {
+        '2xs': '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
         'subtle': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
-        'card': '0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04)',
-        'float': '0 12px 30px -4px rgba(6, 78, 59, 0.15), 0 4px 12px -2px rgba(0, 0, 0, 0.08)',
+        'card': '0 4px 12px -2px rgba(11, 31, 58, 0.06), 0 2px 6px -1px rgba(11, 31, 58, 0.04)',
+        'float': '0 12px 30px -4px rgba(11, 31, 58, 0.15), 0 4px 12px -2px rgba(11, 31, 58, 0.08)',
       }
     },
   },

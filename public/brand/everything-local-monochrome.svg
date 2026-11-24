@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 130" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;800;900&amp;display=swap');
+      .brand-full-title {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 900;
+        font-size: 44px;
+        letter-spacing: -0.9px;
+      }
+      .brand-full-tagline {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 500;
+        font-size: 19px;
+        letter-spacing: -0.1px;
+      }
+    </style>
+  </defs>
+
+  <!-- Scaled Symbol on Left -->
+  <g transform="translate(6, 4) scale(0.78)">
+    
+  <!-- Shopping Bag Handle -->
+  <path d="M 72 32 C 72 12, 108 12, 108 32" fill="none" stroke="#0B1F3B" stroke-width="8.5" stroke-linecap="round"/>
+
+  <!-- Shopping Bag Frame -->
+  <path d="M 54 34 L 124 34 C 134 34, 140 42, 144 58 L 149 86 C 152 98, 146 108, 132 112" 
+        fill="none" stroke="#0B1F3B" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 46 54 L 39 86 C 35 98, 42 108, 56 112" 
+        fill="none" stroke="#0B1F3B" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- EL Monogram -->
+  <g fill="#0B1F3B">
+    <!-- Slanted E -->
+    <path d="M 57 44 L 93 44 L 90 56 L 73 56 L 70 69 L 86 69 L 83 80 L 67 80 L 64 93 L 91 93 L 88 104 L 42 104 Z"/>
+    <!-- Slanted L -->
+    <path d="M 99 44 L 113 44 L 99 93 L 128 93 L 125 104 L 83 104 Z"/>
+  </g>
+
+  <!-- Dynamic Green Swoosh (Bottom Left) -->
+  <path d="M 28 96 C 18 114, 30 134, 60 140 C 84 144, 110 138, 122 129 C 97 137, 69 137, 45 129 C 29 121, 22 108, 28 96 Z" 
+        fill="#0B1F3B"/>
+
+  <!-- Location Pin on Green Swoosh Tip -->
+  <g transform="translate(26, 95)">
+    <path d="M 0 -11 C -6 -11, -11 -6, -11 0 C -11 7, 0 17, 0 17 C 0 17, 11 7, 11 0 C 11 -6, 6 -11, 0 -11 Z" fill="#0B1F3B"/>
+    <circle cx="0" cy="0" r="3.8" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Dynamic Amber Swoosh (Bottom Right) -->
+  <path d="M 64 125 C 95 135, 131 131, 155 113 C 171 99, 178 79, 175 61 C 177 77, 168 95, 149 107 C 127 121, 93 125, 64 125 Z" 
+        fill="#0B1F3B"/>
+
+  </g>
+
+  <!-- Vertical Divider Line -->
+  <line x1="158" y1="20" x2="158" y2="108" stroke="#0B1F3B" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Wordmark -->
+  <text x="180" y="62" class="brand-full-title" fill="#0B1F3B">
+    Everything <tspan fill="#0B1F3B">Local</tspan>
+  </text>
+
+  <!-- Leaf Accent over 'i' -->
+  <path d="M 351 27 C 361 26, 366 33, 363 39 C 353 40, 347 32, 351 27 Z" fill="#0B1F3B"/>
+
+  <!-- Tagline: Shop more. Save more. Live better. -->
+  <text x="182" y="98" class="brand-full-tagline" fill="#334155">Shop more. Save more. Live better.</text>
+
+  <!-- Dynamic Amber Smile Curve under 'Live better.' -->
+  <path d="M 388 108 Q 440 120 495 106" fill="none" stroke="#0B1F3B" stroke-width="3" stroke-linecap="round"/>
+</svg>

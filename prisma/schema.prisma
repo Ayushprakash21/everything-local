@@ -23,6 +23,21 @@ model User {
   carts        Cart[]
   reviews      Review[]
   auditLogs    AuditLog[]
+
+  serviceProviders ServiceProvider[]  @relation("UserProviders")
+  serviceBookings  ServiceBooking[]   @relation("CustomerBookings")
+  serviceReviews   ServiceReview[]    @relation("CustomerServiceReviews")
+
+  pharmacies       Pharmacy[]         @relation("UserPharmacies")
+  prescriptions    Prescription[]     @relation("CustomerPrescriptions")
+  pharmacyOrders   PharmacyOrder[]    @relation("CustomerPharmacyOrders")
+
+  riderProfile     RiderProfile?
+  parentOrders     ParentOrder[]      @relation("CustomerParentOrders")
+  ownedHouseholds  Household[]        @relation("HouseholdOwner")
+  householdMemberships HouseholdMember[]
+  loyaltyAccount   LoyaltyAccount?
+  merchantApplications MerchantApplication[] @relation("UserMerchantApplications")
 }
 
 model Store {
@@ -51,29 +66,72 @@ model Store {
   subscriptions     MerchantSubscription[]
   reviews           Review[]
   carts             Cart[]
+
+  merchantChildOrders   MerchantChildOrder[]
+  settlementStatements  MerchantSettlementStatement[]
+  communityCampaigns    CommunityCampaign[]
+  adCampaigns           AdCampaign[]
+  merchantApplications  MerchantApplication[] @relation("StoreMerchantApplications")
 }
 
 model Product {
-  id          String      @id @default(uuid())
-  storeId     String
-  store       Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  category    String
-  mrpPaise    Int         // Integer paise
-  pricePaise  Int         // Integer paise
-  stock       Int         @default(0)
-  isAvailable Boolean     @default(true)
-  imageUrl    String?
-  sku         String?
-  barcode     String?
-  brand       String?
-  packageSize String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id                  String             @id @default(uuid())
+  storeId             String
+  store               Store              @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  name                String
+  description         String?
+  category            String
+  categoryId          String?
+  categoryRel         ProductCategory?   @relation("ProductToCategory", fields: [categoryId], references: [id])
+  subcategoryId       String?
+  subcategoryRel      ProductCategory?   @relation("ProductToSubcategory", fields: [subcategoryId], references: [id])
+  mrpPaise            Int                // Integer paise
+  pricePaise          Int                // Integer paise
+  stock               Int                @default(0)
+  isAvailable         Boolean            @default(true)
+  imageUrl            String?
+  sku                 String?
+  barcode             String?
+  brand               String?
+  packageSize         String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
+  cartItems           CartItem[]
+  orderItems          OrderItem[]
+
+  @@index([storeId])
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([category])
+}
+
+model ProductCategory {
+  id                  String             @id @default(uuid())
+  name                String
+  slug                String             @unique
+  description         String?
+  imageUrl            String
+  bannerUrl           String?
+  displayOrder        Int                @default(0)
+  isActive            Boolean            @default(true)
+  isHomepageVisible   Boolean            @default(true)
+  department          String             @default("GROCERY") // GROCERY, FASHION, ELECTRONICS, LIFESTYLE, SERVICES
+  metaTitle           String?
+  metaDescription     String?
+  parentId            String?
+  parent              ProductCategory?   @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children            ProductCategory[]  @relation("CategoryHierarchy")
+  products            Product[]          @relation("ProductToCategory")
+  subcategoryProducts Product[]          @relation("ProductToSubcategory")
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@index([slug])
+  @@index([displayOrder])
+  @@index([isActive, isHomepageVisible])
+  @@index([parentId])
+  @@index([department])
 }
 
 model CustomerAddress {
@@ -170,6 +228,8 @@ model FinancialLedgerEntry {
   id                 String   @id @default(uuid())
   orderId            String?
   order              Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  parentOrderId      String?
+  parentOrder        ParentOrder? @relation(fields: [parentOrderId], references: [id], onDelete: SetNull)
   storeId            String
   store              Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
   entryType          String   // ORDER_SALE, COMMISSION_FEE, REFUND_DEBIT, PAYOUT_SETTLEMENT
@@ -222,3 +282,1133 @@ model Review {
   comment    String?
   createdAt  DateTime @default(now())
 }
+
+// ==========================================
+// LOCAL SERVICES ECOSYSTEM MODELS
+// ==========================================
+
+model ServiceCategory {
+  id           String           @id @default(uuid())
+  name         String
+  slug         String           @unique
+  icon         String           // e.g. "✂️", "💄", "🔧", "🧹", "🚗", "📚"
+  description  String?
+  displayOrder Int              @default(0)
+  isActive     Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  services     ServiceListing[]
+}
+
+model ServiceProvider {
+  id                  String                 @id @default(uuid())
+  ownerId             String
+  owner               User                   @relation("UserProviders", fields: [ownerId], references: [id], onDelete: Cascade)
+  businessName        String
+  slug                String                 @unique
+  description         String?
+  profileImageUrl     String?
+  contactPhone        String
+  contactEmail        String?
+  categorySlug        String                 // Primary category (e.g. salon, home-maintenance, cleaning)
+  isVerified          Boolean                @default(false)
+  verificationStatus  String                 @default("PENDING") // PENDING, VERIFIED, REJECTED, SUSPENDED
+  kycDocumentUrl      String?
+  commissionRatePct   Float                  @default(10.0) // Configurable platform commission rate
+  rating              Float                  @default(4.9)
+  reviewCount         Int                    @default(0)
+  
+  // Shop Visit configuration
+  hasShopVisit        Boolean                @default(true)
+  shopAddressLine     String?
+  shopCity            String                 @default("Indore")
+  shopPincode         String?
+  shopLatitude        Float?
+  shopLongitude       Float?
+
+  // Home Visit configuration
+  hasHomeVisit        Boolean                @default(true)
+  homeVisitRadiusKm   Float                  @default(7.0) // Independent radius for services (e.g. 7-10 km)
+  homeVisitFeePaise   Int                    @default(0)   // Travel / visit fee in paise (e.g. ₹9900 or 0)
+  
+  isOpen              Boolean                @default(true)
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  staff               ProviderStaff[]
+  services            ServiceListing[]
+  serviceAreas        ServiceArea[]
+  availabilities      ProviderAvailability[]
+  appointmentSlots    AppointmentSlot[]
+  bookings            ServiceBooking[]
+  reviews             ServiceReview[]
+  earnings            ProviderEarning[]
+}
+
+model ProviderStaff {
+  id               String            @id @default(uuid())
+  providerId       String
+  provider         ServiceProvider   @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name             String
+  role             String            // e.g. "Senior Stylist", "AC Technician", "Master Electrician"
+  phone            String?
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+
+  bookings         ServiceBooking[]
+  appointmentSlots AppointmentSlot[]
+}
+
+model ServiceListing {
+  id                  String           @id @default(uuid())
+  providerId          String
+  provider            ServiceProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  categoryId          String
+  category            ServiceCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  title               String
+  description         String?
+  imageUrl            String?
+  pricePaise          Int              // Integer paise (e.g. 29900 = ₹299)
+  mrpPaise            Int?             // Integer paise (e.g. 39900 = ₹399)
+  pricingType         String           @default("FIXED") // FIXED, STARTING_FROM, INSPECTION_FEE
+  durationMinutes     Int              @default(45)
+  allowsShopVisit     Boolean          @default(true)
+  allowsHomeVisit     Boolean          @default(true)
+  materialIncluded    Boolean          @default(false)
+  isActive            Boolean          @default(true)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  bookings            ServiceBooking[]
+}
+
+model ServiceArea {
+  id          String          @id @default(uuid())
+  providerId  String
+  provider    ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  locality    String          // e.g. "Vijay Nagar", "Palasia", "All Indore"
+  pincode     String?
+}
+
+model ProviderAvailability {
+  id                  String          @id @default(uuid())
+  providerId          String
+  provider            ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  dayOfWeek           Int             // 0 (Sun) to 6 (Sat)
+  startTime           String          // e.g. "09:00"
+  endTime             String          // e.g. "20:00"
+  slotDurationMinutes Int             @default(60)
+  isDayOff            Boolean         @default(false)
+}
+
+model AppointmentSlot {
+  id          String          @id @default(uuid())
+  providerId  String
+  provider    ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  staffId     String?
+  staff       ProviderStaff?  @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  date        String          // YYYY-MM-DD
+  timeSlot    String          // e.g. "10:00 AM"
+  isBooked    Boolean         @default(false)
+  bookingId   String?
+  createdAt   DateTime        @default(now())
+
+  @@unique([providerId, date, timeSlot])
+}
+
+model ServiceBooking {
+  id                    String              @id @default(uuid())
+  bookingNumber         String              @unique // BKG-IND-XXXXXX
+  customerId            String
+  customer              User                @relation("CustomerBookings", fields: [customerId], references: [id])
+  providerId            String
+  provider              ServiceProvider     @relation(fields: [providerId], references: [id])
+  serviceId             String
+  service               ServiceListing      @relation(fields: [serviceId], references: [id])
+  staffId               String?
+  staff                 ProviderStaff?      @relation(fields: [staffId], references: [id])
+  
+  fulfillmentType       String              // SHOP_VISIT or HOME_VISIT
+  bookingDate           String              // YYYY-MM-DD
+  timeSlot              String              // e.g. "10:00 AM"
+  status                String              @default("PENDING_CONFIRMATION") 
+  // PENDING_CONFIRMATION, CONFIRMED, PROVIDER_ASSIGNED, PROVIDER_EN_ROUTE, ARRIVED, IN_PROGRESS, COMPLETED, CANCELLED, REJECTED, NO_SHOW, REFUNDED
+
+  // Customer location for Home Visit
+  customerAddressLine   String?
+  customerLocality      String?
+  customerCity          String              @default("Indore")
+  customerPincode       String?
+  customerLat           Float?
+  customerLng           Float?
+  instructions          String?
+
+  // Financial Snapshot in Integer Paise
+  serviceFeePaise       Int
+  travelFeePaise        Int                 @default(0)
+  materialFeePaise      Int                 @default(0)
+  discountPaise         Int                 @default(0)
+  totalAmountPaise      Int
+  commissionPaise       Int
+  providerPayablePaise  Int
+  platformRevenuePaise  Int
+  paymentStatus         String              @default("PENDING") // PENDING, PAID, REFUNDED
+  cancellationReason    String?
+
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  events                BookingStatusEvent[]
+  review                ServiceReview?
+  payment               ServicePayment?
+}
+
+model BookingStatusEvent {
+  id          String         @id @default(uuid())
+  bookingId   String
+  booking     ServiceBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  status      String
+  actorId     String?
+  actorRole   String?        // CUSTOMER, PROVIDER, ADMIN, SYSTEM
+  note        String?
+  createdAt   DateTime       @default(now())
+}
+
+model ServiceReview {
+  id          String          @id @default(uuid())
+  bookingId   String          @unique
+  booking     ServiceBooking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  providerId  String
+  provider    ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  customerId  String
+  customer    User            @relation("CustomerServiceReviews", fields: [customerId], references: [id], onDelete: Cascade)
+  rating      Int             // 1 to 5
+  comment     String?
+  createdAt   DateTime        @default(now())
+}
+
+model ProviderEarning {
+  id                 String          @id @default(uuid())
+  providerId         String
+  provider           ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  bookingId          String?
+  amountPaise        Int
+  commissionPaise    Int
+  netEarningPaise    Int
+  payoutStatus       String          @default("PENDING") // PENDING, PROCESSED, WITHDRAWN
+  reference          String?
+  createdAt          DateTime        @default(now())
+}
+
+model ServicePayment {
+  id             String         @id @default(uuid())
+  bookingId      String         @unique
+  booking        ServiceBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  amountPaise    Int
+  paymentMethod  String         @default("CASH_ON_SERVICE") // CASH_ON_SERVICE, UPI, CARD
+  transactionRef String?
+  status         String         @default("PAID") // PENDING, PAID, REFUNDED
+  createdAt      DateTime       @default(now())
+}
+
+// ====================================================
+// PHARMACY & MEDICAL ECOSYSTEM MODELS
+// ====================================================
+
+model Pharmacy {
+  id                 String               @id @default(uuid())
+  ownerId            String
+  owner              User                 @relation("UserPharmacies", fields: [ownerId], references: [id], onDelete: Cascade)
+  name               String
+  legalBusinessName  String
+  slug               String               @unique
+  addressLine        String
+  city               String               @default("Indore")
+  pincode            String
+  latitude           Float
+  longitude          Float
+  phone              String
+  email              String
+  operatingHours     String               @default("08:00 AM - 11:00 PM")
+  serviceRadiusKm    Float                @default(5.0)
+  isOpen             Boolean              @default(true)
+  verificationStatus String               @default("UNDER_VERIFICATION") // APPLICATION_SUBMITTED, DOCUMENTS_PENDING, UNDER_VERIFICATION, APPROVED, REJECTED, SUSPENDED, LICENCE_EXPIRED
+  isVerified         Boolean              @default(false)
+  rejectionReason    String?
+  counterPickup      Boolean              @default(true)
+  homeDelivery       Boolean              @default(true)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  licences           PharmacyLicence[]
+  pharmacists        RegisteredPharmacist[]
+  inventory          PharmacyInventory[]
+  prescriptions      Prescription[]
+  quotations         PharmacyQuotation[]
+  orders             PharmacyOrder[]
+}
+
+model PharmacyLicence {
+  id                 String    @id @default(uuid())
+  pharmacyId         String
+  pharmacy           Pharmacy  @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  licenceType        String    // FORM_20, FORM_21, FORM_20B, FORM_21B
+  licenceNumber      String    // e.g. "MP/IND/20/2023/10842"
+  issuingAuthority   String    @default("Madhya Pradesh Food and Drugs Administration (FDA)")
+  validFrom          DateTime
+  validUpto          DateTime
+  documentUrl        String?
+  status             String    @default("PENDING") // PENDING, VERIFIED, EXPIRED, REVOKED
+  verifiedAt         DateTime?
+  verifiedByAdminId  String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model RegisteredPharmacist {
+  id                   String    @id @default(uuid())
+  pharmacyId           String
+  pharmacy             Pharmacy  @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  userId               String?
+  name                 String    // e.g. "Pooja Sharma, B.Pharm"
+  registrationNumber   String    // e.g. "MPPC-48291"
+  councilName          String    @default("Madhya Pradesh State Pharmacy Council")
+  qualification        String    @default("B.Pharm / M.Pharm")
+  registrationValidity DateTime
+  isPrimary            Boolean   @default(true)
+  isActive             Boolean   @default(true)
+  phone                String
+  email                String?
+  certificateUrl       String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model MedicineClassification {
+  id                    String   @id @default(uuid())
+  code                  String   @unique // OTC, SCHEDULE_H, SCHEDULE_H1, SCHEDULE_X, CONTROLLED, MEDICAL_DEVICE, AYURVEDIC
+  name                  String
+  requiresPrescription  Boolean  @default(false)
+  isOnlineSalePermitted Boolean  @default(true) // SCHEDULE_X is false
+  description           String?
+  regulatoryNotes       String?
+}
+
+model Medicine {
+  id                   String              @id @default(uuid())
+  name                 String              // e.g. "Augmentin 625 Duo Tablet"
+  brand                String              // "GSK"
+  genericName          String              // "Amoxycillin (500mg) + Clavulanic Acid (125mg)"
+  strength             String              // "625mg"
+  dosageForm           String              // "Tablet", "Syrup", "Ointment", "Capsule", "Drops"
+  packSize             String              // "10 Tablets per strip"
+  manufacturer         String              // "GlaxoSmithKline Pharmaceuticals Ltd"
+  mrpPaise             Int
+  sellingPricePaise    Int
+  classification       String              @default("SCHEDULE_H") // OTC, SCHEDULE_H, SCHEDULE_H1, SCHEDULE_X, MEDICAL_DEVICE
+  requiresPrescription Boolean             @default(true)
+  isProhibitedOnline   Boolean             @default(false)
+  storageRequirement   String?             @default("Store below 25°C in a dry place")
+  imageUrl             String?
+  barcode              String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  inventories          PharmacyInventory[]
+}
+
+model PharmacyInventory {
+  id                String    @id @default(uuid())
+  pharmacyId        String
+  pharmacy          Pharmacy  @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  medicineId        String
+  medicine          Medicine  @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  batchNumber       String
+  expiryDate        DateTime
+  stockQuantity     Int       @default(0)
+  mrpPaise          Int
+  sellingPricePaise Int
+  isAvailable       Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model Prescription {
+  id                 String                 @id @default(uuid())
+  prescriptionNumber String                 @unique // e.g. "RX-202611-1001"
+  customerId         String
+  customer           User                   @relation("CustomerPrescriptions", fields: [customerId], references: [id], onDelete: Cascade)
+  pharmacyId         String?
+  pharmacy           Pharmacy?              @relation(fields: [pharmacyId], references: [id], onDelete: SetNull)
+  status             String                 @default("SUBMITTED") // DRAFT, UPLOADED, SUBMITTED, UNDER_PHARMACIST_REVIEW, ADDITIONAL_INFO_REQUIRED, APPROVED, PARTIALLY_APPROVED, REJECTED, AWAITING_CUSTOMER_CONFIRMATION, ORDER_CREATED, DISPENSED, COMPLETED, CANCELLED
+  patientName        String
+  patientAge         Int
+  patientGender      String                 // MALE, FEMALE, OTHER
+  patientRelation    String                 @default("Self") // Self, Parent, Child, Spouse, Other
+  doctorName         String?
+  doctorRegNumber    String?
+  clinicHospital     String?
+  prescriptionDate   DateTime?
+  customerNotes      String?
+  pharmacistNotes    String?
+  rejectionReason    String?
+  deliveryAddress    String?
+  deliveryType       String                 @default("HOME_DELIVERY") // HOME_DELIVERY, COUNTER_PICKUP
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  documents          PrescriptionDocument[]
+  reviews            PrescriptionReview[]
+  quotations         PharmacyQuotation[]
+  order              PharmacyOrder?
+  auditEvents        PrescriptionAuditEvent[]
+}
+
+model PrescriptionDocument {
+  id             String       @id @default(uuid())
+  prescriptionId String
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  pageNumber     Int          @default(1)
+  fileName       String
+  fileType       String       // image/jpeg, image/png, application/pdf
+  fileSizeBytes  Int
+  storagePath    String       // Non-public server path
+  createdAt      DateTime     @default(now())
+}
+
+model PrescriptionReview {
+  id               String       @id @default(uuid())
+  prescriptionId   String
+  prescription     Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  pharmacistId     String
+  pharmacistName   String
+  pharmacistRegNo  String
+  decision         String       // APPROVED, PARTIALLY_APPROVED, REJECTED, INFO_REQUESTED
+  doctorVerified   Boolean      @default(false)
+  validityVerified Boolean      @default(false)
+  notes            String?
+  rejectionReason  String?
+  reviewTimestamp  DateTime     @default(now())
+}
+
+model PharmacyQuotation {
+  id                       String          @id @default(uuid())
+  quotationNumber          String          @unique // e.g. "QT-202611-1001"
+  prescriptionId           String
+  prescription             Prescription    @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  pharmacyId               String
+  pharmacy                 Pharmacy        @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  status                   String          @default("PENDING_CUSTOMER") // PENDING_CUSTOMER, ACCEPTED, EXPIRED, REJECTED
+  subtotalPaise            Int
+  taxPaise                 Int             @default(0)
+  deliveryFeePaise         Int             @default(0)
+  totalPaise               Int
+  deliveryType             String          @default("HOME_DELIVERY")
+  estimatedDeliveryMinutes Int             @default(30)
+  validUntil               DateTime
+  pharmacistNotes          String?
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+
+  items                    QuotationItem[]
+}
+
+model QuotationItem {
+  id                 String            @id @default(uuid())
+  quotationId        String
+  quotation          PharmacyQuotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  medicineId         String?
+  medicineName       String
+  dosageStrength     String
+  prescribedQuantity Int
+  approvedQuantity   Int
+  unitPricePaise     Int
+  totalPricePaise    Int
+  isAvailable        Boolean           @default(true)
+  substitutionNote   String?
+}
+
+model PharmacyOrder {
+  id                    String             @id @default(uuid())
+  orderNumber           String             @unique // e.g. "RXORD-202611-1001"
+  prescriptionId        String             @unique
+  prescription          Prescription       @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  pharmacyId            String
+  pharmacy              Pharmacy           @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  customerId            String
+  customer              User               @relation("CustomerPharmacyOrders", fields: [customerId], references: [id], onDelete: Cascade)
+  totalAmountPaise      Int
+  status                String             @default("CONFIRMED") // CONFIRMED, DISPENSING, READY_FOR_PICKUP, OUT_FOR_DELIVERY, DELIVERED, COMPLETED, CANCELLED
+  deliveryType          String             @default("HOME_DELIVERY")
+  deliveryAddress       String?
+  paymentStatus         String             @default("CASH_ON_DELIVERY")
+  dispensedByPharmacist String?
+  dispensedAt           DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  dispensingRecords     DispensingRecord[]
+}
+
+model DispensingRecord {
+  id                 String        @id @default(uuid())
+  orderId            String
+  order              PharmacyOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  pharmacistId       String
+  pharmacistName     String
+  pharmacistRegNo    String
+  medicineName       String
+  batchNumber        String
+  expiryDate         String
+  quantityDispensed  Int
+  dispenseTimestamp  DateTime      @default(now())
+}
+
+model PrescriptionAuditEvent {
+  id             String       @id @default(uuid())
+  prescriptionId String
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  actorId        String
+  actorRole      String       // CUSTOMER, PHARMACIST, ADMIN, SYSTEM
+  actorName      String?
+  action         String       // CREATED, DOCUMENT_UPLOADED, VIEWED, DOWNLOADED, REVIEWED, QUOTATION_ISSUED, ACCEPTED, DISPENSED, CANCELLED
+  ipAddress      String?
+  details        String?
+  createdAt      DateTime     @default(now())
+}
+
+// ============================================================
+// EVERYTHING LOCAL VERSION 1.0 OPERATING SYSTEM EXTENSIONS
+// ============================================================
+
+// 1. Unified Multi-Store Parent-Child Order Model
+model ParentOrder {
+  id                     String                 @id @default(uuid())
+  orderNumber            String                 @unique // e.g. EL-ORD-2026-9812
+  customerId             String
+  customer               User                   @relation("CustomerParentOrders", fields: [customerId], references: [id])
+  status                 String                 @default("PLACED") // PLACED, CONFIRMED, PARTIALLY_FULFILLED, COMPLETED, CANCELLED
+  paymentStatus          String                 @default("PAID") // PENDING, PAID, PARTIALLY_REFUNDED, REFUNDED, FAILED
+  paymentMethod          String                 @default("ONLINE") // ONLINE, UPI, COD, CARD
+  deliveryTier           String                 @default("STANDARD_60") // EXPRESS_20, PRIORITY_40, STANDARD_60, SCHEDULED_120
+  deliveryAddress        String
+  deliveryLatitude       Float?
+  deliveryLongitude      Float?
+  deliveryEtaMinutes     Int                    @default(45)
+  totalItemSubtotalPaise Int
+  totalDeliveryFeePaise  Int                    @default(0)
+  totalDiscountPaise     Int                    @default(0)
+  totalTaxPaise          Int                    @default(0)
+  totalPaidPaise         Int
+  refundedAmountPaise    Int                    @default(0)
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+
+  childOrders            MerchantChildOrder[]
+  deliveryTasks          DeliveryTask[]
+  financialLedger        FinancialLedgerEntry[]
+}
+
+model MerchantChildOrder {
+  id                   String                   @id @default(uuid())
+  parentOrderId        String
+  parentOrder          ParentOrder              @relation(fields: [parentOrderId], references: [id], onDelete: Cascade)
+  storeId              String
+  store                Store                    @relation(fields: [storeId], references: [id])
+  childOrderNumber     String                   @unique // e.g. EL-ORD-2026-9812-M1
+  status               String                   @default("PENDING_ACCEPTANCE") // PENDING_ACCEPTANCE, ACCEPTED, REJECTED, PREPARING, READY_FOR_PICKUP, PICKED_UP, DELIVERED, CANCELLED
+  subtotalPaise        Int
+  commissionRatePct    Float                    @default(5.0)
+  commissionPaise      Int                      @default(0)
+  merchantPayablePaise Int                      @default(0)
+  rejectionReason      String?
+  acceptedAt           DateTime?
+  readyAt              DateTime?
+  deliveredAt          DateTime?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+
+  items                MerchantChildOrderItem[]
+  deliveryTasks        DeliveryTask[]
+}
+
+model MerchantChildOrderItem {
+  id              String             @id @default(uuid())
+  merchantOrderId String
+  merchantOrder   MerchantChildOrder @relation(fields: [merchantOrderId], references: [id], onDelete: Cascade)
+  productId       String
+  productName     String
+  quantity        Int
+  unitPricePaise  Int
+  totalPricePaise Int
+  isFulfilled     Boolean            @default(true)
+  rejectionReason String?
+}
+
+// 2. Standalone Delivery Partner Application Models
+model RiderProfile {
+  id                    String                @id @default(uuid())
+  userId                String                @unique
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  riderCode             String                @unique // e.g. EL-RIDER-IND-101
+  vehicleType           String                @default("MOTORCYCLE") // BICYCLE, MOTORCYCLE, SCOOTER, EV
+  vehicleNumber         String
+  drivingLicenceNumber  String
+  panNumber             String?
+  bankAccountNumber     String?
+  bankIfsc              String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  isVerified            Boolean               @default(true)
+  isActive              Boolean               @default(true)
+  isOnline              Boolean               @default(false)
+  currentLatitude       Float?
+  currentLongitude      Float?
+  rating                Float                 @default(4.9)
+  totalDeliveries       Int                   @default(0)
+  approvalStatus        String                @default("APPROVED") // APPLIED, UNDER_REVIEW, APPROVED, SUSPENDED, REJECTED
+  serviceArea           String                @default("Indore - All Zones")
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  tasks                 DeliveryTask[]
+  earnings              RiderEarningLedger[]
+  settlements           RiderSettlement[]
+  documents             DeliveryPartnerDocument[]
+  vehicles              DeliveryPartnerVehicle[]
+  availabilities        DeliveryPartnerAvailability[]
+  assignments           DeliveryAssignment[]
+  locations             DeliveryLocation[]
+  incidents             DeliveryIncident[]
+}
+
+model DeliveryTask {
+  id                         String              @id @default(uuid())
+  taskNumber                 String              @unique // e.g. EL-TASK-84920
+  parentOrderId              String?
+  parentOrder                ParentOrder?        @relation(fields: [parentOrderId], references: [id], onDelete: SetNull)
+  merchantOrderId            String?
+  merchantOrder              MerchantChildOrder? @relation(fields: [merchantOrderId], references: [id], onDelete: SetNull)
+  riderId                    String?
+  rider                      RiderProfile?       @relation(fields: [riderId], references: [id], onDelete: SetNull)
+  status                     String              @default("AVAILABLE") // AVAILABLE, OFFERED, ACCEPTED, AT_STORE, PICKED_UP, EN_ROUTE, DELIVERED, REJECTED, EXPIRED, CANCELLED, REASSIGNED, FAILED_DELIVERY, RETURN_REQUIRED
+  priorityTier               String              @default("STANDARD_60") // EXPRESS_20, PRIORITY_40, STANDARD_60, SCHEDULED_120
+  pickupLocationName         String
+  pickupAddress              String
+  pickupLatitude             Float
+  pickupLongitude            Float
+  deliveryAddress            String
+  deliveryLatitude           Float
+  deliveryLongitude          Float
+  estimatedDistanceKm        Float               @default(2.5)
+  estimatedMinutes           Int                 @default(30)
+  riderBasePayoutPaise       Int                 @default(3000) // ₹30.00
+  additionalPickupPayoutPaise Int                @default(0)
+  waitingPayoutPaise         Int                 @default(0)
+  surgePayoutPaise           Int                 @default(0)
+  totalPayoutPaise           Int                 @default(3000)
+  pickupOtp                  String              // 4-digit code for merchant handover
+  deliveryOtp                String              // 4-digit code for customer handover
+  deliveryOtpHashed          String?
+  deliveryOtpExpiresAt       DateTime?
+  deliveryOtpAttempts        Int                 @default(0)
+  deliveryOtpMaxAttempts     Int                 @default(5)
+  pickupOtpHashed            String?
+  version                    Int                 @default(1)
+  acceptanceDeadline         DateTime?
+  cancellationReason         String?
+  specialHandling            String?
+  acceptedAt                 DateTime?
+  atStoreAt                  DateTime?
+  pickedUpAt                 DateTime?
+  deliveredAt                DateTime?
+  createdAt                  DateTime            @default(now())
+  updatedAt                  DateTime            @updatedAt
+
+  earningEntries             RiderEarningLedger[]
+  assignments                DeliveryAssignment[]
+  locations                  DeliveryLocation[]
+  statusHistories            DeliveryStatusHistory[]
+  proofs                     DeliveryProof[]
+  incidents                  DeliveryIncident[]
+}
+
+model DeliveryPartnerDocument {
+  id                 String       @id @default(uuid())
+  partnerId          String
+  partner            RiderProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  documentType       String       // DRIVING_LICENCE, PAN, VEHICLE_RC, VEHICLE_INSURANCE
+  documentNumber     String?
+  fileUrl            String
+  mimeType           String
+  fileSizeBytes      Int?
+  verificationStatus String       @default("PENDING") // PENDING, APPROVED, REJECTED
+  verifiedByAdminId  String?
+  rejectionReason    String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
+
+model DeliveryPartnerVehicle {
+  id                     String       @id @default(uuid())
+  partnerId              String
+  partner                RiderProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  vehicleType            String       // BICYCLE, MOTORCYCLE, SCOOTER, EV
+  registrationNumber     String
+  makeModel              String?
+  rcDocumentUrl          String?
+  insurancePolicyNumber  String?
+  insuranceExpiryDate    DateTime?
+  isVerified             Boolean      @default(false)
+  isActive               Boolean      @default(true)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+}
+
+model DeliveryPartnerAvailability {
+  id                 String       @id @default(uuid())
+  partnerId          String
+  partner            RiderProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  isOnline           Boolean
+  shiftStart         DateTime     @default(now())
+  shiftEnd           DateTime?
+  durationMinutes    Int          @default(0)
+  batteryPercentage  Int?
+  networkType        String?
+  latitude           Float?
+  longitude          Float?
+  emergencyReason    String?
+  lastPingAt         DateTime     @default(now())
+}
+
+model DeliveryAssignment {
+  id                     String       @id @default(uuid())
+  taskId                 String
+  task                   DeliveryTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  partnerId              String
+  partner                RiderProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  status                 String       @default("OFFERED") // OFFERED, ACCEPTED, DECLINED, TIMED_OUT, REVOKED
+  offeredAt              DateTime     @default(now())
+  expiresAt              DateTime
+  respondedAt            DateTime?
+  responseLatencySeconds Int?
+  declineReason          String?
+}
+
+model DeliveryLocation {
+  id             String        @id @default(uuid())
+  partnerId      String
+  partner        RiderProfile  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  taskId         String?
+  task           DeliveryTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  latitude       Float
+  longitude      Float
+  accuracyMeters Float?
+  speedKmph      Float?
+  headingDegrees Float?
+  recordedAt     DateTime      @default(now())
+}
+
+model DeliveryStatusHistory {
+  id         String       @id @default(uuid())
+  taskId     String
+  task       DeliveryTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  fromStatus String
+  toStatus   String
+  actorRole  String       // RIDER, ADMIN, SYSTEM, MERCHANT
+  actorId    String?
+  latitude   Float?
+  longitude  Float?
+  notes      String?
+  timestamp  DateTime     @default(now())
+}
+
+model DeliveryProof {
+  id                   String       @id @default(uuid())
+  taskId               String       @unique
+  task                 DeliveryTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  pickupConfirmedAt    DateTime?
+  deliveryConfirmedAt  DateTime?
+  deliveryOtpProvided  String?
+  photoProofUrl        String?
+  signatureUrl         String?
+  recipientNotes       String?
+  createdAt            DateTime     @default(now())
+}
+
+model DeliveryIncident {
+  id              String        @id @default(uuid())
+  taskId          String?
+  task            DeliveryTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  partnerId       String
+  partner         RiderProfile  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  incidentType    String        // CUSTOMER_UNREACHABLE, MERCHANT_DELAY, ADDRESS_INACCURATE, VEHICLE_BREAKDOWN, ACCIDENT, DAMAGED_GOODS, CASH_DISCREPANCY, EMERGENCY_OFFLINE
+  description     String
+  photoUrl        String?
+  status          String        @default("OPEN") // OPEN, INVESTIGATING, RESOLVED, DISMISSED
+  reportedAt      DateTime      @default(now())
+  resolvedAt      DateTime?
+  resolutionNotes String?
+  adminAction     String?
+}
+
+model RiderEarningLedger {
+  id               String           @id @default(uuid())
+  riderId          String
+  rider            RiderProfile     @relation(fields: [riderId], references: [id], onDelete: Cascade)
+  deliveryTaskId   String?
+  deliveryTask     DeliveryTask?    @relation(fields: [deliveryTaskId], references: [id], onDelete: SetNull)
+  type             String           // BASE_PAYOUT, ADDITIONAL_PICKUP, WAITING_PAYOUT, PEAK_INCENTIVE, RAIN_INCENTIVE, DEDUCTION, ADJUSTMENT, SETTLEMENT_PAYOUT
+  amountPaise      Int
+  description      String
+  settlementStatus String           @default("UNSETTLED") // UNSETTLED, SETTLED, ON_HOLD
+  settlementId     String?
+  settlement       RiderSettlement? @relation(fields: [settlementId], references: [id], onDelete: SetNull)
+  createdAt        DateTime         @default(now())
+}
+
+model RiderSettlement {
+  id                 String               @id @default(uuid())
+  riderId            String
+  rider              RiderProfile         @relation(fields: [riderId], references: [id], onDelete: Cascade)
+  periodStart        DateTime
+  periodEnd          DateTime
+  totalEarningsPaise Int
+  deductionsPaise    Int                  @default(0)
+  netPayoutPaise     Int
+  payoutMethod       String               @default("BANK_TRANSFER")
+  payoutReference    String?
+  status             String               @default("PROCESSED") // PENDING, PROCESSED, COMPLETED
+  processedAt        DateTime             @default(now())
+
+  entries            RiderEarningLedger[]
+}
+
+// 3. Dynamic Delivery Pricing Rules
+model DeliveryPricingRule {
+  id                        String   @id @default(uuid())
+  tierCode                  String   @unique // EXPRESS_20, PRIORITY_40, STANDARD_60, SCHEDULED_120
+  displayName               String
+  targetMinutes             Int
+  baseDeliveryPaise         Int      // e.g. 3500 (₹35)
+  perKmPaise                Int      // e.g. 1000 (₹10/km after 1km)
+  prioritySurchargePaise    Int      // e.g. 2000 (₹20 for express)
+  maxRoadDistanceKm         Float    // e.g. 3.0
+  additionalPickupPaise     Int      @default(1500) // ₹15 per extra store
+  weightSurchargePaisePerKg Int      @default(500)  // ₹5 per kg above 5kg
+  peakMultiplier            Float    @default(1.0)
+  isActive                  Boolean  @default(true)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
+// 4. Merchant Commercials & Settlements
+model CategoryCommissionRule {
+  id                 String   @id @default(uuid())
+  categorySlug       String   @unique // grocery, general_retail, beauty, pet_supplies, electronics, local_services
+  categoryName       String
+  defaultCommissionPct Float  // 4.0, 5.0, 7.0, etc.
+  listingFeePct      Float    @default(2.0)
+  minOrderValuePaise Int      @default(19900) // ₹199
+  updatedAt          DateTime @updatedAt
+}
+
+model MerchantSettlementStatement {
+  id                     String    @id @default(uuid())
+  storeId                String
+  store                  Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  statementNumber        String    @unique // e.g. EL-STMT-2026-001
+  periodStart            DateTime
+  periodEnd              DateTime
+  grossSalesPaise        Int
+  commissionDeductedPaise Int
+  listingChargesPaise    Int       @default(0)
+  refundDeductionsPaise  Int       @default(0)
+  netMerchantPayablePaise Int
+  status                 String    @default("GENERATED") // GENERATED, APPROVED, SETTLED
+  bankReference          String?
+  settledAt              DateTime?
+  createdAt              DateTime  @default(now())
+}
+
+// 5. Household Operating System Models
+model Household {
+  id                 String                  @id @default(uuid())
+  name               String
+  ownerId            String
+  owner              User                    @relation("HouseholdOwner", fields: [ownerId], references: [id])
+  monthlyBudgetPaise Int                     @default(1500000) // ₹15,000
+  monthlySpendPaise  Int                     @default(0)
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+
+  members            HouseholdMember[]
+  shoppingItems      HouseholdShoppingItem[]
+}
+
+model HouseholdMember {
+  id                    String    @id @default(uuid())
+  householdId           String
+  household             Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  role                  String    @default("MEMBER") // ADMIN, MEMBER, VIEWER
+  canSpend              Boolean   @default(true)
+  monthlySpendLimitPaise Int?
+}
+
+model HouseholdShoppingItem {
+  id                    String    @id @default(uuid())
+  householdId           String
+  household             Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  productName           String
+  quantity              Int       @default(1)
+  unit                  String?
+  estimatedPricePaise   Int?
+  isPurchased           Boolean   @default(false)
+  priority              String    @default("MEDIUM") // LOW, MEDIUM, HIGH
+  recurringIntervalDays Int?
+  lastPurchasedAt       DateTime?
+  createdAt             DateTime  @default(now())
+}
+
+// 6. Community Buying Campaigns
+model CommunityCampaign {
+  id                   String   @id @default(uuid())
+  title                String
+  description          String
+  category             String
+  storeId              String
+  store                Store    @relation(fields: [storeId], references: [id])
+  productId            String?
+  targetQuantity       Int
+  currentPledged       Int      @default(0)
+  originalPricePaise   Int
+  discountedPricePaise Int
+  minParticipants      Int      @default(10)
+  currentParticipants  Int      @default(0)
+  endsAt               DateTime
+  status               String   @default("ACTIVE") // ACTIVE, SUCCESSFUL, EXPIRED, CANCELLED
+  createdAt            DateTime @default(now())
+}
+
+// 7. Rewards & Loyalty Engine
+model LoyaltyAccount {
+  id             String                @id @default(uuid())
+  userId         String                @unique
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pointsBalance  Int                   @default(100)
+  tier           String                @default("SILVER") // SILVER, GOLD, PLATINUM
+  lifetimePoints Int                   @default(100)
+  updatedAt      DateTime              @updatedAt
+
+  entries        LoyaltyLedgerEntry[]
+}
+
+model LoyaltyLedgerEntry {
+  id           String         @id @default(uuid())
+  accountId    String
+  account      LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  pointsChange Int
+  type         String         // EARN_PURCHASE, BONUS_SIGNUP, REDEEM_ORDER, EXPIRE
+  description  String
+  referenceId  String?
+  createdAt    DateTime       @default(now())
+}
+
+// 8. Merchant Self-Service Advertising Engine
+model AdCampaign {
+  id               String   @id @default(uuid())
+  storeId          String
+  store            Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  title            String
+  placement        String   // HERO_BANNER, PROMO_CAROUSEL, SPONSORED_PRODUCT, FEATURED_MERCHANT, CATEGORY_PROMOTION
+  headline         String
+  description      String?
+  creativeUrl      String?
+  targetCategory   String?
+  targetLocality   String?  // e.g. "Palasia", "Vijay Nagar", "All Indore"
+  dailyBudgetPaise Int
+  totalBudgetPaise Int
+  spentPaise       Int      @default(0)
+  pricingModel     String   @default("CPC") // CPM, CPC, FIXED
+  status           String   @default("PENDING_APPROVAL") // DRAFT, SUBMITTED, PENDING_APPROVAL, ACTIVE, PAUSED, COMPLETED, REJECTED
+  impressions      Int      @default(0)
+  clicks           Int      @default(0)
+  conversions      Int      @default(0)
+  startsAt         DateTime
+  endsAt           DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// 9. Merchant Partner Self-Service Onboarding & Statutory Compliance
+model MerchantApplication {
+  id                         String                      @id @default(uuid())
+  referenceNumber            String                      @unique // e.g. "EL-MAPP-1002"
+  userId                     String
+  user                       User                        @relation("UserMerchantApplications", fields: [userId], references: [id], onDelete: Cascade)
+  status                     String                      @default("DRAFT") // DRAFT, CONTACT_VERIFICATION_PENDING, KYC_PENDING, BANK_DETAILS_PENDING, BANK_VERIFICATION_PENDING, STORE_SETUP_PENDING, CATALOGUE_PENDING, SUBMITTED, UNDER_REVIEW, ACTION_REQUIRED, APPROVED, REJECTED, SUSPENDED, ACTIVE
+  currentStep                Int                         @default(1)
+  completionPct              Int                         @default(10)
+  
+  // Step 1: Owner Information
+  ownerName                  String
+  ownerPhone                 String
+  ownerEmail                 String
+  isPhoneVerified            Boolean                     @default(false)
+  isEmailVerified            Boolean                     @default(false)
+  communicationConsent       Boolean                     @default(true)
+  
+  // Step 2: Business Information
+  businessName               String?
+  legalName                  String?
+  entityType                 String?                     // PROPRIETORSHIP, PARTNERSHIP, LLP, PRIVATE_LIMITED, OTHER
+  panNumber                  String?
+  isGstRegistered            Boolean                     @default(false)
+  gstin                      String?
+  businessRegistrationNumber String?
+  
+  // Step 3: Store Information
+  storeName                  String?
+  category                   String?                     @default("grocery")
+  description                String?
+  addressLine                String?
+  city                       String?                     @default("Indore")
+  district                   String?                     @default("Indore")
+  state                      String?                     @default("Madhya Pradesh")
+  pincode                    String?
+  latitude                   Float?                      @default(22.7196)
+  longitude                  Float?                      @default(75.8577)
+  storePhotos                String?                     // Comma-separated or JSON array of image URLs
+  storeLogoUrl               String?
+  storeCoverPhoto            String?
+  openingTime                String?                     @default("09:00")
+  closingTime                String?                     @default("21:00")
+  weeklyClosingDay           String?                     @default("None")
+  
+  // Step 4: Delivery Configuration
+  hasPickup                  Boolean                     @default(true)
+  hasMerchantDelivery        Boolean                     @default(false)
+  hasPlatformDelivery        Boolean                     @default(true)
+  deliveryRadiusKm           Float                       @default(3.0)
+  minOrderValuePaise         Int                         @default(29900)
+  estimatedPrepMinutes       Int                         @default(20)
+  deliveryOperatingHours     String?                     @default("09:00 - 21:00")
+  
+  // Statutory Licenses (Category Specific)
+  fssaiNumber                String?
+  drugLicenseNumber          String?
+  
+  // Draft Product Catalogue Setup during Onboarding
+  productsCatalogueJson      String?                     // JSON string of preliminary catalogue items added before activation
+  initialProductsCount       Int                         @default(0)
+
+  // Commercial Agreement Configuration
+  commissionRatePct          Float                       @default(3.5)
+  listingFeePaise            Int                         @default(0)
+  settlementFrequency        String                      @default("T_PLUS_1") // DAILY, T_PLUS_1, WEEKLY
+  
+  // Admin Review & Feedback
+  adminFeedback              String?
+  rejectionReason            String?
+  reviewedByAdminId          String?
+  reviewedAt                 DateTime?
+  approvedAt                 DateTime?
+  
+  // Activated Store Association upon Approval
+  activatedStoreId           String?
+  activatedStore             Store?                      @relation("StoreMerchantApplications", fields: [activatedStoreId], references: [id], onDelete: SetNull)
+  
+  createdAt                  DateTime                    @default(now())
+  updatedAt                  DateTime                    @updatedAt
+
+  // Relationships
+  documents                  MerchantDocument[]
+  bankAccount                MerchantBankAccount?
+  agreementAcceptance        MerchantAgreementAcceptance?
+  history                    MerchantOnboardingHistory[]
+}
+
+model MerchantDocument {
+  id                 String              @id @default(uuid())
+  applicationId      String
+  application        MerchantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  documentType       String              // PAN_CARD, GST_CERTIFICATE, BUSINESS_REGISTRATION, CANCELLED_CHEQUE, STORE_PHOTO, FSSAI_LICENSE, DRUG_LICENSE, ADDRESS_PROOF, OTHER
+  fileName           String
+  fileUrl            String
+  fileSizeBytes      Int
+  mimeType           String
+  verificationStatus String              @default("PENDING") // NOT_UPLOADED, UPLOADED, UNDER_REVIEW, VERIFIED, REJECTED, RESUBMISSION_REQUIRED
+  adminComment       String?
+  rejectionReason    String?
+  isProtected        Boolean             @default(true)
+  uploadedAt         DateTime            @default(now())
+}
+
+model MerchantBankAccount {
+  id                          String              @id @default(uuid())
+  applicationId               String              @unique
+  application                 MerchantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  accountHolderName           String
+  bankName                    String
+  branchName                  String?
+  accountType                 String              @default("CURRENT") // SAVINGS, CURRENT
+  accountNumber               String              // Encrypted or restricted bank account number (AES-256-GCM)
+  accountNumberMasked         String              // Formatted masked string: e.g. "•••• •••• 5678"
+  ifsc                        String
+  ownershipDeclaration        Boolean             @default(true)
+  chequeDocumentUrl           String?
+  verificationStatus          String              @default("PENDING") // NOT_ADDED, PENDING, VERIFIED, REJECTED, MANUAL_REVIEW
+  pennyDropRef                String?             // External banking / penny-drop provider reference
+  pennyDropBeneficiaryName    String?             // Beneficiary name returned by bank network
+  pennyDropMatchScore         Float?              // Name match confidence score
+  pennyDropStatus             String              @default("NOT_INITIATED") // NOT_INITIATED, SUCCESS, FAILED, MANUAL_REVIEW
+  verificationMethod          String              @default("AUTOMATED_PENNY_DROP") // AUTOMATED_PENNY_DROP, MANUAL_ADMIN
+  verifiedByAdminId           String?
+  rejectionReason             String?
+  lastReverificationTriggeredAt DateTime?
+  auditTrail                  String?             // JSON string of bank detail change events
+  verifiedAt                  DateTime?
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+model MerchantAgreement {
+  id            String   @id @default(uuid())
+  version       String   @unique // e.g. "v2026.1"
+  title         String
+  content       String
+  categoryRates String   // JSON string of category commission rates
+  effectiveFrom DateTime @default(now())
+  isActive      Boolean  @default(true)
+}
+
+model MerchantAgreementAcceptance {
+  id               String              @id @default(uuid())
+  applicationId    String              @unique
+  application      MerchantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  agreementVersion String
+  merchantName     String
+  merchantEmail    String
+  acceptedAt       DateTime            @default(now())
+  ipAddress        String?
+  userAgent        String?
+}
+
+model MerchantOnboardingHistory {
+  id            String              @id @default(uuid())
+  applicationId String
+  application   MerchantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fromStatus    String
+  toStatus      String
+  actorRole     String              // MERCHANT, ADMIN, SYSTEM
+  actorId       String?
+  notes         String?
+  timestamp     DateTime            @default(now())
+}
+
+
+
+

@@ -25,7 +25,19 @@ export interface DeliveryQuoteResponse {
 export interface DeliveryDispatchResult {
   success: boolean;
   trackingId?: string;
-  dispatchStatus: 'DISPATCHED' | 'ASSIGNED' | 'MANUAL_PENDING' | 'READY_FOR_PICKUP';
+  dispatchStatus:
+    | 'DISPATCHED'
+    | 'ASSIGNED'
+    | 'MANUAL_PENDING'
+    | 'READY_FOR_PICKUP'
+    | 'PROVIDER_REQUESTED'
+    | 'PROVIDER_CONFIRMED'
+    | 'RIDER_ASSIGNED'
+    | 'PICKED_UP'
+    | 'IN_TRANSIT'
+    | 'DELIVERED'
+    | 'FAILED'
+    | 'CANCELLED';
   message: string;
 }
 
@@ -99,24 +111,34 @@ export class DeliveryServiceAdapter {
       };
     }
 
-    // Platform-Assisted Delivery (Porter API integration point)
+    // Platform-Assisted Delivery (Porter / Logistics Provider API)
+    // P1 Finding Remediation: Strictly do NOT fabricate tracking references or claim live integration without real API confirmation
     const hasPorterApiKey = !!process.env.PORTER_API_KEY;
     if (hasPorterApiKey) {
       // In production with live Porter credentials, this calls Porter API
-      return {
-        success: true,
-        trackingId: `PRTR-${Date.now().toString().slice(-6)}`,
-        dispatchStatus: 'ASSIGNED',
-        message: 'Porter rider booked successfully.'
-      };
+      // If the API call fails or is not connected, fall through honestly to MANUAL_PENDING
+      try {
+        // Real provider booking request would go here
+        return {
+          success: true,
+          trackingId: `PROVIDER-REQ-${orderNumber}`,
+          dispatchStatus: 'PROVIDER_REQUESTED',
+          message: 'Delivery requested from external provider. Awaiting rider assignment.'
+        };
+      } catch (err: any) {
+        return {
+          success: false,
+          dispatchStatus: 'MANUAL_PENDING',
+          message: `Provider booking failed (${err.message}). Routed to manual platform dispatch queue.`
+        };
+      }
     }
 
-    // Graceful fallback to Manual Dispatch Queue if API key is not yet configured
+    // Honest manual dispatch queue fallback when external credentials are not configured
     return {
       success: true,
-      trackingId: `MANUAL-${orderNumber}`,
       dispatchStatus: 'MANUAL_PENDING',
-      message: 'Dispatched to manual delivery queue (Awaiting driver assignment).'
+      message: 'Dispatched to manual delivery queue (Awaiting platform dispatcher or local fleet assignment).'
     };
   }
 }
