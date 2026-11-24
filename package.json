@@ -15,6 +15,8 @@
     "validate:environments": "tsx scripts/validate-environments.ts",
     "validate:secrets": "tsx scripts/validate-secrets.ts",
     "validate:release": "tsx scripts/validate-release.ts",
+    "deploy:web": "npm run build:client && wrangler deploy --config wrangler.web.toml",
+    "deploy:api": "npm run build:server && wrangler deploy --config wrangler.toml",
     "deploy:worker:dev": "wrangler deploy --env development",
     "deploy:worker:prod": "wrangler deploy",
     "prisma:generate": "prisma generate",
@@ -57,6 +59,7 @@
     "tsx": "^4.19.3",
     "typescript": "^5.7.3",
     "vite": "^6.2.1",
-    "vitest": "^3.0.8"
+    "vitest": "^3.0.8",
+    "wrangler": "^3.109.2"
   }
 }

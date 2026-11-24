@@ -35,7 +35,7 @@ ENVIRONMENT = "production"
 CITY = "Indore"
 COMMISSION_RATE_PCT = "3.5"
 JWT_EXPIRY = "7d"
-CORS_ORIGIN = "https://everything-local-web.everything-local.workers.dev"
+CORS_ORIGIN = "https://everybazar.everything-local.workers.dev"
 
 # ==============================================================================
 # DEVELOPMENT ENVIRONMENT (EveryBazaar Development Worker)

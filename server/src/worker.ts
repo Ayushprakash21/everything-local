@@ -61,6 +61,7 @@ export function getSecret(env: Bindings): string {
 app.use('*', async (c, next) => {
   const isDev = c.env.ENVIRONMENT === 'development';
   const allowed = [
+    'https://everybazar.everything-local.workers.dev',
     'https://everything-local-web.everything-local.workers.dev',
     'https://everybazaar-web.everything-local.workers.dev',
     'http://localhost:5173',

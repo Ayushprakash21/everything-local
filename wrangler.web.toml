@@ -1,8 +1,8 @@
-# EveryBazaar / Everything Local — Customer Website Worker
+# EveryBazaar — Customer Website Worker
 # Dedicated Account: 6ab31e6d677b2f74c2b27f217c2f4c9c
 account_id = "6ab31e6d677b2f74c2b27f217c2f4c9c"
 
-name = "everything-local-web"
+name = "everybazar"
 main = "client/worker.ts"
 compatibility_date = "2026-10-19"
 
