@@ -7,6 +7,7 @@ import { ELLogo } from '../../components/ELLogo';
 import { AdminMerchantOnboardingView } from './AdminMerchantOnboardingView';
 import { AdminDeliveryOperationsView } from './delivery/AdminDeliveryOperationsView';
 import { AdminProductImageryView } from './AdminProductImageryView';
+import { AdminCategoryManagementView } from './AdminCategoryManagementView';
 import {
   Shield,
   TrendingUp,
@@ -23,7 +24,8 @@ import {
   FileText,
   MapPin,
   Sparkles,
-  Building2
+  Building2,
+  Layers
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth }) => {
@@ -32,7 +34,7 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
   const [merchants, setMerchants] = useState<Store[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ledger, setLedger] = useState<FinancialLedgerEntry[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'control_tower' | 'delivery_operations' | 'onboarding' | 'product_imagery' | 'delivery_pricing' | 'settlements' | 'orders' | 'ledger' | 'services' | 'pharmacies'>('control_tower');
+  const [activeTab, setActiveTab] = useState<'overview' | 'control_tower' | 'delivery_operations' | 'onboarding' | 'product_imagery' | 'categories' | 'delivery_pricing' | 'settlements' | 'orders' | 'ledger' | 'services' | 'pharmacies'>('control_tower');
   const [controlMetrics, setControlMetrics] = useState<any>(null);
   const [liveTasks, setLiveTasks] = useState<any[]>([]);
   const [onlineRiders, setOnlineRiders] = useState<any[]>([]);
@@ -287,6 +289,18 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
         </button>
 
         <button
+          onClick={() => setActiveTab('categories')}
+          className={`pb-3 border-b-2 transition whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'categories'
+              ? 'border-amber-600 text-amber-900 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Layers className="w-4 h-4 text-amber-600" />
+          <span>Category & Aisles System</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('delivery_pricing')}
           className={`pb-3 border-b-2 transition whitespace-nowrap ${
             activeTab === 'delivery_pricing'
@@ -372,6 +386,9 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
 
       {/* TAB: PRODUCT IMAGERY STUDIO */}
       {activeTab === 'product_imagery' && <AdminProductImageryView />}
+
+      {/* TAB: CATEGORY & AISLES SYSTEM */}
+      {activeTab === 'categories' && <AdminCategoryManagementView />}
 
       {/* TAB: DISPATCH CONTROL TOWER */}
       {activeTab === 'control_tower' && (

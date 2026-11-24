@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Store, Order, Product } from '../../types';
+import { Store, Order, Product, ProductCategory } from '../../types';
 import { request, formatPaise } from '../../api/client';
 import { BrandLogo } from '../../components/BrandLogo';
 import { ELLogo } from '../../components/ELLogo';
@@ -44,7 +44,10 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void; onReturnToShop?
   // New product form state
   const [newProdName, setNewProdName] = useState('');
   const [newProdBrand, setNewProdBrand] = useState('');
+  const [approvedCategories, setApprovedCategories] = useState<ProductCategory[]>([]);
   const [newProdCategory, setNewProdCategory] = useState('Grocery Staples');
+  const [newProdCategoryId, setNewProdCategoryId] = useState('');
+  const [newProdSubcategoryId, setNewProdSubcategoryId] = useState('');
   const [newProdPackageSize, setNewProdPackageSize] = useState('1 kg');
   const [newProdMrp, setNewProdMrp] = useState('');
   const [newProdPrice, setNewProdPrice] = useState('');
@@ -62,8 +65,21 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void; onReturnToShop?
     }
     setLoading(true);
     try {
-      const storeRes = await request<{ store: Store }>('/merchant/store');
+      const [storeRes, catRes] = await Promise.all([
+        request<{ store: Store }>('/merchant/store'),
+        request<{ categories: ProductCategory[] }>('/categories/merchant/approved').catch(() => ({ categories: [] }))
+      ]);
       setStore(storeRes.store);
+      if (catRes.categories && catRes.categories.length > 0) {
+        setApprovedCategories(catRes.categories);
+        if (!newProdCategoryId) {
+          setNewProdCategoryId(catRes.categories[0].id);
+          setNewProdCategory(catRes.categories[0].name);
+          if (catRes.categories[0].children && catRes.categories[0].children.length > 0) {
+            setNewProdSubcategoryId(catRes.categories[0].children[0].id);
+          }
+        }
+      }
 
       if (storeRes.store && storeRes.store.isVerified) {
         const [ordersRes, prodsRes, finRes] = await Promise.all([
@@ -192,6 +208,8 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void; onReturnToShop?
         body: JSON.stringify({
           name: newProdName,
           category: newProdCategory,
+          categoryId: newProdCategoryId || undefined,
+          subcategoryId: newProdSubcategoryId || undefined,
           brand: newProdBrand || undefined,
           packageSize: newProdPackageSize || undefined,
           barcode: newProdBarcode || undefined,
@@ -817,32 +835,66 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void; onReturnToShop?
               </div>
 
               {/* Category & Pack Size */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Category</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Approved Category *</label>
                   <select
-                    value={newProdCategory}
-                    onChange={(e) => setNewProdCategory(e.target.value)}
+                    value={newProdCategoryId}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      setNewProdCategoryId(selectedId);
+                      const cat = approvedCategories.find((c) => c.id === selectedId);
+                      if (cat) {
+                        setNewProdCategory(cat.name);
+                        if (cat.children && cat.children.length > 0) {
+                          setNewProdSubcategoryId(cat.children[0].id);
+                        } else {
+                          setNewProdSubcategoryId('');
+                        }
+                      }
+                    }}
                     className="w-full text-xs border border-slate-200 rounded-xl p-2.5 focus:outline-forest-700 font-semibold"
                   >
-                    <option value="Grocery Staples">Grocery Staples</option>
-                    <option value="Dairy & Bakery">Dairy & Bakery</option>
-                    <option value="Fruits & Vegetables">Fruits & Vegetables</option>
-                    <option value="Beverages & Snacks">Beverages & Snacks</option>
-                    <option value="Personal Care">Personal Care</option>
-                    <option value="Household">Household</option>
+                    {approvedCategories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Pack Size</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 500ml, 1 kg, 5 kg"
-                    value={newProdPackageSize}
-                    onChange={(e) => setNewProdPackageSize(e.target.value)}
-                    className="w-full text-xs border border-slate-200 rounded-xl p-2.5 focus:outline-forest-700 font-medium"
-                  />
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Approved Subcategory</label>
+                  <select
+                    value={newProdSubcategoryId}
+                    onChange={(e) => setNewProdSubcategoryId(e.target.value)}
+                    className="w-full text-xs border border-slate-200 rounded-xl p-2.5 focus:outline-forest-700 font-semibold"
+                  >
+                    {(() => {
+                      const currentCat = approvedCategories.find((c) => c.id === newProdCategoryId);
+                      const subs = currentCat?.children || [];
+                      if (subs.length === 0) {
+                        return <option value="">General (No subcategory)</option>;
+                      }
+                      return subs.map((sub) => (
+                        <option key={sub.id} value={sub.id}>
+                          {sub.name}
+                        </option>
+                      ));
+                    })()}
+                  </select>
                 </div>
+              </div>
+
+              {/* Pack Size */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Pack Size</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 500ml, 1 kg, 5 kg"
+                  value={newProdPackageSize}
+                  onChange={(e) => setNewProdPackageSize(e.target.value)}
+                  className="w-full text-xs border border-slate-200 rounded-xl p-2.5 focus:outline-forest-700 font-medium"
+                />
               </div>
 
               {/* Pricing (MRP and Selling Price) */}

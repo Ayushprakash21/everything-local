@@ -4,6 +4,9 @@ dev.db
 dev.db-journal
 test.db
 test.db-journal
+backups/
+*.db
+
 .env
 .env*
 .env.*

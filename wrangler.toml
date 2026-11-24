@@ -1,0 +1,32 @@
+# Everything Local — API Worker Configuration
+# Dedicated Account: 6ab31e6d677b2f74c2b27f217c2f4c9c
+
+name = "everything-local-api"
+main = "server/src/worker.ts"
+compatibility_date = "2026-10-19"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 Relational Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "everything-local-db"
+database_id = "39a50b18-37a7-42f5-92eb-0983caeaf914"
+migrations_dir = "d1-migrations"
+
+# R2 Object Storage Binding (Private KYC Documents & Public Catalog)
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "everything-local-media"
+
+# KV Cache & Session Namespace Binding
+[[kv_namespaces]]
+binding = "CACHE_KV"
+id = "cca418a4d3fd487db664bf67677e5d08"
+
+# Environment Variables
+[vars]
+ENVIRONMENT = "production"
+CITY = "Indore"
+COMMISSION_RATE_PCT = "3.5"
+JWT_EXPIRY = "7d"
+CORS_ORIGIN = "https://everything-local-web.everything-local.workers.dev"

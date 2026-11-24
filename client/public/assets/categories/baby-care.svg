@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+      <rect width="100" height="100" rx="24" fill="#EFF6FF"/>
+      <!-- Feeding Bottle -->
+      <rect x="36" y="44" width="28" height="36" rx="6" fill="#93C5FD" stroke="#1D4ED8" stroke-width="2.5"/>
+      <rect x="38" y="36" width="24" height="8" rx="2" fill="#F472B6"/>
+      <path d="M44 36 L44 26 Q50 22 56 26 L56 36 Z" fill="#FDE047" stroke="#CA8A04" stroke-width="2"/>
+      <line x1="42" y1="52" x2="48" y2="52" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+      <line x1="42" y1="60" x2="52" y2="60" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+      <line x1="42" y1="68" x2="48" y2="68" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+    </svg>

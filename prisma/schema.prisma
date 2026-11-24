@@ -75,26 +75,63 @@ model Store {
 }
 
 model Product {
-  id          String      @id @default(uuid())
-  storeId     String
-  store       Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  category    String
-  mrpPaise    Int         // Integer paise
-  pricePaise  Int         // Integer paise
-  stock       Int         @default(0)
-  isAvailable Boolean     @default(true)
-  imageUrl    String?
-  sku         String?
-  barcode     String?
-  brand       String?
-  packageSize String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id                  String             @id @default(uuid())
+  storeId             String
+  store               Store              @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  name                String
+  description         String?
+  category            String
+  categoryId          String?
+  categoryRel         ProductCategory?   @relation("ProductToCategory", fields: [categoryId], references: [id])
+  subcategoryId       String?
+  subcategoryRel      ProductCategory?   @relation("ProductToSubcategory", fields: [subcategoryId], references: [id])
+  mrpPaise            Int                // Integer paise
+  pricePaise          Int                // Integer paise
+  stock               Int                @default(0)
+  isAvailable         Boolean            @default(true)
+  imageUrl            String?
+  sku                 String?
+  barcode             String?
+  brand               String?
+  packageSize         String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
+  cartItems           CartItem[]
+  orderItems          OrderItem[]
+
+  @@index([storeId])
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([category])
+}
+
+model ProductCategory {
+  id                  String             @id @default(uuid())
+  name                String
+  slug                String             @unique
+  description         String?
+  imageUrl            String
+  bannerUrl           String?
+  displayOrder        Int                @default(0)
+  isActive            Boolean            @default(true)
+  isHomepageVisible   Boolean            @default(true)
+  department          String             @default("GROCERY") // GROCERY, FASHION, ELECTRONICS, LIFESTYLE, SERVICES
+  metaTitle           String?
+  metaDescription     String?
+  parentId            String?
+  parent              ProductCategory?   @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children            ProductCategory[]  @relation("CategoryHierarchy")
+  products            Product[]          @relation("ProductToCategory")
+  subcategoryProducts Product[]          @relation("ProductToSubcategory")
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@index([slug])
+  @@index([displayOrder])
+  @@index([isActive, isHomepageVisible])
+  @@index([parentId])
+  @@index([department])
 }
 
 model CustomerAddress {

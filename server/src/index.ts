@@ -6,6 +6,7 @@ import authRouter from './routes/auth';
 import customerRouter from './routes/customer';
 import merchantRouter from './routes/merchant';
 import adminRouter from './routes/admin';
+import categoryRouter from './routes/category';
 import uploadRouter from './routes/upload';
 import locationRouter from './routes/location';
 import servicesRouter from './routes/services';
@@ -81,6 +82,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 // Mount Modular Routes
 app.use('/api/auth', authRouter);
 app.use('/api/customer', customerRouter);
+app.use('/api/categories', categoryRouter);
 app.use('/api/merchant', merchantRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/upload', uploadRouter);

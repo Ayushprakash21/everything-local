@@ -284,6 +284,24 @@ Would you like me to optimize this basket for the cheapest local price or 20-min
       return;
     }
 
+    // Tool: Category & Aisle discovery query
+    if (q.includes('category') || q.includes('categories') || q.includes('aisle') || q.includes('sections') || q.includes('department')) {
+      const liveCats = await prisma.productCategory.findMany({
+        where: { parentId: null, isActive: true },
+        orderBy: { displayOrder: 'asc' },
+        include: { _count: { select: { products: true, children: true } } },
+        take: 20
+      });
+
+      const catList = liveCats.map((c, i) => `${i + 1}. ${c.name} (${c._count.children} subcategories)`).join('\n');
+
+      res.json({
+        reply: `Everything Local offers 20 curated shopping aisles across Indore's neighbourhood stores:\n\n${catList}\n\nYou can click any category tile on the homepage to explore subcategories, filter brands, and shop from verified local merchants!`,
+        categories: liveCats.map((c) => ({ name: c.name, slug: c.slug }))
+      });
+      return;
+    }
+
     // Tool 2: Price comparison query
     if (q.includes('compare') || q.includes('price') || q.includes('atta') || q.includes('oil')) {
       const products = await prisma.product.findMany({

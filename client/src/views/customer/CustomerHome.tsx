@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Store, Product } from '../../types';
+import { Store, Product, ProductCategory } from '../../types';
 import { request, formatPaise } from '../../api/client';
 import { useLocation } from '../../context/LocationContext';
 import { ProductCard } from '../../components/ProductCard';
 import { ProductDetailModal } from '../../components/ProductDetailModal';
 import { BrandLogo } from '../../components/BrandLogo';
 import { MainContentContainer } from '../../components/layout/MainContentContainer';
+import { HomepageCategoryGrid } from '../../components/category/HomepageCategoryGrid';
+import { CategoryListingView } from './CategoryListingView';
 import {
   Search,
   MapPin,
@@ -203,6 +205,13 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
   const [sortBy, setSortBy] = useState<'featured' | 'price_asc' | 'price_desc' | 'discount'>('featured');
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
   const [inStockOnly, setInStockOnly] = useState<boolean>(false);
+  const [activeCategory, setActiveCategory] = useState<ProductCategory | null>(null);
+
+  useEffect(() => {
+    if (searchQuery) {
+      setActiveCategory(null);
+    }
+  }, [searchQuery]);
 
   const localityDisplayName = selectedLocation
     ? selectedLocation.locality || selectedLocation.name
@@ -424,6 +433,17 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
   const isFiltering = selectedCategory !== 'all' || searchQuery.trim().length > 0;
   const isServiceable = serviceability ? serviceability.isAnyStoreServiceable : true;
 
+  if (activeCategory) {
+    return (
+      <CategoryListingView
+        categorySlug={activeCategory.slug}
+        onBack={() => setActiveCategory(null)}
+        onAddToCart={onAddToCart}
+        onSelectStore={onSelectStore}
+      />
+    );
+  }
+
   return (
     <MainContentContainer className="py-6 space-y-6 sm:space-y-8">
       {/* BRANDING SECTION: MADE FOR INDIA. ROOTED IN LOCAL. */}
@@ -561,59 +581,11 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
         </div>
       </div>
 
-      {/* 2. 12 ILLUSTRATED SHOPPING CATEGORIES GRID */}
-      <section id="category-discovery-section">
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <div>
-            <h2 className="text-base sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <span>Shop by Category</span>
-              <span className="text-[11px] font-bold text-forest-700 bg-forest-50 px-2 py-0.5 rounded-full">
-                12 Departments
-              </span>
-            </h2>
-            <p className="text-xs text-slate-500">Fast delivery from neighborhood Indore kiranas</p>
-          </div>
-          {selectedCategory !== 'all' && (
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className="text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Show All</span>
-            </button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-2 sm:gap-2.5">
-          {SHOPPING_CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  if (cat.id === 'pharmacy' && onNavigateToPharmacy) {
-                    onNavigateToPharmacy();
-                    return;
-                  }
-                  setSelectedCategory(isSelected ? 'all' : cat.id);
-                }}
-                className={`flex flex-col items-center p-2 sm:p-2.5 rounded-2xl transition-all duration-150 text-center border group ${
-                  isSelected
-                    ? 'bg-amber-100/90 border-amber-500 shadow-xs ring-2 ring-amber-400/40 scale-102'
-                    : `${cat.bgColor} ${cat.borderColor} hover:shadow-subtle hover:scale-102`
-                }`}
-              >
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/90 shadow-2xs flex items-center justify-center text-xl sm:text-2xl mb-1.5 group-hover:scale-110 transition-transform">
-                  {cat.icon}
-                </div>
-                <span className={`text-[10px] sm:text-[11px] font-extrabold leading-tight line-clamp-2 ${cat.textColor}`}>
-                  {cat.shortLabel}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      {/* 2. COMPLETE 20 HOMEPAGE CATEGORY GRID */}
+      <HomepageCategoryGrid
+        onSelectCategory={(cat) => setActiveCategory(cat)}
+        selectedCategorySlug={activeCategory?.slug}
+      />
 
       {/* Prominent Pharmacy & Medical Prescription Feature Card */}
       {onNavigateToPharmacy && (

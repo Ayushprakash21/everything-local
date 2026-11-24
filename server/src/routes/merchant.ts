@@ -209,6 +209,8 @@ const ProductSchema = z.object({
   name: z.string().min(2),
   description: z.string().optional(),
   category: z.string().min(2),
+  categoryId: z.string().optional().nullable(),
+  subcategoryId: z.string().optional().nullable(),
   mrpPaise: z.number().int().min(0),
   pricePaise: z.number().int().min(0),
   stock: z.number().int().min(0),

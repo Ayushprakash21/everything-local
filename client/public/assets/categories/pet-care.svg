@@ -1,19 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
-  <defs>
-    <linearGradient id="bg-pet" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFF1F2"/>
-      <stop offset="100%" stop-color="#FFE4E6"/>
-    </linearGradient>
-  </defs>
-  <rect width="400" height="400" rx="40" fill="url(#bg-pet)"/>
-  <circle cx="200" cy="200" r="140" fill="#FECDD3" opacity="0.4"/>
-  <g transform="translate(150, 105)">
-    <ellipse cx="50" cy="90" rx="35" ry="28" fill="#E11D48"/>
-    <circle cx="20" cy="45" r="14" fill="#FB7185"/>
-    <circle cx="42" cy="35" r="15" fill="#FB7185"/>
-    <circle cx="68" cy="35" r="15" fill="#FB7185"/>
-    <circle cx="88" cy="45" r="14" fill="#FB7185"/>
-  </g>
-  <text x="200" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="800" fill="#881337" text-anchor="middle">Pet Supplies &amp; Food</text>
-  <text x="200" y="362" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#E11D48" text-anchor="middle">Pedigree • Whiskas • Pet Grooming</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+      <rect width="100" height="100" rx="24" fill="#FFFBEB"/>
+      <!-- Paw Print -->
+      <ellipse cx="50" cy="62" rx="14" ry="11" fill="#D97706"/>
+      <ellipse cx="32" cy="44" rx="6" ry="9" fill="#D97706" transform="rotate(-20 32 44)"/>
+      <ellipse cx="44" cy="36" rx="6" ry="9" fill="#D97706" transform="rotate(-8 44 36)"/>
+      <ellipse cx="56" cy="36" rx="6" ry="9" fill="#D97706" transform="rotate(8 56 36)"/>
+      <ellipse cx="68" cy="44" rx="6" ry="9" fill="#D97706" transform="rotate(20 68 44)"/>
+      <!-- Pet Bone -->
+      <path d="M36 80 L64 80" stroke="#B45309" stroke-width="4" stroke-linecap="round"/>
+    </svg>

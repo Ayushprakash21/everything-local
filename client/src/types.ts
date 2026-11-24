@@ -38,6 +38,8 @@ export interface Product {
   name: string;
   description?: string;
   category: string;
+  categoryId?: string | null;
+  subcategoryId?: string | null;
   mrpPaise: number;
   pricePaise: number;
   stock: number;
@@ -47,6 +49,28 @@ export interface Product {
   brand?: string;
   packageSize?: string;
   barcode?: string;
+  store?: Partial<Store>;
+}
+
+export interface ProductCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  imageUrl: string;
+  bannerUrl?: string;
+  displayOrder: number;
+  isActive: boolean;
+  isHomepageVisible: boolean;
+  department: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  parentId?: string | null;
+  parent?: ProductCategory | null;
+  children?: ProductCategory[];
+  _count?: {
+    products?: number;
+  };
 }
 
 export interface CartItem {

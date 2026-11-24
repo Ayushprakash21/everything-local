@@ -1,0 +1,11 @@
+# Everything Local — Customer Website Worker
+# Dedicated Account: 6ab31e6d677b2f74c2b27f217c2f4c9c
+
+name = "everything-local-web"
+main = "client/worker.ts"
+compatibility_date = "2026-10-19"
+
+[assets]
+directory = "./dist/client"
+not_found_handling = "single-page-application"
+binding = "ASSETS"
