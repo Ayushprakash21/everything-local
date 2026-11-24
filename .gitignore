@@ -5,6 +5,8 @@ dev.db-journal
 test.db
 test.db-journal
 .env
+.env*
+.env.*
 *.log
 *.baseline-backup
 *.release-candidate-backup
