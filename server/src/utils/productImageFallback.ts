@@ -1,37 +1,42 @@
 /**
  * EveryBazaar Product Image Fallback Resolver
- * Maps product names and categories to realistic, high-resolution WebP photographs
- * situated in /product-images/
+ * Maps specific products to authentic high-resolution WebP photographs.
+ * When no suitable specific photograph exists, returns a neutral branded
+ * placeholder SVG (/brand/product-placeholder.svg) rather than an unrelated grocery photograph.
  */
+
+export const NEUTRAL_PRODUCT_PLACEHOLDER = '/brand/product-placeholder.svg';
 
 export function resolveProductImage(name: string, category?: string, currentImageUrl?: string | null): string {
   if (currentImageUrl && currentImageUrl.trim() !== '') {
     return currentImageUrl;
   }
-  const n = (name || '').toLowerCase();
-  const c = (category || '').toLowerCase();
+  const n = (name || '').toLowerCase().trim();
+  const c = (category || '').toLowerCase().trim();
 
+  // 1. Specific High-Confidence Product Matches
   // Groceries & Staples
-  if (n.includes('atta') || n.includes('wheat') || n.includes('flour')) return '/product-images/groceries/aashirvaad-chakki-atta.webp';
-  if (n.includes('oil')) return n.includes('mustard') ? '/product-images/groceries/mustard-oil.webp' : '/product-images/groceries/fortune-sunflower-oil.webp';
+  if (n.includes('atta') || n.includes('chakki fresh') || n.includes('wheat flour')) return '/product-images/groceries/aashirvaad-chakki-atta.webp';
+  if (n.includes('sunflower oil') || n.includes('fortune oil')) return '/product-images/groceries/fortune-sunflower-oil.webp';
+  if (n.includes('mustard oil') || n.includes('sarson')) return '/product-images/groceries/mustard-oil.webp';
   if (n.includes('ghee')) return '/product-images/groceries/cow-ghee.webp';
-  if (n.includes('salt')) return '/product-images/groceries/tata-salt.webp';
-  if (n.includes('sugar')) return '/product-images/groceries/madhur-sugar.webp';
-  if (n.includes('rice') || n.includes('basmati')) return '/product-images/groceries/india-gate-basmati-rice.webp';
-  if (n.includes('toor dal')) return '/product-images/groceries/toor-dal.webp';
-  if (n.includes('moong')) return '/product-images/groceries/moong-dal.webp';
+  if (n.includes('salt') || n.includes('namak')) return '/product-images/groceries/tata-salt.webp';
+  if (n.includes('sugar') || n.includes('shakkar') || n.includes('cheeni')) return '/product-images/groceries/madhur-sugar.webp';
+  if (n.includes('basmati') || n.includes('india gate')) return '/product-images/groceries/india-gate-basmati-rice.webp';
+  if (n.includes('toor dal') || n.includes('arhar dal')) return '/product-images/groceries/toor-dal.webp';
+  if (n.includes('moong dal') || n.includes('mung')) return '/product-images/groceries/moong-dal.webp';
   if (n.includes('chana dal')) return '/product-images/groceries/chana-dal.webp';
-  if (n.includes('masoor')) return '/product-images/groceries/masoor-dal.webp';
-  if (n.includes('rajma')) return '/product-images/groceries/rajma.webp';
-  if (n.includes('chana') || n.includes('chickpea')) return '/product-images/groceries/kabuli-chana.webp';
-  if (n.includes('poha')) return '/product-images/groceries/indori-poha.webp';
-  if (n.includes('sooji') || n.includes('rava')) return '/product-images/groceries/sooji-rava.webp';
-  if (n.includes('besan')) return '/product-images/groceries/besan.webp';
-  if (n.includes('haldi') || n.includes('turmeric')) return '/product-images/groceries/turmeric-powder.webp';
-  if (n.includes('chilli') || n.includes('mirch')) return n.includes('powder') ? '/product-images/groceries/red-chilli-powder.webp' : '/product-images/fruits-vegetables/green-chillies.webp';
-  if (n.includes('jeera') || n.includes('cumin')) return '/product-images/groceries/cumin-seeds.webp';
-  if (n.includes('tea') || n.includes('chai')) return '/product-images/groceries/tata-tea.webp';
-  if (n.includes('sev') || n.includes('namkeen')) return '/product-images/snacks-beverages/indori-sev.webp';
+  if (n.includes('masoor dal')) return '/product-images/groceries/masoor-dal.webp';
+  if (n.includes('rajma') || n.includes('kidney beans')) return '/product-images/groceries/rajma.webp';
+  if (n.includes('kabuli chana') || n.includes('chhole')) return '/product-images/groceries/kabuli-chana.webp';
+  if (n.includes('poha') || n.includes('pooha')) return '/product-images/groceries/indori-poha.webp';
+  if (n.includes('sooji') || n.includes('rava') || n.includes('semolina')) return '/product-images/groceries/sooji-rava.webp';
+  if (n.includes('besan') || n.includes('gram flour')) return '/product-images/groceries/besan.webp';
+  if (n.includes('turmeric') || n.includes('haldi')) return '/product-images/groceries/turmeric-powder.webp';
+  if (n.includes('red chilli powder') || n.includes('lal mirch powder')) return '/product-images/groceries/red-chilli-powder.webp';
+  if (n.includes('cumin') || n.includes('jeera')) return '/product-images/groceries/cumin-seeds.webp';
+  if (n.includes('tea') || n.includes('chai') || n.includes('tata tea')) return '/product-images/groceries/tata-tea.webp';
+  if (n.includes('sev') || n.includes('indori sev') || n.includes('ujjaini sev')) return '/product-images/snacks-beverages/indori-sev.webp';
 
   // Produce (Fruits & Vegetables)
   if (n.includes('potato') || n.includes('aloo')) return '/product-images/fruits-vegetables/fresh-malwa-potatoes.webp';
@@ -39,37 +44,50 @@ export function resolveProductImage(name: string, category?: string, currentImag
   if (n.includes('tomato') || n.includes('tamatar')) return '/product-images/fruits-vegetables/ripe-country-tomatoes.webp';
   if (n.includes('apple') || n.includes('seb')) return '/product-images/fruits-vegetables/shimla-apples.webp';
   if (n.includes('banana') || n.includes('kela')) return '/product-images/fruits-vegetables/fresh-bananas.webp';
-  if (n.includes('mango') || n.includes('aam')) return '/product-images/fruits-vegetables/alphonso-mangoes.webp';
+  if (n.includes('mango') || n.includes('aam') || n.includes('alphonso')) return '/product-images/fruits-vegetables/alphonso-mangoes.webp';
   if (n.includes('coriander') || n.includes('dhaniya')) return '/product-images/fruits-vegetables/fresh-coriander.webp';
   if (n.includes('lemon') || n.includes('nimbu')) return '/product-images/fruits-vegetables/fresh-lemon.webp';
   if (n.includes('ginger') || n.includes('adrak')) return '/product-images/fruits-vegetables/fresh-ginger.webp';
+  if (n.includes('green chilli') || n.includes('hari mirch')) return '/product-images/fruits-vegetables/green-chillies.webp';
 
   // Dairy & Bakery
-  if (n.includes('bread')) return '/product-images/dairy-bakery/fresh-whole-wheat-bread.webp';
-  if (n.includes('butter')) return '/product-images/dairy-bakery/amul-butter.webp';
-  if (n.includes('milk') || n.includes('doodh')) return '/product-images/dairy-bakery/sanchi-gold-milk.webp';
-  if (n.includes('paneer')) return '/product-images/dairy-bakery/fresh-paneer.webp';
-  if (n.includes('egg') || n.includes('anda')) return '/product-images/dairy-bakery/farm-eggs.webp';
+  if (/\b(bread|pav)\b/.test(n)) return '/product-images/dairy-bakery/fresh-whole-wheat-bread.webp';
+  if (/\b(butter|makhan)\b/.test(n)) return '/product-images/dairy-bakery/amul-butter.webp';
+  if (/\b(milk|doodh|sanchi)\b/.test(n)) return '/product-images/dairy-bakery/sanchi-gold-milk.webp';
+  if (/\b(paneer)\b/.test(n)) return '/product-images/dairy-bakery/fresh-paneer.webp';
+  if (/\b(egg|eggs|anda)\b/.test(n)) return '/product-images/dairy-bakery/farm-eggs.webp';
 
-  // Pharmacy
-  if (n.includes('dolo')) return '/product-images/pharmacy/dolo-650.webp';
-  if (n.includes('digene')) return '/product-images/pharmacy/digene-gel.webp';
-  if (n.includes('augmentin')) return '/product-images/pharmacy/augmentin-625.webp';
-  if (n.includes('azithral')) return '/product-images/pharmacy/azithral-500.webp';
-  if (n.includes('pantocid')) return '/product-images/pharmacy/pantocid-40.webp';
-  if (n.includes('telma')) return '/product-images/pharmacy/telma-40.webp';
-  if (n.includes('cefix')) return '/product-images/pharmacy/cefix-200.webp';
+  // Pharmacy & Medical
+  if (n.includes('dolo') || n.includes('paracetamol')) return '/product-images/pharmacy/dolo-650.webp';
+  if (n.includes('digene') || n.includes('antacid gel')) return '/product-images/pharmacy/digene-gel.webp';
+  if (n.includes('augmentin') || n.includes('amoxycillin')) return '/product-images/pharmacy/augmentin-625.webp';
+  if (n.includes('azithral') || n.includes('azithromycin')) return '/product-images/pharmacy/azithral-500.webp';
+  if (n.includes('pantocid') || n.includes('pantoprazole')) return '/product-images/pharmacy/pantocid-40.webp';
+  if (n.includes('telma') || n.includes('telmisartan')) return '/product-images/pharmacy/telma-40.webp';
+  if (n.includes('cefix') || n.includes('cefixime')) return '/product-images/pharmacy/cefix-200.webp';
   if (n.includes('glucometer') || n.includes('accu-chek')) return '/product-images/pharmacy/accu-chek.webp';
-  if (n.includes('bp') || n.includes('omron')) return '/product-images/pharmacy/omron-bp.webp';
-  if (n.includes('dettol')) return '/product-images/pharmacy/dettol-antiseptic.webp';
-  if (n.includes('volini')) return '/product-images/pharmacy/volini-gel.webp';
+  if (n.includes('bp monitor') || n.includes('omron')) return '/product-images/pharmacy/omron-bp.webp';
+  if (n.includes('dettol') || n.includes('antiseptic')) return '/product-images/pharmacy/dettol-antiseptic.webp';
+  if (n.includes('volini') || n.includes('pain relief gel')) return '/product-images/pharmacy/volini-gel.webp';
   if (n.includes('bandage') || n.includes('hansaplast')) return '/product-images/pharmacy/hansaplast-strips.webp';
 
-  // Department / Category Fallbacks
-  if (c.includes('produce') || c.includes('vegetable') || c.includes('fruit')) return '/product-images/fruits-vegetables/fresh-malwa-potatoes.webp';
-  if (c.includes('dairy') || c.includes('bakery')) return '/product-images/dairy-bakery/fresh-whole-wheat-bread.webp';
-  if (c.includes('pharmacy')) return '/product-images/pharmacy/dolo-650.webp';
-  if (c.includes('snack') || c.includes('beverage')) return '/product-images/snacks-beverages/indori-sev.webp';
+  // 2. Department Generic Banner Fallbacks (only when category is known)
+  if (c.includes('produce') || c.includes('vegetable') || c.includes('fruit')) {
+    return '/product-images/categories/fruits-vegetables-hero.webp';
+  }
+  if (c.includes('dairy') || c.includes('bakery')) {
+    return '/product-images/categories/dairy-bakery-hero.webp';
+  }
+  if (c.includes('pharmacy') || c.includes('medical')) {
+    return '/product-images/categories/pharmacy-hero.webp';
+  }
+  if (c.includes('snack') || c.includes('beverage') || c.includes('drink')) {
+    return '/product-images/categories/snacks-drinks-hero.webp';
+  }
+  if (c.includes('grocery') || c.includes('staple') || c.includes('food')) {
+    return '/product-images/categories/groceries-hero.webp';
+  }
 
-  return '/product-images/groceries/aashirvaad-chakki-atta.webp';
+  // 3. Neutral Branded Placeholder: Never show unrelated groceries for stationery, electronics, etc.
+  return NEUTRAL_PRODUCT_PLACEHOLDER;
 }

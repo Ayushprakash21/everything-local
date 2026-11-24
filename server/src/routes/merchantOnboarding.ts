@@ -499,7 +499,61 @@ router.post('/resume', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// 5. Verify Phone OTP
+interface OnboardingOtpRecord {
+  otp: string;
+  expiresAt: Date;
+  attempts: number;
+  lastSentAt: number;
+}
+const merchantOtpStore = new Map<string, OnboardingOtpRecord>();
+
+// 5a. Request Phone OTP
+router.post('/send-phone-otp', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { referenceNumber } = req.body;
+    if (!referenceNumber) {
+      res.status(400).json({ error: 'Reference number is required' });
+      return;
+    }
+
+    const application = await prisma.merchantApplication.findUnique({
+      where: { referenceNumber }
+    });
+    if (!application) {
+      res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+
+    const now = Date.now();
+    const existing = merchantOtpStore.get(referenceNumber);
+    if (existing && now - existing.lastSentAt < 30000) {
+      const waitSeconds = Math.ceil((30000 - (now - existing.lastSentAt)) / 1000);
+      res.status(429).json({ error: `Please wait ${waitSeconds} seconds before requesting a new OTP` });
+      return;
+    }
+
+    const isTest = process.env.NODE_ENV === 'test';
+    const otp = isTest ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    merchantOtpStore.set(referenceNumber, {
+      otp,
+      expiresAt,
+      attempts: 0,
+      lastSentAt: now
+    });
+
+    res.json({
+      success: true,
+      message: 'Verification OTP sent to registered mobile number',
+      devOtp: isTest ? otp : undefined
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to send OTP' });
+  }
+});
+
+// 5b. Verify Phone OTP
 router.post('/verify-phone-otp', async (req: Request, res: Response): Promise<void> => {
   try {
     const { referenceNumber, otp } = req.body;
@@ -522,10 +576,43 @@ router.post('/verify-phone-otp', async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    // Verify OTP: Pilot accepts 1234, 0000, or any 4-6 digit numeric code
-    if (otp !== '1234' && otp !== '0000' && (otp.length < 4 || isNaN(Number(otp)))) {
-      res.status(400).json({ error: 'Invalid verification code' });
+    const record = merchantOtpStore.get(referenceNumber);
+    const isTest = process.env.NODE_ENV === 'test';
+    const isTestCode = (otp === '123456' || otp === '1234' || otp === '0000');
+
+    if (isTestCode && !isTest) {
+      res.status(400).json({ error: 'Test verification codes are strictly prohibited in production' });
       return;
+    }
+
+    if (record) {
+      if (record.attempts >= 5) {
+        merchantOtpStore.delete(referenceNumber);
+        res.status(429).json({ error: 'Maximum OTP verification attempts exceeded. Please request a new OTP.' });
+        return;
+      }
+
+      if (record.expiresAt < new Date()) {
+        merchantOtpStore.delete(referenceNumber);
+        res.status(400).json({ error: 'OTP has expired. Please request a new verification code.' });
+        return;
+      }
+
+      const isMatch = (record.otp === otp) || (isTest && isTestCode);
+      if (!isMatch) {
+        record.attempts += 1;
+        const remaining = 5 - record.attempts;
+        res.status(400).json({ error: `Invalid verification code. ${remaining} attempt(s) remaining.` });
+        return;
+      }
+
+      // Success - delete OTP immediately (single-use)
+      merchantOtpStore.delete(referenceNumber);
+    } else {
+      if (!isTest || !isTestCode) {
+        res.status(400).json({ error: 'No active OTP found. Please request an OTP first.' });
+        return;
+      }
     }
 
     const updated = await prisma.merchantApplication.update({

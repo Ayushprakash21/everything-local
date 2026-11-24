@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#F1F5F9"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Container -->
+  <rect width="400" height="400" rx="16" fill="url(#bgGrad)"/>
+  <rect x="2" y="2" width="396" height="396" rx="14" fill="none" stroke="#E2E8F0" stroke-width="2"/>
+  
+  <!-- Subtle Grid Pattern in background -->
+  <circle cx="200" cy="180" r="110" fill="#EDF2F7"/>
+  
+  <!-- Neutral Packaging / Box Illustration -->
+  <g transform="translate(130, 110)">
+    <!-- Main Box Body -->
+    <path d="M 10 40 L 70 10 L 130 40 L 130 110 L 70 140 L 10 110 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="3" stroke-linejoin="round"/>
+    <!-- Box Left Flap -->
+    <path d="M 10 40 L 70 70 L 70 140 L 10 110 Z" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="3" stroke-linejoin="round"/>
+    <!-- Box Right Flap -->
+    <path d="M 130 40 L 70 70 L 70 140 L 130 110 Z" fill="#EDF2F7" stroke="#CBD5E1" stroke-width="3" stroke-linejoin="round"/>
+    <!-- Box Top Fold -->
+    <path d="M 10 40 L 70 10 L 130 40 L 70 70 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="3" stroke-linejoin="round"/>
+    <!-- Box Seal Tape (EveryBazaar Amber) -->
+    <path d="M 52 19 L 88 37 L 88 79 L 52 61 Z" fill="#F5B82E" opacity="0.85"/>
+  </g>
+
+  <!-- EB Brand Monogram Badge on Box -->
+  <g transform="translate(200, 185)">
+    <circle cx="0" cy="0" r="22" fill="#0B1F3B"/>
+    <text x="0" y="7" font-family="'Inter', sans-serif" font-weight="900" font-style="italic" font-size="16" fill="#FFFFFF" text-anchor="middle" letter-spacing="-1">EB</text>
+  </g>
+
+  <!-- Dynamic Amber Smile Curve under box -->
+  <path d="M 140 270 Q 200 295 260 270" fill="none" stroke="#F5B82E" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Clean Subtitle -->
+  <text x="200" y="325" font-family="'Inter', sans-serif" font-weight="700" font-size="15" fill="#475569" text-anchor="middle" letter-spacing="0.5">EveryBazaar Assured</text>
+  <text x="200" y="348" font-family="'Inter', sans-serif" font-weight="500" font-size="12" fill="#94A3B8" text-anchor="middle">Standard Packaging • Genuine Quality</text>
+</svg>

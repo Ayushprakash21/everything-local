@@ -51,17 +51,17 @@ account_id = "6ab31e6d677b2f74c2b27f217c2f4c9c"
 
 [[env.development.d1_databases]]
 binding = "DB"
-database_name = "everything-local-db"
-database_id = "39a50b18-37a7-42f5-92eb-0983caeaf914"
+database_name = "everybazaar-dev-db"
+database_id = "f24dbc3e-73a1-4c6c-a1ad-3743800795fd"
 migrations_dir = "d1-migrations"
 
 [[env.development.r2_buckets]]
 binding = "MEDIA_BUCKET"
-bucket_name = "everything-local-media"
+bucket_name = "everybazaar-dev-media"
 
 [[env.development.kv_namespaces]]
 binding = "CACHE_KV"
-id = "cca418a4d3fd487db664bf67677e5d08"
+id = "140a330b6e174280802c0b7ad577d86c"
 
 [env.development.vars]
 ENVIRONMENT = "development"
@@ -73,10 +73,11 @@ CORS_ORIGIN = "*"
 # ==============================================================================
 # STAGING ENVIRONMENT (EveryBazaar Staging Worker)
 # Worker: everybazaar-api-staging
-# Expected URL: https://everybazaar-api-staging.everything-local.workers.dev
-# Provisioning: npx wrangler d1 create everybazaar-staging-db
-#               npx wrangler r2 bucket create everybazaar-staging-media
-#               npx wrangler kv:namespace create everybazaar-staging-kv
+# Live URL: https://everybazaar-api-staging.everything-local.workers.dev
+# Dedicated Isolated Resources:
+#   D1: everybazaar-staging-db (d182b8dd-6748-4453-bfd6-189d1b206780)
+#   R2: everybazaar-staging-media
+#   KV: everybazaar-staging-kv (a8c2e1585e804de7888b42ff6586d098)
 # ==============================================================================
 [env.staging]
 name = "everybazaar-api-staging"
@@ -88,7 +89,7 @@ account_id = "6ab31e6d677b2f74c2b27f217c2f4c9c"
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "everybazaar-staging-db"
-database_id = "everybazaar-staging-db-unprovisioned"
+database_id = "d182b8dd-6748-4453-bfd6-189d1b206780"
 migrations_dir = "d1-migrations"
 
 [[env.staging.r2_buckets]]
@@ -97,7 +98,7 @@ bucket_name = "everybazaar-staging-media"
 
 [[env.staging.kv_namespaces]]
 binding = "CACHE_KV"
-id = "everybazaar-staging-kv-unprovisioned"
+id = "a8c2e1585e804de7888b42ff6586d098"
 
 [env.staging.vars]
 ENVIRONMENT = "staging"

@@ -1,8 +1,8 @@
 {
-  "name": "everything-local",
+  "name": "everybazaar",
   "version": "1.0.0",
   "private": true,
-  "description": "Everything Local - Hyperlocal Neighbourhood Commerce Platform (Indore)",
+  "description": "EveryBazaar - Hyperlocal Commerce & Quick-Delivery Ecosystem (Indore)",
   "scripts": {
     "dev:server": "tsx watch server/src/index.ts",
     "dev:client": "vite --config client/vite.config.ts",
@@ -12,6 +12,9 @@
     "build": "npm run build:server && npm run build:client",
     "test": "vitest run",
     "test:watch": "vitest",
+    "validate:environments": "tsx scripts/validate-environments.ts",
+    "validate:secrets": "tsx scripts/validate-secrets.ts",
+    "validate:release": "tsx scripts/validate-release.ts",
     "deploy:worker:dev": "wrangler deploy --env development",
     "deploy:worker:prod": "wrangler deploy",
     "prisma:generate": "prisma generate",
