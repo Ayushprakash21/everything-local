@@ -40,10 +40,21 @@ function getPrismaClient(d1: D1Database): PrismaClient {
   return cachedPrisma;
 }
 
-const DEFAULT_SECRET = 'everything_local_indore_jwt_prod_key_2026_secured_cf';
+// P0 Remediation: Enforce strict secret binding requirement without hardcoded fallbacks
+export const COMPROMISED_FALLBACK_SECRET = 'everything_local_indore_jwt_prod_key_2026_secured_cf';
 
-function getSecret(env: Bindings): string {
-  return env.JWT_SECRET || DEFAULT_SECRET;
+export function getSecret(env: Bindings): string {
+  const secret = env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('SECURITY FATAL: JWT_SECRET secret binding is required. Set via wrangler secret put JWT_SECRET.');
+  }
+  if (secret.length < 32) {
+    throw new Error('SECURITY FATAL: JWT_SECRET must be at least 32 characters.');
+  }
+  if (secret === COMPROMISED_FALLBACK_SECRET || secret.includes('placeholder') || secret.includes('example')) {
+    throw new Error('SECURITY FATAL: Compromised or placeholder JWT_SECRET is strictly forbidden.');
+  }
+  return secret;
 }
 
 // 1. CORS Configuration
@@ -76,7 +87,7 @@ app.use('*', async (c, next) => {
 });
 
 // 3. Auth Helper Middleware
-async function authMiddleware(c: any, next: any) {
+export async function authMiddleware(c: any, next: any) {
   const authHeader = c.req.header('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return c.json({ error: 'Access token required' }, 401);
@@ -84,14 +95,24 @@ async function authMiddleware(c: any, next: any) {
   const token = authHeader.split(' ')[1];
   try {
     const secret = getSecret(c.env);
-    const decoded = jwt.verify(token, secret) as any;
+    const decoded = jwt.verify(token, secret, {
+      algorithms: ['HS256']
+    }) as any;
+
+    if (!decoded || (!decoded.userId && !decoded.id)) {
+      return c.json({ error: 'Malformed token payload: Missing subject identity' }, 403);
+    }
+
     c.set('user', {
       ...decoded,
       id: decoded.userId || decoded.id,
       userId: decoded.userId || decoded.id
     });
     await next();
-  } catch (err) {
+  } catch (err: any) {
+    if (err.message && err.message.startsWith('SECURITY FATAL')) {
+      return c.json({ error: 'Server authentication configuration error' }, 500);
+    }
     return c.json({ error: 'Invalid or expired token' }, 403);
   }
 }

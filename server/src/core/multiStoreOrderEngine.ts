@@ -7,14 +7,16 @@ export interface MultiStoreCheckoutRequest {
   deliveryAddress: string;
   deliveryLatitude?: number;
   deliveryLongitude?: number;
-  deliveryTier: 'EXPRESS_20' | 'PRIORITY_40' | 'STANDARD_60' | 'SCHEDULED_120';
-  paymentMethod: 'ONLINE' | 'UPI' | 'COD' | 'CARD';
+  deliveryTier?: 'EXPRESS_20' | 'PRIORITY_40' | 'STANDARD_60' | 'SCHEDULED_120' | string;
+  paymentMethod: 'ONLINE' | 'UPI' | 'COD' | 'CARD' | string;
+  deliveryNotes?: string;
   items: {
     productId: string;
-    storeId: string;
-    productName: string;
+    storeId?: string;
+    merchantId?: string;
+    productName?: string;
     quantity: number;
-    unitPricePaise: number;
+    unitPricePaise?: number;
   }[];
 }
 
@@ -25,6 +27,13 @@ export class MultiStoreOrderEngine {
   static async checkout(req: MultiStoreCheckoutRequest) {
     if (!req.items || req.items.length === 0) {
       throw new Error('Cannot checkout an empty basket');
+    }
+
+    // Fail-fast input validation on item quantities
+    for (const item of req.items) {
+      if (!item.quantity || typeof item.quantity !== 'number' || item.quantity <= 0 || !Number.isInteger(item.quantity) || item.quantity > 100) {
+        throw new Error(`Invalid item quantity for product ${item.productId}: Must be a positive integer between 1 and 100`);
+      }
     }
 
     // 1. Group items by storeId
@@ -59,7 +68,7 @@ export class MultiStoreOrderEngine {
     const tierQuotes = await DeliveryPriorityEngine.calculateAllTiers({
       customerCoordinates: customerCoords,
       merchantIds,
-      deliveryTier: req.deliveryTier
+      deliveryTier: (req.deliveryTier as any) || 'STANDARD_60'
     });
 
     const chosenQuote = tierQuotes.find((q) => q.tierCode === req.deliveryTier);
@@ -76,24 +85,47 @@ export class MultiStoreOrderEngine {
 
     // 4. Database transaction to create parent, child orders, and delivery tasks atomically
     const result = await prisma.$transaction(async (tx) => {
-      // P1 Remediation: Validate live inventory, synchronize price, and decrement stock
+      // P0 Remediation: Validate live inventory, enforce canonical database pricing, and decrement stock atomically
       let totalSubtotalPaise = 0;
       for (const item of req.items) {
+        // Enforce integer quantity validation
+        if (!item.quantity || typeof item.quantity !== 'number' || item.quantity <= 0 || !Number.isInteger(item.quantity)) {
+          throw new Error(`Invalid item quantity for product ${item.productId}: Must be a positive integer`);
+        }
+        if (item.quantity > 100) {
+          throw new Error(`Quantity exceeds maximum purchase limit (100) for product ${item.productId}`);
+        }
+
         const prod = await tx.product.findUnique({
           where: { id: item.productId }
         });
-        if (prod) {
-          if (prod.stock < item.quantity) {
-            throw new Error(
-              `Insufficient stock for "${prod.name}". Available: ${prod.stock}, Requested: ${item.quantity}`
-            );
-          }
-          await tx.product.update({
-            where: { id: item.productId },
-            data: { stock: { decrement: item.quantity } }
-          });
+        if (!prod) {
+          throw new Error(`Product not found: ${item.productId}`);
         }
-        totalSubtotalPaise += item.unitPricePaise * item.quantity;
+        if (!prod.isAvailable) {
+          throw new Error(`Product "${prod.name}" is currently unavailable for purchase`);
+        }
+
+        const sId = (item as any).storeId || (item as any).merchantId;
+        if (sId && prod.storeId !== sId) {
+          throw new Error(`Product "${prod.name}" does not belong to specified store ${sId}`);
+        }
+
+        if (prod.stock < item.quantity) {
+          throw new Error(
+            `Insufficient stock for "${prod.name}". Available: ${prod.stock}, Requested: ${item.quantity}`
+          );
+        }
+
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } }
+        });
+
+        // CANONICAL PRICING ENFORCEMENT: Strictly overwrite client unitPricePaise with prod.pricePaise from DB
+        item.unitPricePaise = prod.pricePaise;
+        item.productName = prod.name;
+        totalSubtotalPaise += prod.pricePaise * item.quantity;
       }
 
       const totalPaidPaise = totalSubtotalPaise + deliveryFeePaise;
@@ -131,7 +163,7 @@ export class MultiStoreOrderEngine {
 
         let storeSubtotal = 0;
         for (const it of storeItems) {
-          storeSubtotal += it.unitPricePaise * it.quantity;
+          storeSubtotal += (it.unitPricePaise || 0) * it.quantity;
         }
 
         const commPaise = Math.round((storeSubtotal * commRatePct) / 100);
@@ -156,8 +188,8 @@ export class MultiStoreOrderEngine {
                 productId: si.productId,
                 productName: si.productName || 'Grocery Item',
                 quantity: si.quantity,
-                unitPricePaise: si.unitPricePaise,
-                totalPricePaise: si.unitPricePaise * si.quantity,
+                unitPricePaise: si.unitPricePaise || 0,
+                totalPricePaise: (si.unitPricePaise || 0) * si.quantity,
                 isFulfilled: true
               }))
             }

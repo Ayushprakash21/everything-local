@@ -5,6 +5,9 @@ const DEFAULT_DEV_SECRET = 'everything_local_indore_secure_jwt_secret_key_2026';
 
 export function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
+  if (secret === 'everything_local_indore_jwt_prod_key_2026_secured_cf') {
+    throw new Error('SECURITY FATAL: Insecure or compromised JWT secret detected.');
+  }
   const isProd = process.env.NODE_ENV === 'production';
   if (isProd) {
     if (!secret) {

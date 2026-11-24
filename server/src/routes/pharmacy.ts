@@ -292,10 +292,17 @@ const SubmitPrescriptionSchema = z.object({
   deliveryType: z.enum(['HOME_DELIVERY', 'COUNTER_PICKUP']).default('HOME_DELIVERY'),
   documents: z.array(
     z.object({
-      fileName: z.string(),
+      fileName: z.string().min(1).max(255),
       fileType: z.string(),
-      fileSizeBytes: z.number(),
+      fileSizeBytes: z.number().int().positive(),
       storagePath: z.string()
+        .min(1)
+        .max(255)
+        .regex(/^[a-zA-Z0-9_\-\.]+$/, 'Invalid storage path identifier')
+        .refine(
+          (val) => !val.includes('..') && !val.includes('/') && !val.includes('\\') && path.basename(val) === val,
+          { message: 'Invalid storagePath: Directory traversal attempt detected' }
+        )
     })
   ).min(1, 'At least one prescription document page is required')
 });
@@ -319,6 +326,25 @@ router.post('/prescriptions', authenticateToken, async (req: Request, res: Respo
       deliveryType,
       documents
     } = parse.data;
+
+    // Verify all referenced documents exist in secure storage and prevent path traversal
+    const secureDir = path.resolve(SECURE_PRESCRIPTION_DIR);
+    for (const doc of documents) {
+      const sanitizedFilename = path.basename(doc.storagePath);
+      const resolvedPath = path.resolve(secureDir, sanitizedFilename);
+
+      if (!resolvedPath.startsWith(secureDir + path.sep) && resolvedPath !== secureDir) {
+        res.status(400).json({ error: 'Invalid document storage path: Path traversal detected' });
+        return;
+      }
+
+      if (!fs.existsSync(resolvedPath)) {
+        res.status(400).json({
+          error: `Prescription document '${doc.fileName}' not found in secure staging. Documents must be uploaded via the secure upload endpoint first.`
+        });
+        return;
+      }
+    }
 
     // Verify assigned pharmacy if provided
     let targetPharmacyId = pharmacyId;
@@ -358,10 +384,10 @@ router.post('/prescriptions', authenticateToken, async (req: Request, res: Respo
         documents: {
           create: documents.map((doc, idx) => ({
             pageNumber: idx + 1,
-            fileName: doc.fileName,
+            fileName: path.basename(doc.fileName),
             fileType: doc.fileType,
             fileSizeBytes: doc.fileSizeBytes,
-            storagePath: doc.storagePath
+            storagePath: path.basename(doc.storagePath)
           }))
         },
         auditEvents: {
@@ -502,7 +528,15 @@ router.get(
         return;
       }
 
-      const filePath = path.join(SECURE_PRESCRIPTION_DIR, doc.storagePath);
+      const safeStorageName = path.basename(doc.storagePath);
+      const secureDir = path.resolve(SECURE_PRESCRIPTION_DIR);
+      const filePath = path.resolve(secureDir, safeStorageName);
+
+      if (!filePath.startsWith(secureDir + path.sep) && filePath !== secureDir) {
+        res.status(403).json({ error: 'Forbidden: Access to specified file path is restricted' });
+        return;
+      }
+
       if (!fs.existsSync(filePath)) {
         res.status(404).json({ error: 'Prescription file not found on secure storage' });
         return;

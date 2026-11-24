@@ -752,6 +752,14 @@ router.post('/orders/checkout', authenticateToken, async (req: Request, res: Res
           }
         });
 
+        // Validate live stock inside atomic transaction before decrementing
+        const liveProd = await tx.product.findUnique({ where: { id: item.productId } });
+        if (!liveProd || liveProd.stock < item.quantity) {
+          throw new Error(
+            `Insufficient stock for "${item.product.name}". Available: ${liveProd?.stock || 0}, Requested: ${item.quantity}`
+          );
+        }
+
         // Decrement stock atomically
         await tx.product.update({
           where: { id: item.productId },
@@ -1121,8 +1129,39 @@ router.post('/delivery/quote', async (req: Request, res: Response): Promise<void
 });
 
 // 18. Multi-Store Unified Cart Checkout
+const MultiStoreCheckoutItemSchema = z.object({
+  productId: z.string().min(1, 'Product ID is required'),
+  storeId: z.string().optional(),
+  merchantId: z.string().optional(),
+  productName: z.string().optional(),
+  quantity: z
+    .number()
+    .int('Quantity must be an integer')
+    .min(1, 'Quantity must be at least 1')
+    .max(100, 'Exceeds maximum limit of 100 items per line'),
+  unitPricePaise: z.number().optional() // Ignored on server; canonical DB price always enforced
+});
+
+const MultiStoreCheckoutSchema = z.object({
+  deliveryAddress: z.string().min(3, 'Delivery address is required').optional(),
+  deliveryLatitude: z.number().optional(),
+  deliveryLongitude: z.number().optional(),
+  customerLat: z.number().optional(),
+  customerLng: z.number().optional(),
+  deliveryTier: z.enum(['EXPRESS_20', 'PRIORITY_40', 'STANDARD_60', 'SCHEDULED_120']).optional(),
+  deliveryPriorityTier: z.enum(['EXPRESS_20', 'PRIORITY_40', 'STANDARD_60', 'SCHEDULED_120']).optional(),
+  paymentMethod: z.enum(['ONLINE', 'UPI', 'COD', 'CARD']).default('ONLINE'),
+  items: z.array(MultiStoreCheckoutItemSchema).optional()
+});
+
 router.post('/orders/multi-store', authenticateToken, async (req: Request, res: Response): Promise<void> => {
   try {
+    const parse = MultiStoreCheckoutSchema.safeParse(req.body);
+    if (!parse.success) {
+      res.status(400).json({ error: 'Validation failed', details: parse.error.errors });
+      return;
+    }
+
     const userId = req.user!.userId;
     const {
       deliveryAddress,
@@ -1134,7 +1173,7 @@ router.post('/orders/multi-store', authenticateToken, async (req: Request, res: 
       deliveryPriorityTier,
       paymentMethod,
       items
-    } = req.body;
+    } = parse.data;
 
     let orderItems = items;
     if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
@@ -1146,8 +1185,10 @@ router.post('/orders/multi-store', authenticateToken, async (req: Request, res: 
         orderItems = cart.items.map((i) => ({
           productId: i.productId,
           merchantId: i.product.storeId,
+          storeId: i.product.storeId,
+          productName: i.product.name,
           quantity: i.quantity,
-          unitPricePaise: i.unitPricePaise
+          unitPricePaise: i.product.pricePaise
         }));
       }
     }

@@ -41,8 +41,10 @@ router.post('/auth/send-otp', async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Generate secure 6-digit OTP (use 123456 in development/test if specified)
-    const otp = process.env.NODE_ENV === 'test' || phone.endsWith('0000') ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate secure 6-digit OTP (deterministic 123456 strictly restricted to automated test runs)
+    const otp = process.env.NODE_ENV === 'test'
+      ? '123456'
+      : Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     otpStore.set(phone, { otp, expiresAt });
@@ -51,8 +53,8 @@ router.post('/auth/send-otp', async (req: Request, res: Response): Promise<void>
       success: true,
       message: 'OTP sent successfully to your mobile number',
       phone,
-      // Provide OTP in response only during development/testing
-      devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
+      // Provide OTP in response strictly during automated test runs
+      devOtp: process.env.NODE_ENV === 'test' ? otp : undefined
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -71,12 +73,13 @@ router.post('/auth/verify-otp', async (req: Request, res: Response): Promise<voi
     }
 
     const stored = otpStore.get(phone);
-    if (!stored || stored.otp !== otp || stored.expiresAt < new Date()) {
-      // In non-production testing, also accept standard master OTP 123456
-      if (otp !== '123456') {
-        res.status(400).json({ error: 'Invalid or expired OTP' });
-        return;
-      }
+    const isTest = process.env.NODE_ENV === 'test';
+    const isValidStored = stored && stored.otp === otp && stored.expiresAt >= new Date();
+    const isTestAllowed = isTest && otp === '123456';
+
+    if (!isValidStored && !isTestAllowed) {
+      res.status(400).json({ error: 'Invalid or expired OTP' });
+      return;
     }
 
     otpStore.delete(phone);
