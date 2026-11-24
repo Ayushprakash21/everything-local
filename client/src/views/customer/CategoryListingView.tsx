@@ -68,6 +68,8 @@ export const CategoryListingView: React.FC<CategoryListingViewProps> = ({
   // Fetch category and products whenever categorySlug changes
   useEffect(() => {
     let mounted = true;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
     async function fetchCategoryData() {
       try {
         setLoading(true);
@@ -80,6 +82,23 @@ export const CategoryListingView: React.FC<CategoryListingViewProps> = ({
 
         const res = await request<CategoryResponse>(url);
         if (mounted) {
+          if (!res.products || res.products.length === 0) {
+            // Intelligent fallback: fetch customer products and match by category keywords
+            try {
+              const allProdRes = await request<{ products: Product[] }>('/customer/products?take=60');
+              const qWords = categorySlug.split('-').filter((w) => w.length > 2);
+              const matched = (allProdRes.products || []).filter((p) => {
+                const pName = p.name.toLowerCase();
+                const pCat = p.category.toLowerCase();
+                return qWords.some((kw) => pName.includes(kw) || pCat.includes(kw));
+              });
+              if (matched.length > 0) {
+                res.products = matched as any;
+              }
+            } catch {
+              // Ignore fallback errors
+            }
+          }
           setData(res);
         }
       } catch (err: any) {
@@ -155,7 +174,7 @@ export const CategoryListingView: React.FC<CategoryListingViewProps> = ({
               <img
                 src={getCategoryImageUrl(data.category.slug, data.category.imageUrl)}
                 alt={data.category.name}
-                loading="lazy"
+                loading="eager"
                 width={512}
                 height={512}
                 className="w-full h-full object-cover rounded-xl"
