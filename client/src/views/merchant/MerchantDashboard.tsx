@@ -173,7 +173,8 @@ export const MerchantDashboard: React.FC<{ openAuth: () => void; onReturnToShop?
       formData.append('image', file);
 
       const token = localStorage.getItem('el_auth_token');
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+      const apiBase = import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '') : (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') : '');
+      const apiUrl = apiBase ? `${apiBase}/api` : '/api';
 
       const res = await fetch(`${apiUrl}/upload/image`, {
         method: 'POST',

@@ -59,19 +59,23 @@ export function getSecret(env: Bindings): string {
 
 // 1. CORS Configuration
 app.use('*', async (c, next) => {
+  const isDev = c.env.ENVIRONMENT === 'development';
   const allowed = [
     'https://everything-local-web.everything-local.workers.dev',
+    'https://everybazaar-web.everything-local.workers.dev',
     'http://localhost:5173',
     'http://localhost:3000',
+    'http://localhost:4173',
     'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000',
     c.env.CORS_ORIGIN || ''
   ].filter(Boolean);
 
   const origin = c.req.header('Origin') || '';
-  const isAllowed = allowed.includes(origin) || !origin;
+  const isAllowed = isDev || allowed.includes(origin) || c.env.CORS_ORIGIN === '*' || !origin;
 
   const corsMiddleware = cors({
-    origin: isAllowed ? origin : allowed[0],
+    origin: isAllowed ? (origin || '*') : allowed[0],
     credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Idempotency-Key', 'x-store-id']
@@ -133,7 +137,8 @@ app.get('/api/health', async (c) => {
 
   return c.json({
     status: 'HEALTHY',
-    service: 'Everything Local Hyperlocal Engine',
+    service: 'EveryBazaar Hyperlocal Engine',
+    environment: c.env.ENVIRONMENT || 'production',
     platform: 'Cloudflare Workers (Edge)',
     market: 'Indore, MP',
     database: dbStatus,

@@ -76,19 +76,18 @@ describe('Everything Local — Tara Shopping Saathi & Official Branding Acceptan
       expect(copilotOccurrences).toEqual([]);
     });
 
-    it('ensures official brand tagline "Made for India. Rooted in Local." is present in brand SVG logos', () => {
+    it('ensures official brand tagline "Shop more. Save more. Live better." is present in brand SVG logos', () => {
       const logoSvg = fs.readFileSync(
-        path.resolve(__dirname, '../client/public/brand/everything-local-logo-horizontal.svg'),
+        path.resolve(__dirname, '../client/public/brand/everybazaar-logo-horizontal.svg'),
         'utf8'
       );
-      expect(logoSvg).toContain('Made for India. Rooted in Local.');
-      expect(logoSvg).not.toContain('Shop more. Save more. Live better.');
+      expect(logoSvg).toContain('Shop more. Save more. Live better.');
     });
 
     it('ensures client index.html displays official tagline in title and meta description', () => {
       const indexHtml = fs.readFileSync(path.resolve(__dirname, '../client/index.html'), 'utf8');
-      expect(indexHtml).toContain('Everything Local | Made for India. Rooted in Local.');
-      expect(indexHtml).toContain('Made for India. Rooted in Local.');
+      expect(indexHtml).toContain('EveryBazaar | Shop more. Save more. Live better.');
+      expect(indexHtml).toContain('Shop more. Save more. Live better.');
     });
 
     it('ensures CustomerHome.tsx includes dedicated branding section and supporting copy', () => {
