@@ -450,8 +450,8 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
       <section className="bg-gradient-to-r from-amber-500/10 via-white to-emerald-500/10 border border-amber-200/80 rounded-3xl p-4 sm:p-5 shadow-xs">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
           <div className="flex flex-col sm:flex-row items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-[#0B1F3B] p-2 flex items-center justify-center shrink-0 shadow-xs">
-              <BrandLogo variant="symbol" size="small" />
+            <div className="w-12 h-12 rounded-2xl overflow-hidden shrink-0 shadow-xs flex items-center justify-center bg-[#0B1F3B]">
+              <BrandLogo variant="badge" size={48} className="w-full h-full object-contain" />
             </div>
             <div>
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">

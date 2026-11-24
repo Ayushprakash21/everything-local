@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface BrandLogoProps {
-  variant?: 'horizontal' | 'compact' | 'symbol' | 'light' | 'dark' | 'monochrome' | 'merchant';
+  variant?: 'horizontal' | 'compact' | 'symbol' | 'badge' | 'light' | 'dark' | 'monochrome' | 'merchant';
   size?: 'small' | 'medium' | 'large' | number;
   showTagline?: boolean;
   className?: string;
@@ -22,10 +22,12 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   // Determine asset source based on variant
   let src = '/brand/everybazaar-logo-horizontal.svg';
 
-  if (variant === 'compact') {
-    src = '/brand/everybazaar-logo-compact.svg';
+  if (variant === 'badge') {
+    src = '/brand/everybazaar-badge.webp';
   } else if (variant === 'symbol') {
-    src = '/brand/everybazaar-symbol.svg';
+    src = '/brand/everybazaar-official-logo.webp';
+  } else if (variant === 'compact') {
+    src = '/brand/everybazaar-logo-compact.svg';
   } else if (variant === 'dark') {
     src = '/brand/everybazaar-logo-dark.svg';
   } else if (variant === 'light' || variant === 'horizontal') {
@@ -41,16 +43,16 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   let inlineHeight = typeof size === 'number' ? size : undefined;
 
   if (typeof size === 'string') {
-    if (variant === 'symbol') {
+    if (variant === 'symbol' || variant === 'badge') {
       switch (size) {
         case 'small':
-          heightClass = 'h-7 w-auto';
+          heightClass = 'h-8 w-8';
           break;
         case 'medium':
-          heightClass = 'h-10 w-auto';
+          heightClass = 'h-10 w-10';
           break;
         case 'large':
-          heightClass = 'h-14 w-auto';
+          heightClass = 'h-14 w-14';
           break;
       }
     } else if (variant === 'compact') {
@@ -80,11 +82,13 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     }
   }
 
+  const isSquare = variant === 'symbol' || variant === 'badge';
+
   const imageElement = (
     <img
       src={src}
       alt={alt}
-      style={inlineHeight ? { height: `${inlineHeight}px`, width: 'auto' } : undefined}
+      style={inlineHeight ? { height: `${inlineHeight}px`, width: isSquare ? `${inlineHeight}px` : 'auto' } : undefined}
       className={`shrink-0 object-contain select-none transition-transform duration-200 ${heightClass} ${className}`}
       loading="eager"
     />
