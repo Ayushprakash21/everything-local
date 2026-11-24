@@ -44,6 +44,13 @@ async function run() {
     sql += `INSERT OR IGNORE INTO "ProductCategory" ("id", "name", "slug", "description", "imageUrl", "bannerUrl", "displayOrder", "isActive", "isHomepageVisible", "department", "parentId") VALUES ('${c.id}', '${c.name.replace(/'/g, "''")}', '${c.slug}', ${desc}, '${c.imageUrl}', ${banner}, ${c.displayOrder}, 1, 1, '${c.department}', '${c.parentId}');\n`;
   }
 
+  // Add columns to Product if not present
+  sql += '\n-- Add categoryId and subcategoryId columns to Product table\n';
+  sql += 'ALTER TABLE "Product" ADD COLUMN "categoryId" TEXT;\n';
+  sql += 'ALTER TABLE "Product" ADD COLUMN "subcategoryId" TEXT;\n';
+  sql += 'CREATE INDEX IF NOT EXISTS "Product_categoryId_idx" ON "Product"("categoryId");\n';
+  sql += 'CREATE INDEX IF NOT EXISTS "Product_subcategoryId_idx" ON "Product"("subcategoryId");\n\n';
+
   // Update existing products with category IDs
   const products = await prisma.product.findMany({
     where: { categoryId: { not: null } },

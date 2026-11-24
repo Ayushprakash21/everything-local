@@ -145,6 +145,13 @@ INSERT OR IGNORE INTO "ProductCategory" ("id", "name", "slug", "description", "i
 INSERT OR IGNORE INTO "ProductCategory" ("id", "name", "slug", "description", "imageUrl", "bannerUrl", "displayOrder", "isActive", "isHomepageVisible", "department", "parentId") VALUES ('fe474a1c-0a7d-4b46-a973-d8b24a6a8a31', 'Fresh Eggs', 'fresh-eggs', 'Farm white eggs, brown country eggs and organic free-range eggs', '/assets/categories/dairy-bread-eggs.svg', NULL, 6, 1, 1, 'GROCERY', '204bdadd-a67c-4033-9be2-5e4af778ba3d');
 INSERT OR IGNORE INTO "ProductCategory" ("id", "name", "slug", "description", "imageUrl", "bannerUrl", "displayOrder", "isActive", "isHomepageVisible", "department", "parentId") VALUES ('13c1962d-9039-4145-b56c-1841bc1e5ae9', 'Cheese & Cream', 'cheese-cream', 'Cheese slices, mozzarella blocks, cubes and fresh whipping cream', '/assets/categories/dairy-bread-eggs.svg', NULL, 7, 1, 1, 'GROCERY', '204bdadd-a67c-4033-9be2-5e4af778ba3d');
 
+-- Add categoryId and subcategoryId columns to Product table
+ALTER TABLE "Product" ADD COLUMN "categoryId" TEXT;
+ALTER TABLE "Product" ADD COLUMN "subcategoryId" TEXT;
+CREATE INDEX IF NOT EXISTS "Product_categoryId_idx" ON "Product"("categoryId");
+CREATE INDEX IF NOT EXISTS "Product_subcategoryId_idx" ON "Product"("subcategoryId");
+
+
 -- Update Products with category IDs
 UPDATE "Product" SET "categoryId" = 'a5ddc6bf-e55b-4bd6-9f90-6e4fd02a6af0', "subcategoryId" = NULL WHERE "id" = '56b53dfb-2c8a-4c0b-a777-c0f865ab9773';
 UPDATE "Product" SET "categoryId" = 'a5ddc6bf-e55b-4bd6-9f90-6e4fd02a6af0', "subcategoryId" = NULL WHERE "id" = 'b6c85878-bf42-45c7-b28b-027d35818231';

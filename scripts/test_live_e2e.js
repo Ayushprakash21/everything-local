@@ -59,6 +59,19 @@ async function runSmokeTests() {
   const pJson = await pRes.json();
   console.log('API /api/customer/products:', pRes.status, 'Total Products:', pJson.products?.length || 0);
 
+  // 6b. Categories Listing
+  console.log('\n--- 6b. API Categories Listing ---');
+  const catRes = await fetch(apiUrl + '/api/categories/homepage');
+  const catJson = await catRes.json();
+  console.log('API /api/categories/homepage:', catRes.status, 'Total Categories:', catJson.categories?.length || 0);
+  if (catJson.categories?.length > 0) {
+    console.log('First 3 Categories:', catJson.categories.slice(0, 3).map(c => c.name));
+  }
+
+  // 6c. Category Assets
+  const catSvg = await fetch(webUrl + '/assets/categories/fruits-vegetables.svg');
+  console.log('Web Asset /assets/categories/fruits-vegetables.svg:', catSvg.status, catSvg.headers.get('content-type'));
+
   // 7. Full Auth Lifecycle (Register -> Me -> Invalid Token)
   console.log('\n--- 7. Full Auth Lifecycle ---');
   const email = 'e2e_' + Date.now() + '@everythinglocal.in';
