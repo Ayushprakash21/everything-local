@@ -146,7 +146,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 else if (discoveryMode === 'pharmacy' && setPharmacyTab) setPharmacyTab('explore');
                 else setServicesTab('explore');
               }}
-              title="Everything Local — Indore"
+              title="EveryBazaar — Shop more. Save more. Live better."
             >
               {/* Desktop / Large Screen: Clean Compact Header Logo */}
               <div className="hidden sm:flex items-center gap-2">
@@ -405,8 +405,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                       }}
                       className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded-xl flex items-center gap-2 text-slate-700"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-red-500" />
-                      <span>About Everything Local</span>
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <span>About EveryBazaar</span>
                     </button>
 
                     {/* Role Gated Dashboards */}

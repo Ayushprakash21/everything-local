@@ -17,23 +17,23 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   className = '',
   linkToHome = false,
   onClick,
-  alt = 'Everything Local - Made for India. Rooted in Local.'
+  alt = 'EveryBazaar — Shop more. Save more. Live better.'
 }) => {
   // Determine asset source based on variant
-  let src = '/brand/everything-local-logo-horizontal.svg';
+  let src = '/brand/everybazaar-logo-horizontal.svg';
 
   if (variant === 'compact') {
-    src = '/brand/everything-local-logo-compact.svg';
+    src = '/brand/everybazaar-logo-compact.svg';
   } else if (variant === 'symbol') {
-    src = '/brand/everything-local-symbol.svg';
+    src = '/brand/everybazaar-symbol.svg';
   } else if (variant === 'dark') {
-    src = '/brand/everything-local-logo-dark.svg';
+    src = '/brand/everybazaar-logo-dark.svg';
   } else if (variant === 'light' || variant === 'horizontal') {
-    src = showTagline ? '/brand/everything-local-logo-horizontal.svg' : '/brand/everything-local-logo-compact.svg';
+    src = showTagline ? '/brand/everybazaar-logo-horizontal.svg' : '/brand/everybazaar-logo-compact.svg';
   } else if (variant === 'monochrome') {
-    src = '/brand/everything-local-monochrome.svg';
+    src = '/brand/everybazaar-logo-compact.svg';
   } else if (variant === 'merchant') {
-    src = '/brand/everything-local-merchant-logo.svg';
+    src = '/brand/everybazaar-logo-horizontal.svg';
   }
 
   // Dimension mapping
@@ -101,7 +101,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           }
         }}
         className="inline-flex items-center shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-lg group"
-        title="Everything Local - Home"
+        title="EveryBazaar — Home"
       >
         {imageElement}
       </a>
@@ -114,7 +114,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         type="button"
         onClick={onClick}
         className="inline-flex items-center shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-lg border-0 bg-transparent p-0"
-        title="Everything Local"
+        title="EveryBazaar"
       >
         {imageElement}
       </button>

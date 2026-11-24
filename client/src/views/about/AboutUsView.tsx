@@ -58,14 +58,14 @@ export const AboutUsView: React.FC<AboutUsViewProps> = ({
   // Synchronize document title and meta description
   useEffect(() => {
     const originalTitle = document.title;
-    document.title = 'About Us — Everything Local | Your Neighbourhood. Your Marketplace.';
+    document.title = 'About Us — EveryBazaar | Shop more. Save more. Live better.';
 
     let metaDesc = document.querySelector('meta[name="description"]');
     const originalMeta = metaDesc ? metaDesc.getAttribute('content') : '';
     if (metaDesc) {
       metaDesc.setAttribute(
         'content',
-        'Learn about Everything Local: Our story, mission, vision, and how we empower neighbourhood businesses and local commerce in Indore, India.'
+        'Learn about EveryBazaar: Our story, mission, vision, and how we empower neighbourhood businesses and local commerce in Indore, India.'
       );
     }
 
@@ -113,12 +113,12 @@ export const AboutUsView: React.FC<AboutUsViewProps> = ({
 
   const faqs = [
     {
-      q: 'What is Everything Local and how does it work?',
-      a: 'Everything Local is a digital hyperlocal commerce platform connecting customers directly with verified neighbourhood merchants, kirana stores, pharmacies, and service providers across Indore. You can explore products from local shops, compare selections, place orders, and choose between merchant delivery, store counter pickup, or verified delivery partner fulfillment.'
+      q: 'What is EveryBazaar and how does it work?',
+      a: 'EveryBazaar is a digital hyperlocal commerce platform connecting customers directly with verified neighbourhood merchants, kirana stores, pharmacies, and service providers across Indore. You can explore products from local shops, compare selections, place orders, and choose between merchant delivery, store counter pickup, or verified delivery partner fulfillment.'
     },
     {
-      q: 'How does Everything Local support independent neighbourhood shops?',
-      a: 'Unlike centralized dark-store aggregators that compete with local retail, Everything Local provides neighbourhood retailers with free digital cataloging, real-time inventory management, unified cart checkout, and digital visibility to reach residents within their natural 3–5 km service radius.'
+      q: 'How does EveryBazaar support independent neighbourhood shops?',
+      a: 'Unlike centralized dark-store aggregators that compete with local retail, EveryBazaar provides neighbourhood retailers with free digital cataloging, real-time inventory management, unified cart checkout, and digital visibility to reach residents within their natural 3–5 km service radius.'
     },
     {
       q: 'What delivery options are available for my orders?',
@@ -126,10 +126,10 @@ export const AboutUsView: React.FC<AboutUsViewProps> = ({
     },
     {
       q: 'How can a local store or service provider join the platform?',
-      a: 'Any verified business owner in Indore with a valid shop establishment or GST/Udyam certificate can register via the "Sell on Everything Local" link in the footer or top navigation. Onboarding includes instant digital storefront setup and self-service catalog management.'
+      a: 'Any verified business owner in Indore with a valid shop establishment or GST/Udyam certificate can register via the "Sell on EveryBazaar" link in the footer or top navigation. Onboarding includes instant digital storefront setup and self-service catalog management.'
     },
     {
-      q: 'What payment methods are supported on Everything Local?',
+      q: 'What payment methods are supported on EveryBazaar?',
       a: 'We support all major Indian digital payment methods including UPI (Google Pay, PhonePe, Paytm), debit/credit cards, net banking, and Cash on Delivery (COD) for eligible neighbourhood orders.'
     }
   ];
@@ -167,29 +167,29 @@ export const AboutUsView: React.FC<AboutUsViewProps> = ({
       <section className="relative overflow-hidden pt-12 pb-16 md:pt-16 md:pb-24 bg-gradient-to-b from-slate-50/80 via-white to-white border-b border-slate-100">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 border border-red-200/60 text-red-700 text-xs font-bold tracking-wide mb-6">
-            <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-            <span>Made for India • Rooted in Local</span>
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            <span>Shop more. Save more. Live better.</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-4">
-            About Everything Local
+            About EveryBazaar
           </h1>
 
-          <p className="text-lg sm:text-xl font-bold text-red-600 mb-6">
-            Your Neighbourhood. Your Marketplace.
+          <p className="text-lg sm:text-xl font-bold text-amber-600 mb-6">
+            Shop more. Save more. Live better.
           </p>
 
           <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-3xl mx-auto font-normal">
-            Everything Local is an Indian hyperlocal commerce and neighbourhood ecosystem platform founded to bridge physical local retailers and everyday consumers. We bring the rich diversity, speed, and trust of your local bazaar into an accessible, unified digital experience — starting in Indore, Madhya Pradesh.
+            EveryBazaar is an Indian hyperlocal commerce and neighbourhood marketplace platform founded to bridge physical local retailers and everyday consumers. We bring the rich diversity, speed, and trust of your local bazaar into an accessible, unified digital experience — starting in Indore, Madhya Pradesh.
           </p>
 
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <a
               href="#how-it-works"
-              className="px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition-all shadow-sm flex items-center gap-2"
+              className="px-5 py-2.5 rounded-lg bg-[#0B1F3B] hover:bg-slate-800 text-white font-bold text-sm transition-all shadow-sm flex items-center gap-2"
             >
               <span>Explore How It Works</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 text-[#F5B82E]" />
             </a>
             <button
               onClick={onNavigateMerchant}
@@ -207,7 +207,7 @@ export const AboutUsView: React.FC<AboutUsViewProps> = ({
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
             <div className="md:col-span-7 space-y-5">
-              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-red-600">
+              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-600">
                 <Compass className="w-4 h-4" />
                 <span>Our Heritage & Purpose</span>
               </div>
@@ -216,21 +216,21 @@ export const AboutUsView: React.FC<AboutUsViewProps> = ({
               </h2>
               <div className="space-y-4 text-slate-600 text-sm sm:text-base leading-relaxed">
                 <p>
-                  Everything Local is a digital marketplace designed to connect customers with neighbourhood businesses across India. The platform aims to give independent merchants digital visibility and help customers discover products and services from local businesses through one convenient platform.
+                  EveryBazaar is a digital marketplace designed to connect customers with neighbourhood businesses across India. The platform aims to give independent merchants digital visibility and help customers discover products and services from local businesses through one convenient platform.
                 </p>
                 <p>
                   For decades, Indian neighbourhoods have thrived on the personal relationships, warmth, and reliability of their local merchants — the neighbourhood grocery store owner who knows your family’s pulse preferences, the trusted medical store around the corner, and the local service technician who arrives promptly when needed.
                 </p>
                 <p>
-                  As digital shopping transformed consumer expectations, local merchants were frequently left behind by centralized warehouses and predatory algorithmic aggregator models. Everything Local was created to democratize technology for physical store owners, enabling them to compete, grow, and flourish alongside modern digital lifestyles.
+                  As digital shopping transformed consumer expectations, local merchants were frequently left behind by centralized warehouses and predatory algorithmic aggregator models. EveryBazaar was created to democratize technology for physical store owners, enabling them to compete, grow, and flourish alongside modern digital lifestyles.
                 </p>
               </div>
             </div>
 
-            <div className="md:col-span-5 bg-gradient-to-br from-slate-50 to-red-50/40 p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+            <div className="md:col-span-5 bg-gradient-to-br from-slate-50 to-amber-50/40 p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-red-600 text-white flex items-center justify-center font-black shadow-sm">
-                  <Store className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-xl bg-[#0B1F3B] text-white flex items-center justify-center font-black shadow-sm">
+                  <Store className="w-6 h-6 text-[#F5B82E]" />
                 </div>
                 <div>
                   <h4 className="font-extrabold text-slate-900 text-base">Indore Pilot Launch</h4>
@@ -265,7 +265,7 @@ export const AboutUsView: React.FC<AboutUsViewProps> = ({
               Mission & Vision
             </h2>
             <p className="text-sm text-slate-600 mt-2 font-medium">
-              The foundational guiding principles powering Everything Local every single day.
+              The foundational guiding principles powering EveryBazaar every single day.
             </p>
           </div>
 
@@ -516,7 +516,7 @@ export const AboutUsView: React.FC<AboutUsViewProps> = ({
                   <Mail className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                   <div>
                     <h5 className="font-bold text-slate-900 text-xs uppercase tracking-wider">Email Inquiries</h5>
-                    <p className="text-sm font-semibold text-slate-800 mt-0.5">support@everythinglocal.in</p>
+                    <p className="text-sm font-semibold text-slate-800 mt-0.5">support@everybazaar.in</p>
                     <p className="text-[11px] text-slate-500">Response within 2–4 hours</p>
                   </div>
                 </div>

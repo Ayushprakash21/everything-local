@@ -160,7 +160,7 @@ export const RiderAppView: React.FC<{ openAuth: () => void }> = ({ openAuth }) =
           upiId: onboardUpi || `${user?.email.split('@')[0]}@okaxis`
         })
       });
-      setSuccessMessage('Rider onboarding completed! Welcome to the Everything Local Fleet.');
+      setSuccessMessage('Rider onboarding completed! Welcome to the EveryBazaar Delivery Partner Fleet.');
       await fetchRiderData();
     } catch (err: any) {
       setErrorMessage(err.message || 'Onboarding failed');
@@ -281,7 +281,7 @@ export const RiderAppView: React.FC<{ openAuth: () => void }> = ({ openAuth }) =
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
         <BrandLogo variant="horizontal" size="large" className="mx-auto" />
-        <h3 className="font-black text-slate-900 text-xl">Everything Local Delivery Partner App</h3>
+        <h3 className="font-black text-slate-900 text-xl">EveryBazaar Delivery Partner App</h3>
         <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
           Sign in or register as a delivery rider in Indore to accept neighbourhood deliveries, earn per-trip payouts and get weekly settlements.
         </p>

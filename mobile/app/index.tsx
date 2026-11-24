@@ -22,7 +22,7 @@ export default function IndexGateway() {
     <View style={styles.container}>
       <View style={styles.brandBox}>
         <ELLogo variant="dark" size={88} style={{ marginBottom: 16 }} />
-        <Text style={styles.brandTitle}>Everything Local</Text>
+        <Text style={styles.brandTitle}>EveryBazaar</Text>
         <Text style={styles.tagline}>Shop more. Save more. Live better.</Text>
       </View>
       <ActivityIndicator size="large" color="#059669" style={styles.spinner} />

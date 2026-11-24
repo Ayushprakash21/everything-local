@@ -168,7 +168,7 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                  Everything Local Platform Admin
+                  EveryBazaar Platform Admin
                 </h1>
                 <span className="text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full">
                   Indore Hub

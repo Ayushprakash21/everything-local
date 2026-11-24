@@ -148,7 +148,7 @@ export const ProviderConsoleView: React.FC<ProviderConsoleViewProps> = ({ openAu
         </div>
         <h2 className="text-xl font-black text-slate-900 mb-2">Service Partner Portal</h2>
         <p className="text-xs text-slate-500 mb-6">
-          Sign in to your Everything Local provider account to manage bookings, assign specialists and view earnings.
+          Sign in to your EveryBazaar Services provider account to manage bookings, assign specialists and view earnings.
         </p>
 
         <div className="space-y-3">

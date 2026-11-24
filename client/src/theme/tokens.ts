@@ -1,42 +1,52 @@
 /**
- * Everything Local Design Tokens System
- * Unified design system for Indore hyperlocal commerce and services
+ * EveryBazaar Design Tokens System
+ * Unified design system for EveryBazaar hyperlocal commerce & marketplace platform
+ * Brand Tagline: "Shop more. Save more. Live better."
  */
 
 export const tokens = {
   colors: {
     brand: {
-      amber: '#F5A623',
-      amberHover: '#E09618',
-      gold: '#FFB51B',
-      ivory: '#FFF8E9',
-      charcoal: '#171717',
-      dark: '#0F172A'
+      navy: '#0B1F3B',         // Primary Navy - headers, navigation, dark backgrounds
+      primary: '#0B1F3B',
+      orange: '#F5B82E',       // Accent Orange - primary buttons, highlights, badges
+      accent: '#F5B82E',
+      orangeHover: '#E0A31D',
+      green: '#10B981',        // Success Green - completed states, fresh accents
+      success: '#10B981',
+      surface: '#F3F4F6',      // Cards and page backgrounds
+      textGrey: '#6B7280',     // Secondary text
+      dark: '#071529',         // Deep navy surface
+      white: '#FFFFFF'
     },
     accent: {
-      forest: '#064E3B',
-      forestLight: '#059669',
-      teal: '#0D9488',
-      sky: '#0284C7',
-      rose: '#E11D48'
+      orange: '#F5B82E',
+      navy: '#0B1F3B',
+      green: '#10B981',
+      purple: '#7C3AED',       // Services App
+      blue: '#0284C7',         // Delivery Partner App
+      forest: '#047857'
     },
     surface: {
-      background: '#F8FAFC',
+      background: '#F3F4F6',
       card: '#FFFFFF',
-      subtle: '#F1F5F9',
-      muted: '#E2E8F0'
+      subtle: '#F9FAFB',
+      muted: '#E5E7EB',
+      navy: '#0B1F3B'
     },
     text: {
-      primary: '#0F172A',
-      secondary: '#475569',
-      muted: '#64748B',
-      inverse: '#FFFFFF'
+      primary: '#0B1F3B',
+      secondary: '#6B7280',
+      muted: '#9CA3AF',
+      inverse: '#FFFFFF',
+      accent: '#F5B82E'
     },
     border: {
-      light: '#E2E8F0',
-      default: '#CBD5E1',
-      brand: '#F5A623',
-      focus: '#FFB51B'
+      light: '#F3F4F6',
+      default: '#E5E7EB',
+      brand: '#F5B82E',
+      navy: '#0B1F3B',
+      focus: '#F5B82E'
     },
     status: {
       success: '#10B981',
@@ -51,7 +61,8 @@ export const tokens = {
   },
 
   typography: {
-    fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily: 'Inter, Manrope, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    headingFamily: 'Manrope, Inter, sans-serif',
     scale: {
       xs: '0.75rem',    // 12px
       sm: '0.875rem',   // 14px

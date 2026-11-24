@@ -7,24 +7,26 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Everything Local Approved Brand Design System Tokens
+        // EveryBazaar Approved Brand Design System Tokens
         brand: {
-          primary: '#0B1F3A',   // Primary Navy
-          navy: '#0B1F3A',
-          accent: '#FFB21A',    // Accent Amber
-          amber: '#FFB21A',
-          success: '#00B982',   // Success Green
-          green: '#00B982',
-          surface: '#F5F7FA',   // Light Background / Surface
-          text: '#64748B',      // Secondary Text
-          dark: '#081426',      // Dark Mode / Background
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          500: '#00b982',
-          600: '#059669',
-          700: '#047857',
-          800: '#065f46',
-          900: '#0B1F3A',
+          primary: '#0B1F3B',   // Primary Navy
+          navy: '#0B1F3B',
+          accent: '#F5B82E',    // Accent Orange
+          orange: '#F5B82E',
+          amber: '#F5B82E',
+          success: '#10B981',   // Success Green
+          green: '#10B981',
+          surface: '#F3F4F6',   // Surface
+          text: '#6B7280',      // Text Grey
+          textGrey: '#6B7280',
+          dark: '#071529',      // Dark Mode Background
+          50: '#fffbeb',
+          100: '#fef3c7',
+          500: '#F5B82E',
+          600: '#E0A31D',
+          700: '#b45309',
+          800: '#0B1F3B',
+          900: '#071529',
         },
         forest: {
           50: '#f0fdf4',

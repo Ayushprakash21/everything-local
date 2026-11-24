@@ -3,23 +3,26 @@
 @tailwind utilities;
 
 :root {
-  /* Everything Local Core Brand Palette Tokens */
-  --brand-primary: #0B1F3A;     /* Primary Navy */
-  --brand-accent: #FFB21A;      /* Accent Amber */
-  --brand-success: #00B982;     /* Success Green */
-  --brand-surface: #F5F7FA;     /* Light Surface Background */
-  --brand-text-secondary: #64748B; /* Secondary Text */
-  --brand-dark: #081426;        /* Deep Dark Surface */
+  /* EveryBazaar Core Brand Palette Tokens */
+  --brand-navy: #0B1F3B;           /* Primary Navy */
+  --brand-primary: #0B1F3B;
+  --brand-orange: #F5B82E;         /* Accent Orange */
+  --brand-accent: #F5B82E;
+  --brand-green: #10B981;          /* Success Green */
+  --brand-success: #10B981;
+  --brand-surface: #F3F4F6;        /* Surface */
+  --brand-text-secondary: #6B7280; /* Secondary Text Grey */
+  --brand-dark: #071529;           /* Deep Dark Navy */
 }
 
 @layer base {
   body {
-    @apply antialiased text-slate-800 bg-[#F5F7FA];
+    @apply antialiased text-slate-800 bg-[#F3F4F6];
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply text-[#0B1F3A] font-black tracking-tight;
+    @apply text-[#0B1F3B] font-black tracking-tight;
   }
 }
 

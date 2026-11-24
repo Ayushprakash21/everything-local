@@ -334,7 +334,7 @@ export const MerchantPortalView: React.FC<MerchantPortalViewProps> = ({
           <span>Indore Hyperlocal Merchant Network</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-          Everything Local Partner Console
+          EveryBazaar Merchant Partner Console
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
           Manage your neighbourhood store orders, live inventory, instant payouts and deliveries across Indore.

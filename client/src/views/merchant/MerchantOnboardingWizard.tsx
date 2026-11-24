@@ -509,7 +509,7 @@ export const MerchantOnboardingWizard: React.FC<MerchantOnboardingWizardProps> =
                 className="mt-1 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
               />
               <label htmlFor="consent" className="text-xs text-slate-600 leading-relaxed">
-                I authorize Everything Local to send order alerts, settlement updates, and onboarding status via WhatsApp and SMS.
+                I authorize EveryBazaar to send order alerts, settlement updates, and onboarding status via WhatsApp and SMS.
               </label>
             </div>
 
@@ -927,7 +927,7 @@ export const MerchantOnboardingWizard: React.FC<MerchantOnboardingWizardProps> =
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-black text-slate-800">Everything Local Fleet</span>
+                  <span className="text-xs font-black text-slate-800">EveryBazaar Fleet</span>
                   <input type="checkbox" checked={hasPlatformDelivery} readOnly className="rounded text-emerald-600" />
                 </div>
                 <p className="text-[11px] text-slate-500">Platform-assigned verified local riders.</p>
@@ -1263,7 +1263,7 @@ export const MerchantOnboardingWizard: React.FC<MerchantOnboardingWizardProps> =
                 className="mt-1 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
               />
               <label htmlFor="terms" className="text-xs text-slate-700 font-medium leading-relaxed">
-                I, on behalf of {businessName || 'the merchant'}, accept the Everything Local Commercial Agreement, fee structure, and merchant terms of service.
+                I, on behalf of {businessName || 'the merchant'}, accept the EveryBazaar Commercial Agreement, fee structure, and merchant terms of service.
               </label>
             </div>
 

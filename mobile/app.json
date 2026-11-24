@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Everything Local",
+    "name": "EveryBazaar",
     "slug": "everything-local",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,21 +11,21 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#059669"
+      "backgroundColor": "#0B1F3B"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "in.everythinglocal.app",
       "infoPlist": {
-        "NSCameraUsageDescription": "Everything Local needs camera access so you can search for products by taking photos.",
-        "NSPhotoLibraryUsageDescription": "Everything Local needs photo library access to upload product pictures and search with images.",
-        "NSLocationWhenInUseUsageDescription": "Everything Local needs your location to discover neighborhood stores within 3 km in Indore."
+        "NSCameraUsageDescription": "EveryBazaar needs camera access so you can search for products by taking photos.",
+        "NSPhotoLibraryUsageDescription": "EveryBazaar needs photo library access to upload product pictures and search with images.",
+        "NSLocationWhenInUseUsageDescription": "EveryBazaar needs your location to discover neighborhood stores within 3 km in Indore."
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#059669"
+        "backgroundColor": "#0B1F3B"
       },
       "package": "in.everythinglocal.app",
       "permissions": [

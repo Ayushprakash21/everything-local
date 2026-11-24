@@ -13,7 +13,7 @@ export const ELLogo: React.FC<ELLogoProps> = ({
   variant = 'horizontal',
   size = 40,
   className = '',
-  alt = 'Everything Local',
+  alt = 'EveryBazaar',
   onClick
 }) => {
   let mappedVariant: BrandLogoProps['variant'] = 'horizontal';

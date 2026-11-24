@@ -162,7 +162,7 @@ export const AdminProductImageryView: React.FC = () => {
               </h2>
             </div>
             <p className="text-sm text-slate-500 mt-1">
-              Production quality control, realistic photography coverage, and image provenance management across Everything Local.
+              Production quality control, realistic photography coverage, and image provenance management across EveryBazaar.
             </p>
           </div>
           <button

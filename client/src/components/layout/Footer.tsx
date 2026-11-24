@@ -30,51 +30,26 @@ export const Footer: React.FC<FooterProps> = ({
             <button
               onClick={(e) => handleLinkClick(e, '/')}
               className="group flex flex-col items-start text-left focus:outline-none cursor-pointer"
-              title="Everything Local — Home"
+              title="EveryBazaar — Home"
             >
-              {/* Brand Logo Symbol: Stylized Red Shopping Bag with Location Pin */}
+              {/* EveryBazaar Brand Logo Symbol */}
               <div className="flex items-center gap-2 mb-1.5 group-hover:scale-105 transition-transform">
-                <svg
-                  className="w-9 h-9 shrink-0 drop-shadow-2xs"
-                  viewBox="0 0 100 100"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <defs>
-                    <linearGradient id="footerBagGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#EF4444" />
-                      <stop offset="100%" stopColor="#DC2626" />
-                    </linearGradient>
-                  </defs>
-                  {/* Shopping Bag Body */}
-                  <rect x="18" y="28" width="64" height="60" rx="14" fill="url(#footerBagGrad)" />
-                  {/* Bag Handle */}
-                  <path
-                    d="M34 30 V22 C34 13.5 41.5 7 50 7 C58.5 7 66 13.5 66 22 V30"
-                    stroke="#DC2626"
-                    strokeWidth="7"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  {/* Inner White Location Pin */}
-                  <path
-                    d="M50 42 C44 42 39 47 39 53 C39 62 50 74 50 74 C50 74 61 62 61 53 C61 47 56 42 50 42 Z"
-                    fill="#FFFFFF"
-                  />
-                  {/* Pin Center Dot */}
-                  <circle cx="50" cy="52.5" r="3.5" fill="#DC2626" />
-                </svg>
+                <img
+                  src="/brand/everybazaar-symbol.svg"
+                  alt="EveryBazaar Symbol"
+                  className="w-10 h-10 object-contain drop-shadow-2xs shrink-0"
+                />
               </div>
 
               {/* Brand Name */}
-              <span className="text-slate-900 font-extrabold text-lg tracking-tight group-hover:text-red-600 transition-colors">
-                Everything Local
+              <span className="text-slate-900 font-extrabold text-lg tracking-tight group-hover:text-amber-500 transition-colors">
+                Every<span className="text-[#F5B82E]">Bazaar</span>
               </span>
             </button>
 
-            {/* Short Tagline */}
+            {/* Brand Tagline */}
             <p className="text-xs text-slate-500 font-medium leading-relaxed">
-              Your Neighbourhood. Your Marketplace.
+              Shop more. Save more. Live better.
             </p>
           </div>
 
@@ -82,19 +57,19 @@ export const Footer: React.FC<FooterProps> = ({
           <div className="md:px-6 lg:px-8 flex flex-col items-start">
             <button
               onClick={(e) => handleLinkClick(e, '/about-us')}
-              className="group inline-flex items-center gap-1 text-sm font-bold text-slate-900 hover:text-red-600 transition-colors cursor-pointer"
+              className="group inline-flex items-center gap-1 text-sm font-bold text-slate-900 hover:text-amber-600 transition-colors cursor-pointer"
             >
               <span>About Us</span>
-              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-red-600 group-hover:translate-x-0.5 transition-all" />
+              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-amber-600 group-hover:translate-x-0.5 transition-all" />
             </button>
-            {/* Visual Red Accent Underline Bar */}
-            <div className="w-12 h-0.5 bg-red-600 mt-1 mb-3.5 rounded-full"></div>
+            {/* Visual Orange Accent Underline Bar */}
+            <div className="w-12 h-0.5 bg-[#F5B82E] mt-1 mb-3.5 rounded-full"></div>
 
             <ul className="space-y-2 text-xs text-slate-600">
               <li>
                 <button
                   onClick={(e) => handleLinkClick(e, '/about-us#story')}
-                  className="hover:text-red-600 transition-colors text-left cursor-pointer"
+                  className="hover:text-amber-600 transition-colors text-left cursor-pointer"
                 >
                   Our Story
                 </button>
@@ -102,7 +77,7 @@ export const Footer: React.FC<FooterProps> = ({
               <li>
                 <button
                   onClick={(e) => handleLinkClick(e, '/about-us#mission-vision')}
-                  className="hover:text-red-600 transition-colors text-left cursor-pointer"
+                  className="hover:text-amber-600 transition-colors text-left cursor-pointer"
                 >
                   Mission & Vision
                 </button>
@@ -110,7 +85,7 @@ export const Footer: React.FC<FooterProps> = ({
               <li>
                 <button
                   onClick={(e) => handleLinkClick(e, '/about-us#how-it-works')}
-                  className="hover:text-red-600 transition-colors text-left cursor-pointer"
+                  className="hover:text-amber-600 transition-colors text-left cursor-pointer"
                 >
                   How It Works
                 </button>
@@ -127,7 +102,7 @@ export const Footer: React.FC<FooterProps> = ({
               <li>
                 <button
                   onClick={(e) => handleLinkClick(e, '/about-us#faqs')}
-                  className="hover:text-red-600 transition-colors text-left cursor-pointer"
+                  className="hover:text-amber-600 transition-colors text-left cursor-pointer"
                 >
                   FAQs
                 </button>
@@ -135,7 +110,7 @@ export const Footer: React.FC<FooterProps> = ({
               <li>
                 <button
                   onClick={(e) => handleLinkClick(e, '/about-us#contact')}
-                  className="hover:text-red-600 transition-colors text-left cursor-pointer"
+                  className="hover:text-amber-600 transition-colors text-left cursor-pointer"
                 >
                   Contact Us
                 </button>
@@ -143,7 +118,7 @@ export const Footer: React.FC<FooterProps> = ({
               <li>
                 <button
                   onClick={(e) => handleLinkClick(e, '/about-us#report')}
-                  className="hover:text-red-600 transition-colors text-left cursor-pointer"
+                  className="hover:text-amber-600 transition-colors text-left cursor-pointer"
                 >
                   Report an Issue
                 </button>
@@ -163,9 +138,9 @@ export const Footer: React.FC<FooterProps> = ({
                     if (onOpenMerchant) onOpenMerchant();
                     else onNavigate('/#merchant');
                   }}
-                  className="hover:text-red-600 transition-colors text-left cursor-pointer"
+                  className="hover:text-amber-600 transition-colors text-left cursor-pointer"
                 >
-                  Sell on Everything Local
+                  Sell on EveryBazaar
                 </button>
               </li>
               <li>
@@ -174,7 +149,7 @@ export const Footer: React.FC<FooterProps> = ({
                     if (onOpenMerchant) onOpenMerchant();
                     else onNavigate('/#merchant');
                   }}
-                  className="hover:text-red-600 transition-colors text-left cursor-pointer"
+                  className="hover:text-amber-600 transition-colors text-left cursor-pointer"
                 >
                   Merchant Support
                 </button>
@@ -185,7 +160,7 @@ export const Footer: React.FC<FooterProps> = ({
                     if (onOpenRider) onOpenRider();
                     else onNavigate('/#rider');
                   }}
-                  className="hover:text-red-600 transition-colors text-left cursor-pointer"
+                  className="hover:text-amber-600 transition-colors text-left cursor-pointer"
                 >
                   Partner with Us
                 </button>
@@ -275,7 +250,7 @@ export const Footer: React.FC<FooterProps> = ({
         {/* COPYRIGHT SECTION */}
         <div className="flex flex-col items-center justify-center text-center">
           <p className="text-xs text-slate-500 font-normal tracking-wide">
-            © {currentYear} All Rights Reserved to{' '}
+            © {currentYear} <span className="font-bold text-slate-900">Every<span className="text-[#F5B82E]">Bazaar</span></span>. All Rights Reserved to{' '}
             <span className="font-semibold text-slate-900">Ayush Prakash</span>.
           </p>
         </div>

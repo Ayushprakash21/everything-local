@@ -353,7 +353,7 @@ export const ServiceProviderDetailView: React.FC<ServiceProviderDetailViewProps>
                     </div>
 
                     <p className="text-xs text-slate-600 line-clamp-2 mb-3">
-                      {service.description || 'Professional, standardized service backed by Everything Local assurance.'}
+                      {service.description || 'Professional, standardized service backed by EveryBazaar assurance.'}
                     </p>
 
                     <div className="flex flex-wrap items-center gap-2 mb-4 text-[11px] font-semibold">

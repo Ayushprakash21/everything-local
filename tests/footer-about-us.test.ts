@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 
-describe('Everything Local — Footer Navigation & Dedicated About Us Page Suite', () => {
+describe('EveryBazaar — Footer Navigation & Dedicated About Us Page Suite', () => {
   const footerFilePath = path.resolve(__dirname, '../client/src/components/layout/Footer.tsx');
   const aboutUsFilePath = path.resolve(__dirname, '../client/src/views/about/AboutUsView.tsx');
   const appFilePath = path.resolve(__dirname, '../client/src/App.tsx');
@@ -17,10 +17,11 @@ describe('Everything Local — Footer Navigation & Dedicated About Us Page Suite
       ? fs.readFileSync(footerFilePath, 'utf8')
       : '';
 
-    it('Column 1: Brand includes logo, brand name and exact tagline', () => {
-      expect(footerContent).toContain('Everything Local');
-      expect(footerContent).toContain('Your Neighbourhood. Your Marketplace.');
-      expect(footerContent).toContain('footerBagGrad');
+    it('Column 1: Brand includes logo, brand name and exact EveryBazaar tagline', () => {
+      expect(footerContent).toContain('Every');
+      expect(footerContent).toContain('Bazaar');
+      expect(footerContent).toContain('Shop more. Save more. Live better.');
+      expect(footerContent).toContain('everybazaar-symbol.svg');
     });
 
     it('Column 2: About Us includes header and functional section anchors', () => {
@@ -46,7 +47,7 @@ describe('Everything Local — Footer Navigation & Dedicated About Us Page Suite
 
     it('Column 4: For Businesses links to onboarding and partner destinations', () => {
       expect(footerContent).toContain('For Businesses');
-      expect(footerContent).toContain('Sell on Everything Local');
+      expect(footerContent).toContain('Sell on EveryBazaar');
       expect(footerContent).toContain('Merchant Support');
       expect(footerContent).toContain('Partner with Us');
     });
@@ -68,8 +69,8 @@ describe('Everything Local — Footer Navigation & Dedicated About Us Page Suite
       expect(footerContent).toContain('{currentYear}');
       expect(footerContent).toContain('All Rights Reserved to');
       expect(footerContent).toContain('Ayush Prakash');
-      // Verifies old corporate entity text is completely removed
-      expect(footerContent).not.toContain('Everything Local Technologies Pvt Ltd. All rights reserved.');
+      expect(footerContent).toContain('Every');
+      expect(footerContent).toContain('Bazaar');
     });
   });
 
@@ -83,9 +84,8 @@ describe('Everything Local — Footer Navigation & Dedicated About Us Page Suite
       : '';
 
     it('A. Hero Section has exact heading, subtitle and introductory narrative', () => {
-      expect(aboutContent).toContain('About Everything Local');
-      expect(aboutContent).toContain('Your Neighbourhood. Your Marketplace.');
-      expect(aboutContent).toContain('Made for India • Rooted in Local');
+      expect(aboutContent).toContain('About EveryBazaar');
+      expect(aboutContent).toContain('Shop more. Save more. Live better.');
       expect(aboutContent).toContain('Hyperlocal');
     });
 
@@ -93,7 +93,7 @@ describe('Everything Local — Footer Navigation & Dedicated About Us Page Suite
       expect(aboutContent).toContain('id="story"');
       expect(aboutContent).toContain('Our Story');
       expect(aboutContent).toContain(
-        'Everything Local is a digital marketplace designed to connect customers with neighbourhood businesses across India.'
+        'EveryBazaar is a digital marketplace designed to connect customers with neighbourhood businesses across India.'
       );
       expect(aboutContent).toContain(
         'The platform aims to give independent merchants digital visibility'
@@ -139,14 +139,14 @@ describe('Everything Local — Footer Navigation & Dedicated About Us Page Suite
       expect(aboutContent).toContain('id="contact"');
       expect(aboutContent).toContain('Contact Us');
       expect(aboutContent).toContain('+91 731 400 8899');
-      expect(aboutContent).toContain('support@everythinglocal.in');
+      expect(aboutContent).toContain('support@everybazaar.in');
       expect(aboutContent).toContain('Palasia & Vijay Nagar, Indore');
       expect(aboutContent).toContain('id="report"');
       expect(aboutContent).toContain('Report an Issue');
     });
 
     it('updates document title and meta description dynamically for SEO', () => {
-      expect(aboutContent).toContain('About Us — Everything Local | Your Neighbourhood. Your Marketplace.');
+      expect(aboutContent).toContain('About Us — EveryBazaar | Shop more. Save more. Live better.');
       expect(aboutContent).toContain('meta[name="description"]');
     });
   });
