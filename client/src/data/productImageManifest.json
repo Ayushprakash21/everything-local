@@ -1,0 +1,246 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-11-25T01:05:00.000Z",
+  "totalProducts": 34,
+  "verifiedImages": 34,
+  "mappings": [
+    {
+      "id": "56b53dfb-2c8a-4c0b-a777-c0f865ab9773",
+      "name": "Indori Sev Special Pouch 500g",
+      "category": "GROCERY",
+      "imageUrl": "/product-images/snacks-beverages/indori-sev.webp",
+      "verified": true
+    },
+    {
+      "id": "b6c85878-bf42-45c7-b28b-027d35818231",
+      "name": "Indori Sev Special Pouch 500g",
+      "category": "GROCERY",
+      "imageUrl": "/product-images/snacks-beverages/indori-sev.webp",
+      "verified": true
+    },
+    {
+      "id": "2bce0503-9da6-4ea6-a79c-ce6609e1acf2",
+      "name": "Indori Sev Special Pouch 500g",
+      "category": "GROCERY",
+      "imageUrl": "/product-images/snacks-beverages/indori-sev.webp",
+      "verified": true
+    },
+    {
+      "id": "e296594b-ff6a-472b-96c3-f85014af26b7",
+      "name": "Aashirvaad Shudh Chakki Atta 5kg",
+      "category": "Flour & Grains",
+      "imageUrl": "/product-images/groceries/aashirvaad-chakki-atta.webp",
+      "verified": true
+    },
+    {
+      "id": "4304e5ad-793f-4fc1-a59e-b72249347bd9",
+      "name": "India Gate Basmati Rice Feast Rozzana 1kg",
+      "category": "Rice & Grains",
+      "imageUrl": "/product-images/groceries/india-gate-basmati-rice.webp",
+      "verified": true
+    },
+    {
+      "id": "a9ba585b-68da-4949-9a0c-dd9f2cb188c6",
+      "name": "Ujjaini Special Thick Poha 1kg",
+      "category": "Flour & Grains",
+      "imageUrl": "/product-images/groceries/indori-poha.webp",
+      "verified": true
+    },
+    {
+      "id": "8e68ab45-737e-4fed-9251-bf102c0a38c7",
+      "name": "Rajdhani Granular Sooji Rava 1kg",
+      "category": "Flour & Grains",
+      "imageUrl": "/product-images/groceries/sooji-rava.webp",
+      "verified": true
+    },
+    {
+      "id": "b70c1a15-a39d-4438-a6f2-56636321b84a",
+      "name": "Fortune Fine Stoneground Besan 500g",
+      "category": "Flour & Grains",
+      "imageUrl": "/product-images/groceries/besan.webp",
+      "verified": true
+    },
+    {
+      "id": "33794c98-e380-451b-afbb-ff9698097fbb",
+      "name": "Tata Sampann Unpolished Toor Dal 1kg",
+      "category": "Pulses & Dals",
+      "imageUrl": "/product-images/groceries/toor-dal.webp",
+      "verified": true
+    },
+    {
+      "id": "962acb8f-c73f-4dae-bd92-81c230df440d",
+      "name": "Organic Shudh Moong Dal Dhuli 1kg",
+      "category": "Pulses & Dals",
+      "imageUrl": "/product-images/groceries/moong-dal.webp",
+      "verified": true
+    },
+    {
+      "id": "1fc1e2e1-8415-4845-a6e9-d79889e072d5",
+      "name": "Premium Unpolished Chana Dal 1kg",
+      "category": "Pulses & Dals",
+      "imageUrl": "/product-images/groceries/chana-dal.webp",
+      "verified": true
+    },
+    {
+      "id": "1cbaa1e3-d88d-4590-b801-d061e64f5304",
+      "name": "Desi Masoor Dal Malka 1kg",
+      "category": "Pulses & Dals",
+      "imageUrl": "/product-images/groceries/masoor-dal.webp",
+      "verified": true
+    },
+    {
+      "id": "09efa5c4-83ee-494d-a8d4-d6e317e0905a",
+      "name": "Chitra Red Kidney Beans Rajma 1kg",
+      "category": "Pulses & Dals",
+      "imageUrl": "/product-images/groceries/rajma.webp",
+      "verified": true
+    },
+    {
+      "id": "a9fde42b-5ae5-48a4-b748-bfd0f5e223c0",
+      "name": "Amritsari Kabuli Chana 1kg",
+      "category": "Pulses & Dals",
+      "imageUrl": "/product-images/groceries/kabuli-chana.webp",
+      "verified": true
+    },
+    {
+      "id": "de752b97-eab3-4d54-a73f-2e5865918067",
+      "name": "Fortune Sunlite Refined Sunflower Oil 1L",
+      "category": "Edible Oils",
+      "imageUrl": "/product-images/groceries/fortune-sunflower-oil.webp",
+      "verified": true
+    },
+    {
+      "id": "8634b905-78b3-4dfa-a2d4-b5ebd1759e01",
+      "name": "Fortune Kachi Ghani Pure Mustard Oil 1L",
+      "category": "Edible Oils",
+      "imageUrl": "/product-images/groceries/mustard-oil.webp",
+      "verified": true
+    },
+    {
+      "id": "dd7972bd-231f-425c-aef3-44557252244b",
+      "name": "Amul Pure Cow Ghee Tin 1L",
+      "category": "Edible Oils",
+      "imageUrl": "/product-images/groceries/cow-ghee.webp",
+      "verified": true
+    },
+    {
+      "id": "1357714c-7ba4-4668-ac57-225e0eb20b11",
+      "name": "Tata Salt Vacuum Evaporated 1kg",
+      "category": "Spices & Seasoning",
+      "imageUrl": "/product-images/groceries/tata-salt.webp",
+      "verified": true
+    },
+    {
+      "id": "a7ab241b-8b7b-4e87-afdc-a17c3aad8085",
+      "name": "Madhur Pure & Hygienic Sugar 1kg",
+      "category": "Grocery Staples",
+      "imageUrl": "/product-images/groceries/madhur-sugar.webp",
+      "verified": true
+    },
+    {
+      "id": "6dbd3172-0ff4-4c43-b34e-c660c3b9b684",
+      "name": "Everest Agmark Turmeric Powder 200g",
+      "category": "Spices & Seasoning",
+      "imageUrl": "/product-images/groceries/turmeric-powder.webp",
+      "verified": true
+    },
+    {
+      "id": "3820c1ea-8182-47ae-8eac-d816313192ad",
+      "name": "Everest Tikhalal Red Chilli Powder 200g",
+      "category": "Spices & Seasoning",
+      "imageUrl": "/product-images/groceries/red-chilli-powder.webp",
+      "verified": true
+    },
+    {
+      "id": "f13d1e46-90f1-44e0-8aec-f0ae97166be0",
+      "name": "Catch Whole Cumin Seeds Jeera 200g",
+      "category": "Spices & Seasoning",
+      "imageUrl": "/product-images/groceries/cumin-seeds.webp",
+      "verified": true
+    },
+    {
+      "id": "ec93bcff-cbb2-49c2-bdf5-033b0425e092",
+      "name": "Tata Tea Premium Leaf Pouch 500g",
+      "category": "Tea & Coffee",
+      "imageUrl": "/product-images/groceries/tata-tea.webp",
+      "verified": true
+    },
+    {
+      "id": "6d210123-10b3-42a0-bc81-1ee0fe7dde58",
+      "name": "Fresh Whole Wheat Sandwich Bread 400g",
+      "category": "Bread & Buns",
+      "imageUrl": "/product-images/dairy-bakery/fresh-whole-wheat-bread.webp",
+      "verified": true
+    },
+    {
+      "id": "8113f5c8-7dc0-4e52-935a-58d3b94e849c",
+      "name": "Amul Pasteurised Salted Butter 500g",
+      "category": "Dairy",
+      "imageUrl": "/product-images/dairy-bakery/amul-butter.webp",
+      "verified": true
+    },
+    {
+      "id": "85d12a5c-cbab-4263-bc75-7e2eb35a8aef",
+      "name": "Sanchi Gold Full Cream Milk 500ml",
+      "category": "Dairy",
+      "imageUrl": "/product-images/dairy-bakery/sanchi-gold-milk.webp",
+      "verified": true
+    },
+    {
+      "id": "d47630a8-4ed6-4b18-bc09-8455d4b9a330",
+      "name": "Fresh Malai Paneer Block 200g",
+      "category": "Dairy",
+      "imageUrl": "/product-images/dairy-bakery/fresh-paneer.webp",
+      "verified": true
+    },
+    {
+      "id": "5a7839fe-43db-4775-ac53-f1d53622b65f",
+      "name": "Farm Fresh Brown Eggs (Pack of 6)",
+      "category": "Dairy",
+      "imageUrl": "/product-images/dairy-bakery/farm-eggs.webp",
+      "verified": true
+    },
+    {
+      "id": "60bd1a62-6f30-4bb2-ac33-765eb90c9b31",
+      "name": "Refined White Sugar",
+      "category": "Grocery & Daily Staples",
+      "imageUrl": "/product-images/groceries/refined-white-sugar.webp",
+      "verified": true
+    },
+    {
+      "id": "0a9a4a69-7570-4572-9604-91ddd1768e51",
+      "name": "Sharbati Whole Wheat Atta",
+      "category": "Grocery & Daily Staples",
+      "imageUrl": "/product-images/groceries/sharbati-wheat-atta.webp",
+      "verified": true
+    },
+    {
+      "id": "3f0db7b2-f78f-4ce9-8466-fe810c976bcd",
+      "name": "Pure Mustard Oil 1L",
+      "category": "Grocery & Daily Staples",
+      "imageUrl": "/product-images/groceries/mustard-oil.webp",
+      "verified": true
+    },
+    {
+      "id": "c376c3e7-633c-4d0f-bd5f-c82e02e05e6b",
+      "name": "Refined White Sugar",
+      "category": "Grocery & Daily Staples",
+      "imageUrl": "/product-images/groceries/refined-white-sugar.webp",
+      "verified": true
+    },
+    {
+      "id": "035c0970-b22d-487c-ae7a-d78ac244a2ef",
+      "name": "Sharbati Whole Wheat Atta",
+      "category": "Grocery & Daily Staples",
+      "imageUrl": "/product-images/groceries/sharbati-wheat-atta.webp",
+      "verified": true
+    },
+    {
+      "id": "f97166d4-6229-4e6e-bef9-2ea4151b5a09",
+      "name": "Pure Mustard Oil 1L",
+      "category": "Grocery & Daily Staples",
+      "imageUrl": "/product-images/groceries/mustard-oil.webp",
+      "verified": true
+    }
+  ]
+}
