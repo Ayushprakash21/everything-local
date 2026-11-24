@@ -592,11 +592,34 @@ app.post('/api/upload', authMiddleware, async (c) => {
   }
 });
 
+// Helper: Strict R2 Object Key Sanitization to Prevent Directory Traversal in Cloudflare Workers
+export function sanitizeR2Key(prefix: string, rawSubPath: string): string | null {
+  try {
+    const decoded = decodeURIComponent(rawSubPath);
+    if (
+      decoded.includes('..') ||
+      decoded.includes('\\') ||
+      decoded.startsWith('/') ||
+      !/^[a-zA-Z0-9_\-\.\/]+$/.test(decoded)
+    ) {
+      return null;
+    }
+    const cleanPath = decoded.replace(/\/+/g, '/').replace(/^\//, '');
+    return `${prefix}/${cleanPath}`;
+  } catch {
+    return null;
+  }
+}
+
 // Serve Public Images from R2
 app.get('/media/public/*', async (c) => {
-  const path = c.req.path.replace('/media/public/', 'public/');
-  const object = await c.env.MEDIA_BUCKET.get(path);
+  const rawSubPath = c.req.path.replace('/media/public/', '');
+  const objectKey = sanitizeR2Key('public', rawSubPath);
+  if (!objectKey) {
+    return c.text('Bad Request: Invalid object key or directory traversal detected', 400);
+  }
 
+  const object = await c.env.MEDIA_BUCKET.get(objectKey);
   if (!object) {
     return c.text('Asset Not Found', 404);
   }
@@ -617,9 +640,13 @@ app.get('/media/kyc/*', authMiddleware, async (c) => {
     return c.text('Forbidden: Unauthorized KYC Access', 403);
   }
 
-  const path = c.req.path.replace('/media/kyc/', 'kyc/');
-  const object = await c.env.MEDIA_BUCKET.get(path);
+  const rawSubPath = c.req.path.replace('/media/kyc/', '');
+  const objectKey = sanitizeR2Key('kyc', rawSubPath);
+  if (!objectKey) {
+    return c.text('Bad Request: Invalid object key or directory traversal detected', 400);
+  }
 
+  const object = await c.env.MEDIA_BUCKET.get(objectKey);
   if (!object) {
     return c.text('KYC Document Not Found', 404);
   }
@@ -627,6 +654,31 @@ app.get('/media/kyc/*', authMiddleware, async (c) => {
   const headers = new Headers();
   object.writeHttpMetadata(headers);
   headers.set('Cache-Control', 'private, no-cache');
+
+  return new Response(object.body, { headers });
+});
+
+// Serve Private Medical Prescriptions from R2 (Strict Authenticated Access)
+app.get('/media/prescriptions/*', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  if (user.role !== 'ADMIN' && user.role !== 'PHARMACIST' && user.role !== 'CUSTOMER') {
+    return c.text('Forbidden: Unauthorized Medical Document Access', 403);
+  }
+
+  const rawSubPath = c.req.path.replace('/media/prescriptions/', '');
+  const objectKey = sanitizeR2Key('prescriptions', rawSubPath);
+  if (!objectKey) {
+    return c.text('Bad Request: Invalid document key or directory traversal detected', 400);
+  }
+
+  const object = await c.env.MEDIA_BUCKET.get(objectKey);
+  if (!object) {
+    return c.text('Prescription Document Not Found', 404);
+  }
+
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set('Cache-Control', 'private, no-cache, no-store');
 
   return new Response(object.body, { headers });
 });

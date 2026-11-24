@@ -7,7 +7,7 @@ import app from '../../server/src/index';
 import { prisma } from '../../server/src/db';
 import { MultiStoreOrderEngine } from '../../server/src/core/multiStoreOrderEngine';
 import { getJwtSecret } from '../../server/src/middleware/auth';
-import { authMiddleware } from '../../server/src/worker';
+import { authMiddleware, sanitizeR2Key } from '../../server/src/worker';
 
 describe('Phase P0: Critical Vulnerability Security Remediation Tests', () => {
   let customerToken: string;
@@ -430,6 +430,27 @@ describe('Phase P0: Critical Vulnerability Security Remediation Tests', () => {
 
       // Must return 404 (or 403), never 500 or file contents
       expect([403, 404]).toContain(res.status);
+    });
+
+    it('4.5: Cloudflare Workers R2 path containment prevents directory traversal in object keys', () => {
+      // Direct parent directory traversal attempt
+      expect(sanitizeR2Key('public', '../kyc/secret.pdf')).toBeNull();
+      expect(sanitizeR2Key('prescriptions', '../../.env')).toBeNull();
+
+      // URL-encoded traversal attempt (%2e%2e)
+      expect(sanitizeR2Key('public', '..%2Fkyc%2Fsecret.pdf')).toBeNull();
+
+      // Windows-style backslash traversal attempt
+      expect(sanitizeR2Key('kyc', '..\\secret.env')).toBeNull();
+
+      // Absolute path attempt
+      expect(sanitizeR2Key('public', '/etc/passwd')).toBeNull();
+
+      // Valid object keys within designated prefixes
+      expect(sanitizeR2Key('prescriptions', 'rx-1795528000-abcd.jpg')).toBe(
+        'prescriptions/rx-1795528000-abcd.jpg'
+      );
+      expect(sanitizeR2Key('public', 'products/apple.png')).toBe('public/products/apple.png');
     });
   });
 });
