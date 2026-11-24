@@ -18,6 +18,8 @@ import { communityRouter } from './routes/community';
 import merchantOnboardingRouter from './routes/merchantOnboarding';
 import deliveryPartnerRouter from './routes/deliveryPartner';
 import deliveryOperationsRouter from './routes/deliveryOperations';
+import adminCatalogueRouter from './routes/adminCatalogue';
+import merchantCatalogueRouter from './routes/merchantCatalogue';
 
 dotenv.config();
 
@@ -96,6 +98,8 @@ app.use('/api/community', communityRouter);
 app.use('/api/onboarding', merchantOnboardingRouter);
 app.use('/api/delivery-partner', deliveryPartnerRouter);
 app.use('/api/admin/delivery-operations', deliveryOperationsRouter);
+app.use('/api/admin/catalogue-environments', adminCatalogueRouter);
+app.use('/api/merchant/catalogue', merchantCatalogueRouter);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {

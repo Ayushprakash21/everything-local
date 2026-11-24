@@ -404,7 +404,7 @@ app.get('/api/customer/stores', async (c) => {
       where,
       include: {
         products: {
-          take: 6,
+          take: 50,
           where: { isAvailable: true }
         }
       },
@@ -605,6 +605,234 @@ app.post('/api/upload', authMiddleware, async (c) => {
     return c.json({ url, key, size: bytes.length, isPrivate: isKyc });
   } catch (err: any) {
     return c.json({ error: 'Upload failed', message: err.message }, 500);
+  }
+});
+
+// ==========================================
+// CATALOGUE & ENVIRONMENT MANAGEMENT
+// ==========================================
+
+// Helper: Get active environment in Worker
+async function getWorkerActiveEnvironment(prisma: any): Promise<'DEMO' | 'LIVE'> {
+  try {
+    const latest = await prisma.catalogueAuditLog.findFirst({
+      where: { action: 'SWITCH_ENV' },
+      orderBy: { createdAt: 'desc' }
+    });
+    if (latest && latest.environment === 'LIVE') return 'LIVE';
+    return 'DEMO';
+  } catch {
+    return 'DEMO';
+  }
+}
+
+// ADMIN: Get Catalogue Environment Status
+app.get('/api/admin/catalogue-environments/status', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  if (user.role !== 'ADMIN') return c.json({ error: 'Admin access required' }, 403);
+  const prisma = c.get('prisma');
+
+  try {
+    const activeEnvironment = await getWorkerActiveEnvironment(prisma);
+    const [demoProducts, demoOffers, demoStores, liveProducts, liveOffers, liveStores, lastSwitch] = await Promise.all([
+      prisma.catalogueProduct.count({ where: { environment: 'DEMO' } }),
+      prisma.product.count({ where: { environment: 'DEMO' } }),
+      prisma.store.count({ where: { products: { some: { environment: 'DEMO' } } } }),
+      prisma.catalogueProduct.count({ where: { environment: 'LIVE' } }),
+      prisma.product.count({ where: { environment: 'LIVE' } }),
+      prisma.store.count({ where: { isVerified: true, products: { some: { environment: 'LIVE' } } } }),
+      prisma.catalogueAuditLog.findFirst({ where: { action: 'SWITCH_ENV' }, orderBy: { createdAt: 'desc' } })
+    ]);
+
+    return c.json({
+      activeEnvironment,
+      demo: {
+        totalProducts: demoProducts,
+        activeOffers: demoOffers,
+        participatingStores: demoStores,
+        isPopulated: demoProducts >= 500,
+        status: 'READY'
+      },
+      live: {
+        totalProducts: liveProducts,
+        activeOffers: liveOffers,
+        verifiedStores: liveStores,
+        isPopulated: liveProducts > 0,
+        status: liveProducts > 0 ? 'OPERATIONAL' : 'AWAITING_VERIFIED_MERCHANTS'
+      },
+      lastSwitchedAt: lastSwitch?.createdAt || null,
+      lastSwitchedBy: lastSwitch?.actorEmail || 'System'
+    });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to fetch status', message: err.message }, 500);
+  }
+});
+
+// ADMIN: Get Filterable Catalogue Products
+app.get('/api/admin/catalogue-environments/products', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  if (user.role !== 'ADMIN') return c.json({ error: 'Admin access required' }, 403);
+  const prisma = c.get('prisma');
+
+  const environment = c.req.query('environment') || 'DEMO';
+  const department = c.req.query('department');
+  const search = c.req.query('search');
+  const page = Math.max(1, parseInt(c.req.query('page') || '1', 10));
+  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') || '50', 10)));
+  const skip = (page - 1) * limit;
+
+  const where: any = { environment };
+  if (department && department !== 'all') where.department = department;
+  if (search) {
+    where.OR = [
+      { name: { contains: search } },
+      { brand: { contains: search } },
+      { sku: { contains: search } }
+    ];
+  }
+
+  try {
+    const [products, total] = await Promise.all([
+      prisma.catalogueProduct.findMany({
+        where,
+        orderBy: [{ department: 'asc' }, { name: 'asc' }],
+        skip,
+        take: limit,
+        include: { _count: { select: { offers: true } } }
+      }),
+      prisma.catalogueProduct.count({ where })
+    ]);
+
+    return c.json({
+      environment,
+      products,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
+    });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to fetch catalogue products', message: err.message }, 500);
+  }
+});
+
+// ADMIN: Switch Active Environment
+app.post('/api/admin/catalogue-environments/switch', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  if (user.role !== 'ADMIN') return c.json({ error: 'Admin access required' }, 403);
+  const prisma = c.get('prisma');
+
+  const body = await c.req.json().catch(() => ({}));
+  const { targetEnvironment, confirmText, reason } = body;
+
+  if (targetEnvironment !== 'DEMO' && targetEnvironment !== 'LIVE') {
+    return c.json({ error: 'Invalid targetEnvironment' }, 400);
+  }
+
+  if (targetEnvironment === 'LIVE' && confirmText !== 'SWITCH_TO_LIVE') {
+    return c.json({ error: 'Confirmation string "SWITCH_TO_LIVE" required' }, 400);
+  }
+
+  const currentEnv = await getWorkerActiveEnvironment(prisma);
+  await prisma.catalogueAuditLog.create({
+    data: {
+      actorId: user.userId,
+      actorEmail: user.email,
+      action: 'SWITCH_ENV',
+      entityType: 'ENVIRONMENT',
+      entityId: targetEnvironment,
+      environment: targetEnvironment,
+      detailsJson: JSON.stringify({ previousEnvironment: currentEnv, reason })
+    }
+  });
+
+  return c.json({ success: true, activeEnvironment: targetEnvironment });
+});
+
+// ADMIN: Catalogue Analytics
+app.get('/api/admin/catalogue-environments/analytics', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  if (user.role !== 'ADMIN') return c.json({ error: 'Admin access required' }, 403);
+  const prisma = c.get('prisma');
+  const environment = c.req.query('environment') || 'DEMO';
+
+  try {
+    const products = await prisma.catalogueProduct.findMany({
+      where: { environment },
+      select: { categoryName: true, imageUrl: true }
+    });
+    const categoryDistribution: Record<string, number> = {};
+    let customPhotographs = 0;
+    let brandedPlaceholders = 0;
+
+    for (const p of products) {
+      categoryDistribution[p.categoryName] = (categoryDistribution[p.categoryName] || 0) + 1;
+      if (p.imageUrl.includes('/placeholders/') || p.imageUrl.includes('placeholder.svg')) {
+        brandedPlaceholders++;
+      } else {
+        customPhotographs++;
+      }
+    }
+
+    return c.json({
+      environment,
+      totalProducts: products.length,
+      mediaCoverage: {
+        customPhotographs,
+        brandedPlaceholders,
+        photographCoveragePercentage: products.length > 0 ? Math.round((customPhotographs / products.length) * 100) : 0
+      },
+      categoryDistribution
+    });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to fetch analytics', message: err.message }, 500);
+  }
+});
+
+// ADMIN: Catalogue Audit Logs
+app.get('/api/admin/catalogue-environments/audit-logs', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  if (user.role !== 'ADMIN') return c.json({ error: 'Admin access required' }, 403);
+  const prisma = c.get('prisma');
+  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') || '50', 10)));
+
+  try {
+    const logs = await prisma.catalogueAuditLog.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: limit
+    });
+    return c.json({ logs });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to fetch audit logs', message: err.message }, 500);
+  }
+});
+
+// MERCHANT: Search Catalogue
+app.get('/api/merchant/catalogue/search', authMiddleware, async (c) => {
+  const user = c.get('user')!;
+  if (user.role !== 'MERCHANT') return c.json({ error: 'Merchant access required' }, 403);
+  const prisma = c.get('prisma');
+
+  const q = (c.req.query('q') || '').trim();
+  const department = c.req.query('department');
+  const activeEnv = await getWorkerActiveEnvironment(prisma);
+
+  const where: any = { environment: activeEnv, status: 'ACTIVE' };
+  if (department && department !== 'all') where.department = department;
+  if (q) {
+    where.OR = [
+      { name: { contains: q } },
+      { brand: { contains: q } },
+      { sku: { contains: q } }
+    ];
+  }
+
+  try {
+    const products = await prisma.catalogueProduct.findMany({
+      where,
+      orderBy: [{ department: 'asc' }, { name: 'asc' }],
+      take: 30
+    });
+    return c.json({ environment: activeEnv, products });
+  } catch (err: any) {
+    return c.json({ error: 'Failed to search catalogue', message: err.message }, 500);
   }
 });
 

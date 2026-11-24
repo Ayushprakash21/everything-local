@@ -1,11 +1,24 @@
 /**
  * EveryBazaar Product Image Fallback Resolver
  * Maps specific products to authentic high-resolution WebP photographs.
- * When no suitable specific photograph exists, returns a neutral branded
- * placeholder SVG (/brand/product-placeholder.svg) rather than an unrelated grocery photograph.
+ * When no suitable specific photograph exists, returns a category-specific
+ * branded vector placeholder or neutral placeholder SVG.
  */
 
 export const NEUTRAL_PRODUCT_PLACEHOLDER = '/brand/product-placeholder.svg';
+
+export const CATEGORY_PLACEHOLDERS: Record<string, string> = {
+  grocery: '/brand/placeholders/grocery.svg',
+  produce: '/brand/placeholders/produce.svg',
+  fashion: '/brand/placeholders/fashion.svg',
+  beauty: '/brand/placeholders/beauty.svg',
+  home: '/brand/placeholders/home.svg',
+  electronics: '/brand/placeholders/electronics.svg',
+  jewellery: '/brand/placeholders/jewellery.svg',
+  footwear: '/brand/placeholders/footwear.svg',
+  pharmacy: '/brand/placeholders/pharmacy.svg',
+  services: '/brand/placeholders/services.svg'
+};
 
 export function resolveProductImage(name: string, category?: string, currentImageUrl?: string | null): string {
   if (currentImageUrl && currentImageUrl.trim() !== '') {
@@ -71,23 +84,44 @@ export function resolveProductImage(name: string, category?: string, currentImag
   if (n.includes('volini') || n.includes('pain relief gel')) return '/product-images/pharmacy/volini-gel.webp';
   if (n.includes('bandage') || n.includes('hansaplast')) return '/product-images/pharmacy/hansaplast-strips.webp';
 
-  // 2. Department Generic Banner Fallbacks (only when category is known)
+  // 2. Category-Specific Branded Placeholders
   if (c.includes('produce') || c.includes('vegetable') || c.includes('fruit')) {
-    return '/product-images/categories/fruits-vegetables-hero.webp';
+    return CATEGORY_PLACEHOLDERS.produce;
+  }
+  if (c.includes('fashion') || c.includes('clothing') || c.includes('apparel') || c.includes('shirt') || c.includes('saree')) {
+    return CATEGORY_PLACEHOLDERS.fashion;
+  }
+  if (c.includes('beauty') || c.includes('cosmetic') || c.includes('skincare') || c.includes('personal care')) {
+    return CATEGORY_PLACEHOLDERS.beauty;
+  }
+  if (c.includes('home') || c.includes('kitchen') || c.includes('decor') || c.includes('cookware')) {
+    return CATEGORY_PLACEHOLDERS.home;
+  }
+  if (c.includes('electronic') || c.includes('electrical') || c.includes('bulb') || c.includes('mobile accessory')) {
+    return CATEGORY_PLACEHOLDERS.electronics;
+  }
+  if (c.includes('jewel') || c.includes('watch') || c.includes('ring') || c.includes('earring') || c.includes('bangle')) {
+    return CATEGORY_PLACEHOLDERS.jewellery;
+  }
+  if (c.includes('bag') || c.includes('footwear') || c.includes('shoe') || c.includes('sandal') || c.includes('travel')) {
+    return CATEGORY_PLACEHOLDERS.footwear;
+  }
+  if (c.includes('pharma') || c.includes('medicine') || c.includes('wellness') || c.includes('health')) {
+    return CATEGORY_PLACEHOLDERS.pharmacy;
+  }
+  if (c.includes('service') || c.includes('repair') || c.includes('laundry') || c.includes('salon')) {
+    return CATEGORY_PLACEHOLDERS.services;
   }
   if (c.includes('dairy') || c.includes('bakery')) {
     return '/product-images/categories/dairy-bakery-hero.webp';
-  }
-  if (c.includes('pharmacy') || c.includes('medical')) {
-    return '/product-images/categories/pharmacy-hero.webp';
   }
   if (c.includes('snack') || c.includes('beverage') || c.includes('drink')) {
     return '/product-images/categories/snacks-drinks-hero.webp';
   }
   if (c.includes('grocery') || c.includes('staple') || c.includes('food')) {
-    return '/product-images/categories/groceries-hero.webp';
+    return CATEGORY_PLACEHOLDERS.grocery;
   }
 
-  // 3. Neutral Branded Placeholder: Never show unrelated groceries for stationery, electronics, etc.
+  // 3. Neutral Branded Placeholder: Never show unrelated groceries for unknown items
   return NEUTRAL_PRODUCT_PLACEHOLDER;
 }

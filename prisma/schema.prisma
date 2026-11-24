@@ -78,6 +78,8 @@ model Product {
   id                  String             @id @default(uuid())
   storeId             String
   store               Store              @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  catalogueProductId  String?
+  catalogueProduct    CatalogueProduct?  @relation("CatalogueProductOffers", fields: [catalogueProductId], references: [id], onDelete: SetNull)
   name                String
   description         String?
   category            String
@@ -89,11 +91,14 @@ model Product {
   pricePaise          Int                // Integer paise
   stock               Int                @default(0)
   isAvailable         Boolean            @default(true)
+  minOrderQty         Int                @default(1)
   imageUrl            String?
   sku                 String?
   barcode             String?
   brand               String?
   packageSize         String?
+  variantsJson        String?
+  environment         String             @default("DEMO") // DEMO, LIVE
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
@@ -101,37 +106,129 @@ model Product {
   orderItems          OrderItem[]
 
   @@index([storeId])
+  @@index([catalogueProductId])
   @@index([categoryId])
   @@index([subcategoryId])
   @@index([category])
+  @@index([environment])
 }
 
 model ProductCategory {
-  id                  String             @id @default(uuid())
-  name                String
-  slug                String             @unique
-  description         String?
-  imageUrl            String
-  bannerUrl           String?
-  displayOrder        Int                @default(0)
-  isActive            Boolean            @default(true)
-  isHomepageVisible   Boolean            @default(true)
-  department          String             @default("GROCERY") // GROCERY, FASHION, ELECTRONICS, LIFESTYLE, SERVICES
-  metaTitle           String?
-  metaDescription     String?
-  parentId            String?
-  parent              ProductCategory?   @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
-  children            ProductCategory[]  @relation("CategoryHierarchy")
-  products            Product[]          @relation("ProductToCategory")
-  subcategoryProducts Product[]          @relation("ProductToSubcategory")
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  id                    String             @id @default(uuid())
+  name                  String
+  slug                  String             @unique
+  description           String?
+  imageUrl              String
+  bannerUrl             String?
+  displayOrder          Int                @default(0)
+  isActive              Boolean            @default(true)
+  isHomepageVisible     Boolean            @default(true)
+  department            String             @default("GROCERY") // GROCERY, FASHION, ELECTRONICS, LIFESTYLE, SERVICES
+  metaTitle             String?
+  metaDescription       String?
+  parentId              String?
+  parent                ProductCategory?   @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children              ProductCategory[]  @relation("CategoryHierarchy")
+  products              Product[]          @relation("ProductToCategory")
+  subcategoryProducts   Product[]          @relation("ProductToSubcategory")
+  catalogueProducts     CatalogueProduct[] @relation("CatalogueProductToCategory")
+  catalogueSubproducts  CatalogueProduct[] @relation("CatalogueProductToSubcategory")
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
 
   @@index([slug])
   @@index([displayOrder])
   @@index([isActive, isHomepageVisible])
   @@index([parentId])
   @@index([department])
+}
+
+model CatalogueProduct {
+  id                    String                   @id @default(uuid())
+  sku                   String                   @unique
+  name                  String
+  slug                  String                   @unique
+  brand                 String?
+  shortDescription      String?
+  description           String?
+  categoryName          String
+  categoryId            String?
+  category              ProductCategory?         @relation("CatalogueProductToCategory", fields: [categoryId], references: [id])
+  subcategoryId         String?
+  subcategory           ProductCategory?         @relation("CatalogueProductToSubcategory", fields: [subcategoryId], references: [id])
+  department            String?
+  unit                  String                   @default("piece") // kg, g, litre, ml, piece, pack, pair, set, box
+  packageSize           String?
+  variantsJson          String?                  // JSON array of variants
+  specificationsJson    String?                  // JSON key-values
+  searchKeywords        String?
+  tags                  String?
+  imageUrl              String
+  additionalImagesJson  String?                  // JSON array of image URLs
+  taxClassification     String?                  @default("GST_5")
+  mrpPaise              Int
+  targetPricePaise      Int?
+  isPrescriptionRequired Boolean                 @default(false)
+  isService             Boolean                  @default(false)
+  status                String                   @default("ACTIVE") // ACTIVE, PENDING_REVIEW, INACTIVE
+  environment           String                   @default("DEMO")   // DEMO, LIVE
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+
+  offers                Product[]                @relation("CatalogueProductOffers")
+  merchantRequests      MerchantProductRequest[]
+
+  @@index([sku])
+  @@index([slug])
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([environment])
+  @@index([status])
+}
+
+model MerchantProductRequest {
+  id                  String             @id @default(uuid())
+  merchantId          String
+  storeId             String
+  name                String
+  brand               String?
+  categoryName        String
+  categoryId          String?
+  subcategoryId       String?
+  description         String?
+  unit                String             @default("piece")
+  imageUrl            String?
+  proposedPricePaise  Int?
+  proposedMrpPaise    Int?
+  variantsJson        String?
+  status              String             @default("PENDING") // PENDING, APPROVED, REJECTED
+  rejectionReason     String?
+  adminNotes          String?
+  catalogueProductId  String?
+  catalogueProduct    CatalogueProduct?  @relation(fields: [catalogueProductId], references: [id], onDelete: SetNull)
+  environment         String             @default("DEMO") // DEMO, LIVE
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@index([storeId])
+  @@index([status])
+  @@index([environment])
+}
+
+model CatalogueAuditLog {
+  id                  String             @id @default(uuid())
+  actorId             String?
+  actorEmail          String?
+  action              String             // SWITCH_ENV, CREATE_PRODUCT, UPDATE_PRODUCT, DELETE_PRODUCT, APPROVE_PRODUCT, BULK_IMPORT, RESET_DEMO, UPDATE_OFFER
+  entityType          String             // CATALOGUE_PRODUCT, MERCHANT_OFFER, ENVIRONMENT, IMPORT
+  entityId            String?
+  environment         String             // DEMO, LIVE
+  detailsJson         String?
+  createdAt           DateTime           @default(now())
+
+  @@index([environment])
+  @@index([action])
+  @@index([createdAt])
 }
 
 model CustomerAddress {

@@ -8,6 +8,7 @@ import { AdminMerchantOnboardingView } from './AdminMerchantOnboardingView';
 import { AdminDeliveryOperationsView } from './delivery/AdminDeliveryOperationsView';
 import { AdminProductImageryView } from './AdminProductImageryView';
 import { AdminCategoryManagementView } from './AdminCategoryManagementView';
+import { AdminCatalogueEnvironmentView } from './CatalogueEnvironmentView';
 import {
   Shield,
   TrendingUp,
@@ -25,7 +26,8 @@ import {
   MapPin,
   Sparkles,
   Building2,
-  Layers
+  Layers,
+  Database
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth }) => {
@@ -34,7 +36,7 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
   const [merchants, setMerchants] = useState<Store[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ledger, setLedger] = useState<FinancialLedgerEntry[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'control_tower' | 'delivery_operations' | 'onboarding' | 'product_imagery' | 'categories' | 'delivery_pricing' | 'settlements' | 'orders' | 'ledger' | 'services' | 'pharmacies'>('control_tower');
+  const [activeTab, setActiveTab] = useState<'overview' | 'control_tower' | 'delivery_operations' | 'onboarding' | 'catalogue_environments' | 'product_imagery' | 'categories' | 'delivery_pricing' | 'settlements' | 'orders' | 'ledger' | 'services' | 'pharmacies'>('catalogue_environments');
   const [controlMetrics, setControlMetrics] = useState<any>(null);
   const [liveTasks, setLiveTasks] = useState<any[]>([]);
   const [onlineRiders, setOnlineRiders] = useState<any[]>([]);
@@ -277,6 +279,18 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
         </button>
 
         <button
+          onClick={() => setActiveTab('catalogue_environments')}
+          className={`pb-3 border-b-2 transition whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'catalogue_environments'
+              ? 'border-forest-900 text-forest-900 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Database className="w-4 h-4 text-amber-500" />
+          <span>Catalogue &amp; Environments (500)</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('product_imagery')}
           className={`pb-3 border-b-2 transition whitespace-nowrap flex items-center gap-1.5 ${
             activeTab === 'product_imagery'
@@ -383,6 +397,9 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
 
       {/* TAB: MERCHANT ONBOARDING DESK */}
       {activeTab === 'onboarding' && <AdminMerchantOnboardingView />}
+
+      {/* TAB: CATALOGUE & ENVIRONMENT MANAGEMENT */}
+      {activeTab === 'catalogue_environments' && <AdminCatalogueEnvironmentView />}
 
       {/* TAB: PRODUCT IMAGERY STUDIO */}
       {activeTab === 'product_imagery' && <AdminProductImageryView />}

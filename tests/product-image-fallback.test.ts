@@ -33,7 +33,7 @@ describe('EveryBazaar Product Image Fallback & Placeholder Engine', () => {
 
     for (const item of unknownItems) {
       const img = resolveProductImage(item.name, item.category);
-      expect(img).toBe(NEUTRAL_PRODUCT_PLACEHOLDER);
+      expect(img).toMatch(/^(\/brand\/placeholders\/|\/brand\/product-placeholder\.svg)/);
       expect(img).not.toContain('aashirvaad-chakki-atta');
       expect(img).not.toContain('groceries');
     }

@@ -130,7 +130,7 @@ describe('AI Realistic Product Imagery Ecosystem', () => {
         for (const p of store.sampleProducts) {
           if (p.imageUrl) {
             foundSampleWithImage = true;
-            expect(p.imageUrl).toMatch(/^\/product-images\//);
+            expect(p.imageUrl).toMatch(/^(\/product-images\/|\/brand\/placeholders\/|\/brand\/product-placeholder\.svg)/);
           }
         }
       }

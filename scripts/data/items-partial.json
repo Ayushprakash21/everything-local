@@ -1,0 +1,3914 @@
+[
+  {
+    "sku": "EB-GRO-001",
+    "name": "India Gate Classic Basmati Rice 5kg",
+    "slug": "india-gate-classic-basmati-rice-5kg",
+    "brand": "India Gate",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "rice-grains",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "5 kg",
+    "mrpPaise": 82500,
+    "targetPricePaise": 74900,
+    "shortDescription": "Aged long-grain aromatic basmati rice.",
+    "description": "Naturally aged Himalayan basmati rice.",
+    "variants": [
+      {
+        "name": "5 kg",
+        "mrpPaise": 82500,
+        "pricePaise": 74900
+      }
+    ],
+    "specifications": {
+      "Grain": "8.4mm"
+    },
+    "searchKeywords": [
+      "rice",
+      "basmati"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/india-gate-basmati-rice.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-002",
+    "name": "Daawat Rozana Gold Basmati Rice 5kg",
+    "slug": "daawat-rozana-gold-basmati-rice-5kg",
+    "brand": "Daawat",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "rice-grains",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "5 kg",
+    "mrpPaise": 54000,
+    "targetPricePaise": 48000,
+    "shortDescription": "Flavourful medium long basmati.",
+    "description": "Selected grains aged to provide delicate taste.",
+    "variants": [
+      {
+        "name": "5 kg",
+        "mrpPaise": 54000,
+        "pricePaise": 48000
+      }
+    ],
+    "specifications": {
+      "Grain": "Medium"
+    },
+    "searchKeywords": [
+      "rice",
+      "daawat"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/india-gate-basmati-rice.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-003",
+    "name": "Fortune Everyday Basmati Rice 1kg",
+    "slug": "fortune-everyday-basmati-rice-1kg",
+    "brand": "Fortune",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "rice-grains",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 11000,
+    "targetPricePaise": 9500,
+    "shortDescription": "Naturally aged basmati rice grains.",
+    "description": "Slender basmati rice for daily cooking.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 11000,
+        "pricePaise": 9500
+      }
+    ],
+    "specifications": {
+      "Texture": "Fluffy"
+    },
+    "searchKeywords": [
+      "rice",
+      "fortune"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/india-gate-basmati-rice.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-004",
+    "name": "Wada Kolam Hand-Pounded Rice 5kg",
+    "slug": "wada-kolam-hand-pounded-rice-5kg",
+    "brand": "Malwa Harvest",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "rice-grains",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "5 kg",
+    "mrpPaise": 42000,
+    "targetPricePaise": 38000,
+    "shortDescription": "Aromatic short-grain Wada Kolam rice.",
+    "description": "Traditional Wada Kolam rice popular across MP.",
+    "variants": [
+      {
+        "name": "5 kg",
+        "mrpPaise": 42000,
+        "pricePaise": 38000
+      }
+    ],
+    "specifications": {
+      "Type": "Short"
+    },
+    "searchKeywords": [
+      "kolam",
+      "rice"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/india-gate-basmati-rice.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-005",
+    "name": "24 Mantra Organic Brown Rice 1kg",
+    "slug": "24-mantra-organic-brown-rice-1kg",
+    "brand": "24 Mantra",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "rice-grains",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 16500,
+    "targetPricePaise": 14500,
+    "shortDescription": "100% certified organic brown rice.",
+    "description": "High-fibre nutrient-dense organic brown rice.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 16500,
+        "pricePaise": 14500
+      }
+    ],
+    "specifications": {
+      "Organic": "Yes"
+    },
+    "searchKeywords": [
+      "brown rice"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/india-gate-basmati-rice.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-006",
+    "name": "Kohinoor Charminar Select Basmati 5kg",
+    "slug": "kohinoor-charminar-select-basmati-5kg",
+    "brand": "Kohinoor",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "rice-grains",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "5 kg",
+    "mrpPaise": 49500,
+    "targetPricePaise": 43500,
+    "shortDescription": "Reliable value basmati rice.",
+    "description": "Hygienically processed grains.",
+    "variants": [
+      {
+        "name": "5 kg",
+        "mrpPaise": 49500,
+        "pricePaise": 43500
+      }
+    ],
+    "specifications": {
+      "Pack": "Pouch"
+    },
+    "searchKeywords": [
+      "kohinoor",
+      "basmati"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/india-gate-basmati-rice.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-007",
+    "name": "Royal Gold Sona Masoori Raw Rice 5kg",
+    "slug": "royal-gold-sona-masoori-raw-rice-5kg",
+    "brand": "Royal Gold",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "rice-grains",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "5 kg",
+    "mrpPaise": 39000,
+    "targetPricePaise": 34500,
+    "shortDescription": "Lightweight medium grain rice.",
+    "description": "Low starch easy-to-digest daily rice.",
+    "variants": [
+      {
+        "name": "5 kg",
+        "mrpPaise": 39000,
+        "pricePaise": 34500
+      }
+    ],
+    "specifications": {
+      "Type": "Sona Masoori"
+    },
+    "searchKeywords": [
+      "sona masoori"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/india-gate-basmati-rice.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-008",
+    "name": "Organic Foxtail Millet (Kangni) 500g",
+    "slug": "organic-foxtail-millet-kangni-500g",
+    "brand": "24 Mantra",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "rice-grains",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "500 g",
+    "mrpPaise": 11500,
+    "targetPricePaise": 9900,
+    "shortDescription": "Gluten-free traditional superfood millet.",
+    "description": "Nutrient-rich ancient grain.",
+    "variants": [
+      {
+        "name": "500 g",
+        "mrpPaise": 11500,
+        "pricePaise": 9900
+      }
+    ],
+    "specifications": {
+      "Gluten Free": "Yes"
+    },
+    "searchKeywords": [
+      "millet",
+      "foxtail"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-009",
+    "name": "Organic Little Millet (Kutki) 500g",
+    "slug": "organic-little-millet-kutki-500g",
+    "brand": "B&B Organics",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "rice-grains",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "500 g",
+    "mrpPaise": 12000,
+    "targetPricePaise": 10500,
+    "shortDescription": "High-fibre nutritious little millet.",
+    "description": "Stone cleaned unpolished millet.",
+    "variants": [
+      {
+        "name": "500 g",
+        "mrpPaise": 12000,
+        "pricePaise": 10500
+      }
+    ],
+    "specifications": {
+      "Type": "Millet"
+    },
+    "searchKeywords": [
+      "kutki",
+      "millet"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-010",
+    "name": "Fortune Mogra Broken Basmati Rice 5kg",
+    "slug": "fortune-mogra-broken-basmati-rice-5kg",
+    "brand": "Fortune",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "rice-grains",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "5 kg",
+    "mrpPaise": 35000,
+    "targetPricePaise": 31000,
+    "shortDescription": "Fragrant broken basmati bits.",
+    "description": "Rich aroma basmati broken rice bits.",
+    "variants": [
+      {
+        "name": "5 kg",
+        "mrpPaise": 35000,
+        "pricePaise": 31000
+      }
+    ],
+    "specifications": {
+      "Cut": "Mogra"
+    },
+    "searchKeywords": [
+      "broken rice"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/india-gate-basmati-rice.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-011",
+    "name": "Organic Kodo Millet (Kodon) 500g",
+    "slug": "organic-kodo-millet-kodon-500g",
+    "brand": "24 Mantra",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "rice-grains",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "500 g",
+    "mrpPaise": 12500,
+    "targetPricePaise": 11000,
+    "shortDescription": "Native Madhya Pradesh organic kodo millet.",
+    "description": "Nutritious low-GI millet.",
+    "variants": [
+      {
+        "name": "500 g",
+        "mrpPaise": 12500,
+        "pricePaise": 11000
+      }
+    ],
+    "specifications": {
+      "Origin": "MP"
+    },
+    "searchKeywords": [
+      "kodo",
+      "millet"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-012",
+    "name": "Aromatic Gobindobhog Rice 1kg",
+    "slug": "aromatic-gobindobhog-rice-1kg",
+    "brand": "Nature Fresh",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "rice-grains",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 19000,
+    "targetPricePaise": 16500,
+    "shortDescription": "Fragrant small grain rice.",
+    "description": "Sweet fragrant short grains.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 19000,
+        "pricePaise": 16500
+      }
+    ],
+    "specifications": {
+      "Grain": "Short"
+    },
+    "searchKeywords": [
+      "gobindobhog"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/india-gate-basmati-rice.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-013",
+    "name": "Aashirvaad Sharbati Whole Wheat Atta 5kg",
+    "slug": "aashirvaad-sharbati-whole-wheat-atta-5kg",
+    "brand": "Aashirvaad",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "wheat-flour-atta",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "5 kg",
+    "mrpPaise": 29500,
+    "targetPricePaise": 27500,
+    "shortDescription": "Stone ground whole wheat flour.",
+    "description": "Made from 100% whole grain wheat.",
+    "variants": [
+      {
+        "name": "5 kg",
+        "mrpPaise": 29500,
+        "pricePaise": 27500
+      }
+    ],
+    "specifications": {
+      "Grain": "Sharbati"
+    },
+    "searchKeywords": [
+      "atta",
+      "flour"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/aashirvaad-chakki-atta.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-014",
+    "name": "Aashirvaad Select 100% MP Sharbati Atta 5kg",
+    "slug": "aashirvaad-select-mp-sharbati-atta-5kg",
+    "brand": "Aashirvaad",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "wheat-flour-atta",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "5 kg",
+    "mrpPaise": 34500,
+    "targetPricePaise": 31900,
+    "shortDescription": "Premium golden MP Sharbati wheat grains.",
+    "description": "Golden, soft rotis made from royal Sehore wheat.",
+    "variants": [
+      {
+        "name": "5 kg",
+        "mrpPaise": 34500,
+        "pricePaise": 31900
+      }
+    ],
+    "specifications": {
+      "Origin": "Sehore"
+    },
+    "searchKeywords": [
+      "sharbati atta"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/aashirvaad-chakki-atta.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-015",
+    "name": "Pillsbury Chakki Fresh Atta 5kg",
+    "slug": "pillsbury-chakki-fresh-atta-5kg",
+    "brand": "Pillsbury",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "wheat-flour-atta",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "5 kg",
+    "mrpPaise": 28000,
+    "targetPricePaise": 25500,
+    "shortDescription": "Traditional chakki milled wheat flour.",
+    "description": "Retains natural bran and nutrients.",
+    "variants": [
+      {
+        "name": "5 kg",
+        "mrpPaise": 28000,
+        "pricePaise": 25500
+      }
+    ],
+    "specifications": {
+      "Milling": "Chakki"
+    },
+    "searchKeywords": [
+      "pillsbury"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/aashirvaad-chakki-atta.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-016",
+    "name": "Fortune Chakki Fresh Whole Wheat Atta 5kg",
+    "slug": "fortune-chakki-fresh-whole-wheat-atta-5kg",
+    "brand": "Fortune",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "wheat-flour-atta",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "5 kg",
+    "mrpPaise": 27000,
+    "targetPricePaise": 24500,
+    "shortDescription": "Quality chakki ground whole wheat.",
+    "description": "Stone ground wheat flour for fluffy rotis.",
+    "variants": [
+      {
+        "name": "5 kg",
+        "mrpPaise": 27000,
+        "pricePaise": 24500
+      }
+    ],
+    "specifications": {
+      "Fibre": "High"
+    },
+    "searchKeywords": [
+      "fortune atta"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/aashirvaad-chakki-atta.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-017",
+    "name": "Aashirvaad Multigrain Atta 5kg",
+    "slug": "aashirvaad-multigrain-atta-5kg",
+    "brand": "Aashirvaad",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "wheat-flour-atta",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "5 kg",
+    "mrpPaise": 38000,
+    "targetPricePaise": 34500,
+    "shortDescription": "Power of 6 natural grains.",
+    "description": "Rich in dietary fibre that helps digestion.",
+    "variants": [
+      {
+        "name": "5 kg",
+        "mrpPaise": 38000,
+        "pricePaise": 34500
+      }
+    ],
+    "specifications": {
+      "Grains": "6"
+    },
+    "searchKeywords": [
+      "multigrain"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/aashirvaad-chakki-atta.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-018",
+    "name": "Rajdhani Fine Sooji / Semolina 500g",
+    "slug": "rajdhani-fine-sooji-semolina-500g",
+    "brand": "Rajdhani",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "wheat-flour-atta",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "500 g",
+    "mrpPaise": 4800,
+    "targetPricePaise": 4200,
+    "shortDescription": "Granular pure wheat sooji.",
+    "description": "Evenly granulated wheat semolina.",
+    "variants": [
+      {
+        "name": "500 g",
+        "mrpPaise": 4800,
+        "pricePaise": 4200
+      }
+    ],
+    "specifications": {
+      "Type": "Sooji"
+    },
+    "searchKeywords": [
+      "sooji",
+      "rava"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/sooji-rava.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-019",
+    "name": "Fortune Maida Refined Flour 1kg",
+    "slug": "fortune-maida-refined-flour-1kg",
+    "brand": "Fortune",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "wheat-flour-atta",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 5500,
+    "targetPricePaise": 4800,
+    "shortDescription": "Pure refined wheat flour.",
+    "description": "Hygienically milled superfine flour.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 5500,
+        "pricePaise": 4800
+      }
+    ],
+    "specifications": {
+      "Type": "Maida"
+    },
+    "searchKeywords": [
+      "maida"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-020",
+    "name": "Rajdhani Pure Chana Dal Besan 1kg",
+    "slug": "rajdhani-pure-chana-dal-besan-1kg",
+    "brand": "Rajdhani",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "wheat-flour-atta",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 13000,
+    "targetPricePaise": 11500,
+    "shortDescription": "Pure gram flour from chana dal.",
+    "description": "Aromatic gram flour for pakodas.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 13000,
+        "pricePaise": 11500
+      }
+    ],
+    "specifications": {
+      "Pure": "100%"
+    },
+    "searchKeywords": [
+      "besan"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/besan.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-021",
+    "name": "Natureland Organic Jowar Flour 1kg",
+    "slug": "natureland-organic-jowar-flour-1kg",
+    "brand": "Natureland",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "wheat-flour-atta",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 9500,
+    "targetPricePaise": 8200,
+    "shortDescription": "Gluten-free sorghum jowar flour.",
+    "description": "Rich in iron and natural fibre.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 9500,
+        "pricePaise": 8200
+      }
+    ],
+    "specifications": {
+      "Gluten Free": "Yes"
+    },
+    "searchKeywords": [
+      "jowar"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-022",
+    "name": "24 Mantra Organic Ragi Flour 500g",
+    "slug": "24-mantra-organic-ragi-flour-500g",
+    "brand": "24 Mantra",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "wheat-flour-atta",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "500 g",
+    "mrpPaise": 6500,
+    "targetPricePaise": 5800,
+    "shortDescription": "Calcium-rich finger millet flour.",
+    "description": "Ancient calcium booster grain.",
+    "variants": [
+      {
+        "name": "500 g",
+        "mrpPaise": 6500,
+        "pricePaise": 5800
+      }
+    ],
+    "specifications": {
+      "Calcium": "High"
+    },
+    "searchKeywords": [
+      "ragi"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-023",
+    "name": "Tata Sampann Unpolished Toor Dal 1kg",
+    "slug": "tata-sampann-unpolished-toor-dal-1kg",
+    "brand": "Tata Sampann",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "pulses-dals",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 19500,
+    "targetPricePaise": 17500,
+    "shortDescription": "Unpolished protein-rich arhar toor dal.",
+    "description": "Not polished with water or leather.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 19500,
+        "pricePaise": 17500
+      }
+    ],
+    "specifications": {
+      "Polish": "None"
+    },
+    "searchKeywords": [
+      "toor dal"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/toor-dal.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-024",
+    "name": "Tata Sampann Unpolished Moong Dal Yellow 1kg",
+    "slug": "tata-sampann-unpolished-moong-dal-yellow-1kg",
+    "brand": "Tata Sampann",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "pulses-dals",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 17000,
+    "targetPricePaise": 15200,
+    "shortDescription": "Yellow split moong dal.",
+    "description": "Naturally delicious split moong.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 17000,
+        "pricePaise": 15200
+      }
+    ],
+    "specifications": {
+      "Protein": "High"
+    },
+    "searchKeywords": [
+      "moong dal"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/moong-dal.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-025",
+    "name": "Fortune Unpolished Chana Dal 1kg",
+    "slug": "fortune-unpolished-chana-dal-1kg",
+    "brand": "Fortune",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "pulses-dals",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 12500,
+    "targetPricePaise": 11000,
+    "shortDescription": "Cleaned split Bengal gram chana dal.",
+    "description": "High protein split chickpeas.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 12500,
+        "pricePaise": 11000
+      }
+    ],
+    "specifications": {
+      "Grade": "A"
+    },
+    "searchKeywords": [
+      "chana dal"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/chana-dal.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-026",
+    "name": "Tata Sampann Unpolished Masoor Dal Malka 1kg",
+    "slug": "tata-sampann-unpolished-masoor-dal-malka-1kg",
+    "brand": "Tata Sampann",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "pulses-dals",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 14000,
+    "targetPricePaise": 12200,
+    "shortDescription": "Red split lentils malka masoor.",
+    "description": "Quick cooking red lentils.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 14000,
+        "pricePaise": 12200
+      }
+    ],
+    "specifications": {
+      "Iron": "High"
+    },
+    "searchKeywords": [
+      "masoor dal"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/masoor-dal.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-027",
+    "name": "Fortune Kashmiri Rajma Red Kidney Beans 1kg",
+    "slug": "fortune-kashmiri-rajma-red-kidney-beans-1kg",
+    "brand": "Fortune",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "pulses-dals",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 18500,
+    "targetPricePaise": 16500,
+    "shortDescription": "Authentic red Kashmiri rajma.",
+    "description": "Velvety texture that absorbs spices.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 18500,
+        "pricePaise": 16500
+      }
+    ],
+    "specifications": {
+      "Origin": "Kashmir"
+    },
+    "searchKeywords": [
+      "rajma"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/rajma.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-028",
+    "name": "Tata Sampann Chitra Rajma 1kg",
+    "slug": "tata-sampann-chitra-rajma-1kg",
+    "brand": "Tata Sampann",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "pulses-dals",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 19000,
+    "targetPricePaise": 17000,
+    "shortDescription": "Speckled Chitra rajma beans.",
+    "description": "Melt-in-mouth speckled rajma.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 19000,
+        "pricePaise": 17000
+      }
+    ],
+    "specifications": {
+      "Variety": "Chitra"
+    },
+    "searchKeywords": [
+      "chitra rajma"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/rajma.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-029",
+    "name": "Fortune Premium Kabuli Chana 1kg",
+    "slug": "fortune-premium-kabuli-chana-1kg",
+    "brand": "Fortune",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "pulses-dals",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 21000,
+    "targetPricePaise": 18500,
+    "shortDescription": "Jumbo white chickpeas for chhole.",
+    "description": "Extra-large clean white chickpeas.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 21000,
+        "pricePaise": 18500
+      }
+    ],
+    "specifications": {
+      "Size": "12mm"
+    },
+    "searchKeywords": [
+      "kabuli chana"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/kabuli-chana.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-030",
+    "name": "Tata Sampann Unpolished Urad Dal Chilka 1kg",
+    "slug": "tata-sampann-unpolished-urad-dal-chilka-1kg",
+    "brand": "Tata Sampann",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "pulses-dals",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 16500,
+    "targetPricePaise": 14800,
+    "shortDescription": "Black split urad dal with skin.",
+    "description": "Essential for Dal Makhani.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 16500,
+        "pricePaise": 14800
+      }
+    ],
+    "specifications": {
+      "Fibre": "High"
+    },
+    "searchKeywords": [
+      "urad dal"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/moong-dal.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-031",
+    "name": "Tata Sampann Urad White Whole Gotu 1kg",
+    "slug": "tata-sampann-urad-white-whole-gotu-1kg",
+    "brand": "Tata Sampann",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "pulses-dals",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 17500,
+    "targetPricePaise": 15500,
+    "shortDescription": "Peeled white urad gotu for idlis.",
+    "description": "Ferments into extra soft batter.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 17500,
+        "pricePaise": 15500
+      }
+    ],
+    "specifications": {
+      "Type": "Whole"
+    },
+    "searchKeywords": [
+      "urad gotu"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-032",
+    "name": "Rajdhani Desi Kala Chana 1kg",
+    "slug": "rajdhani-desi-kala-chana-1kg",
+    "brand": "Rajdhani",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "pulses-dals",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 12000,
+    "targetPricePaise": 10500,
+    "shortDescription": "Nutrient-packed brown chickpeas.",
+    "description": "Rich in iron and plant protein.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 12000,
+        "pricePaise": 10500
+      }
+    ],
+    "specifications": {
+      "Iron": "High"
+    },
+    "searchKeywords": [
+      "kala chana"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/chana-dal.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-033",
+    "name": "24 Mantra Organic Green Moong Whole 500g",
+    "slug": "24-mantra-organic-green-moong-whole-500g",
+    "brand": "24 Mantra",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "pulses-dals",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "500 g",
+    "mrpPaise": 9500,
+    "targetPricePaise": 8200,
+    "shortDescription": "Whole sabut green gram for sprouts.",
+    "description": "100% organic pesticide-free moong.",
+    "variants": [
+      {
+        "name": "500 g",
+        "mrpPaise": 9500,
+        "pricePaise": 8200
+      }
+    ],
+    "specifications": {
+      "Organic": "Yes"
+    },
+    "searchKeywords": [
+      "sabut moong"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/moong-dal.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-034",
+    "name": "Natureland Organic Kulthi Dal (Horse Gram) 500g",
+    "slug": "natureland-organic-kulthi-dal-horse-gram-500g",
+    "brand": "Natureland",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "pulses-dals",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "500 g",
+    "mrpPaise": 8500,
+    "targetPricePaise": 7200,
+    "shortDescription": "Traditional horse gram pulse.",
+    "description": "Rich in antioxidants and fibre.",
+    "variants": [
+      {
+        "name": "500 g",
+        "mrpPaise": 8500,
+        "pricePaise": 7200
+      }
+    ],
+    "specifications": {
+      "Type": "Superfood"
+    },
+    "searchKeywords": [
+      "kulthi"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-035",
+    "name": "Fortune Sunlite Refined Sunflower Oil 1L",
+    "slug": "fortune-sunlite-refined-sunflower-oil-1l",
+    "brand": "Fortune",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "cooking-oils-ghee",
+    "department": "GROCERY",
+    "unit": "pouch",
+    "packageSize": "1 L",
+    "mrpPaise": 16500,
+    "targetPricePaise": 14500,
+    "shortDescription": "Light refined sunflower oil.",
+    "description": "Enriched with Vitamins A & D.",
+    "variants": [
+      {
+        "name": "1 L",
+        "mrpPaise": 16500,
+        "pricePaise": 14500
+      }
+    ],
+    "specifications": {
+      "Vitamins": "A & D"
+    },
+    "searchKeywords": [
+      "sunflower oil"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/fortune-sunflower-oil.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-036",
+    "name": "Fortune Kachi Ghani Pure Mustard Oil 1L",
+    "slug": "fortune-kachi-ghani-pure-mustard-oil-1l",
+    "brand": "Fortune",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "cooking-oils-ghee",
+    "department": "GROCERY",
+    "unit": "bottle",
+    "packageSize": "1 L",
+    "mrpPaise": 18500,
+    "targetPricePaise": 16200,
+    "shortDescription": "Cold-pressed pungent mustard oil.",
+    "description": "Natural aroma for traditional curries.",
+    "variants": [
+      {
+        "name": "1 L",
+        "mrpPaise": 18500,
+        "pricePaise": 16200
+      }
+    ],
+    "specifications": {
+      "Press": "Cold"
+    },
+    "searchKeywords": [
+      "mustard oil"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/mustard-oil.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-037",
+    "name": "Saffola Gold Pro Healthy Lifestyle Oil 1L",
+    "slug": "saffola-gold-pro-healthy-lifestyle-oil-1l",
+    "brand": "Saffola",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "cooking-oils-ghee",
+    "department": "GROCERY",
+    "unit": "pouch",
+    "packageSize": "1 L",
+    "mrpPaise": 19500,
+    "targetPricePaise": 17500,
+    "shortDescription": "Dual-seed blend of rice bran and sunflower.",
+    "description": "Pro-heart blend with antioxidants.",
+    "variants": [
+      {
+        "name": "1 L",
+        "mrpPaise": 19500,
+        "pricePaise": 17500
+      }
+    ],
+    "specifications": {
+      "Blend": "Dual"
+    },
+    "searchKeywords": [
+      "saffola gold"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/fortune-sunflower-oil.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-038",
+    "name": "Amul Pure Desi Cow Ghee 1L Tin",
+    "slug": "amul-pure-desi-cow-ghee-1l-tin",
+    "brand": "Amul",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "cooking-oils-ghee",
+    "department": "GROCERY",
+    "unit": "tin",
+    "packageSize": "1 L",
+    "mrpPaise": 69000,
+    "targetPricePaise": 64500,
+    "shortDescription": "Aromatic golden cow ghee.",
+    "description": "Granular texture and delightful aroma.",
+    "variants": [
+      {
+        "name": "1 L",
+        "mrpPaise": 69000,
+        "pricePaise": 64500
+      }
+    ],
+    "specifications": {
+      "Purity": "100%"
+    },
+    "searchKeywords": [
+      "amul ghee"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/cow-ghee.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-039",
+    "name": "Ananda Pure Danedar Ghee Pouch 1L",
+    "slug": "ananda-pure-danedar-ghee-pouch-1l",
+    "brand": "Ananda",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "cooking-oils-ghee",
+    "department": "GROCERY",
+    "unit": "pouch",
+    "packageSize": "1 L",
+    "mrpPaise": 64000,
+    "targetPricePaise": 59900,
+    "shortDescription": "Danedar clarified butter.",
+    "description": "Golden grains of pure ghee.",
+    "variants": [
+      {
+        "name": "1 L",
+        "mrpPaise": 64000,
+        "pricePaise": 59900
+      }
+    ],
+    "specifications": {
+      "Texture": "Danedar"
+    },
+    "searchKeywords": [
+      "desi ghee"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/cow-ghee.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-040",
+    "name": "Sanchi Pure Cow Ghee Carton 500ml",
+    "slug": "sanchi-pure-cow-ghee-carton-500ml",
+    "brand": "Sanchi",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "cooking-oils-ghee",
+    "department": "GROCERY",
+    "unit": "carton",
+    "packageSize": "500 ml",
+    "mrpPaise": 35000,
+    "targetPricePaise": 32500,
+    "shortDescription": "Local Malwa cooperative cow ghee.",
+    "description": "Prepared under stringent dairy standards.",
+    "variants": [
+      {
+        "name": "500 ml",
+        "mrpPaise": 35000,
+        "pricePaise": 32500
+      }
+    ],
+    "specifications": {
+      "Dairy": "Sanchi"
+    },
+    "searchKeywords": [
+      "sanchi ghee"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/cow-ghee.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-041",
+    "name": "Dhara Filtered Groundnut Oil 1L Pouch",
+    "slug": "dhara-filtered-groundnut-oil-1l-pouch",
+    "brand": "Dhara",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "cooking-oils-ghee",
+    "department": "GROCERY",
+    "unit": "pouch",
+    "packageSize": "1 L",
+    "mrpPaise": 21000,
+    "targetPricePaise": 18900,
+    "shortDescription": "Filtered groundnut oil.",
+    "description": "Traditional peanut cooking oil.",
+    "variants": [
+      {
+        "name": "1 L",
+        "mrpPaise": 21000,
+        "pricePaise": 18900
+      }
+    ],
+    "specifications": {
+      "Type": "Groundnut"
+    },
+    "searchKeywords": [
+      "groundnut oil"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/fortune-sunflower-oil.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-042",
+    "name": "Patanjali Cow Ghee Carton 1L",
+    "slug": "patanjali-cow-ghee-carton-1l",
+    "brand": "Patanjali",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "cooking-oils-ghee",
+    "department": "GROCERY",
+    "unit": "carton",
+    "packageSize": "1 L",
+    "mrpPaise": 67500,
+    "targetPricePaise": 62500,
+    "shortDescription": "Ayurvedic pure cow ghee.",
+    "description": "Natural clarified butter.",
+    "variants": [
+      {
+        "name": "1 L",
+        "mrpPaise": 67500,
+        "pricePaise": 62500
+      }
+    ],
+    "specifications": {
+      "Origin": "India"
+    },
+    "searchKeywords": [
+      "patanjali ghee"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/cow-ghee.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-043",
+    "name": "Emami Healthy & Tasty Rice Bran Oil 1L",
+    "slug": "emami-healthy-tasty-rice-bran-oil-1l",
+    "brand": "Emami",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "cooking-oils-ghee",
+    "department": "GROCERY",
+    "unit": "pouch",
+    "packageSize": "1 L",
+    "mrpPaise": 15500,
+    "targetPricePaise": 13800,
+    "shortDescription": "Refined rice bran oil with Oryzanol.",
+    "description": "Helps maintain good cholesterol.",
+    "variants": [
+      {
+        "name": "1 L",
+        "mrpPaise": 15500,
+        "pricePaise": 13800
+      }
+    ],
+    "specifications": {
+      "Oryzanol": "High"
+    },
+    "searchKeywords": [
+      "rice bran oil"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/fortune-sunflower-oil.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-044",
+    "name": "Figaro Pure Olive Oil Tin 500ml",
+    "slug": "figaro-pure-olive-oil-tin-500ml",
+    "brand": "Figaro",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "cooking-oils-ghee",
+    "department": "GROCERY",
+    "unit": "tin",
+    "packageSize": "500 ml",
+    "mrpPaise": 79900,
+    "targetPricePaise": 69900,
+    "shortDescription": "Pure Spanish olive oil.",
+    "description": "Rich in monounsaturated fats.",
+    "variants": [
+      {
+        "name": "500 ml",
+        "mrpPaise": 79900,
+        "pricePaise": 69900
+      }
+    ],
+    "specifications": {
+      "Origin": "Spain"
+    },
+    "searchKeywords": [
+      "olive oil"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-045",
+    "name": "Tata Sampann Turmeric Powder 200g",
+    "slug": "tata-sampann-turmeric-powder-200g",
+    "brand": "Tata Sampann",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "spices-masalas",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "200 g",
+    "mrpPaise": 7500,
+    "targetPricePaise": 6500,
+    "shortDescription": "Curcumin-guaranteed Salem turmeric.",
+    "description": "Minimum 3% natural curcumin guaranteed.",
+    "variants": [
+      {
+        "name": "200 g",
+        "mrpPaise": 7500,
+        "pricePaise": 6500
+      }
+    ],
+    "specifications": {
+      "Curcumin": "3%"
+    },
+    "searchKeywords": [
+      "haldi"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/turmeric-powder.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-046",
+    "name": "Everest Tikhalal Red Chilli Powder 200g",
+    "slug": "everest-tikhalal-red-chilli-powder-200g",
+    "brand": "Everest",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "spices-masalas",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "200 g",
+    "mrpPaise": 11000,
+    "targetPricePaise": 9500,
+    "shortDescription": "Fiery hot pure red chilli powder.",
+    "description": "Ground from sun-dried chillies.",
+    "variants": [
+      {
+        "name": "200 g",
+        "mrpPaise": 11000,
+        "pricePaise": 9500
+      }
+    ],
+    "specifications": {
+      "Heat": "High"
+    },
+    "searchKeywords": [
+      "lal mirch"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/red-chilli-powder.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-047",
+    "name": "Tata Sampann Coriander Powder 200g",
+    "slug": "tata-sampann-coriander-powder-200g",
+    "brand": "Tata Sampann",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "spices-masalas",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "200 g",
+    "mrpPaise": 7000,
+    "targetPricePaise": 5900,
+    "shortDescription": "Ground coriander with essential oils.",
+    "description": "Sweet citrusy aroma for curries.",
+    "variants": [
+      {
+        "name": "200 g",
+        "mrpPaise": 7000,
+        "pricePaise": 5900
+      }
+    ],
+    "specifications": {
+      "Aroma": "Fresh"
+    },
+    "searchKeywords": [
+      "dhaniya"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/turmeric-powder.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-048",
+    "name": "Everest Royal Cumin Seeds Whole (Jeera) 100g",
+    "slug": "everest-royal-cumin-seeds-whole-jeera-100g",
+    "brand": "Everest",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "spices-masalas",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "100 g",
+    "mrpPaise": 9500,
+    "targetPricePaise": 8200,
+    "shortDescription": "Cleaned cumin seeds for tadka.",
+    "description": "Warm earthy aroma for tempering.",
+    "variants": [
+      {
+        "name": "100 g",
+        "mrpPaise": 9500,
+        "pricePaise": 8200
+      }
+    ],
+    "specifications": {
+      "Purity": "Cleaned"
+    },
+    "searchKeywords": [
+      "jeera"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/cumin-seeds.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-049",
+    "name": "MDH Deggi Mirch Natural Red Pepper 100g",
+    "slug": "mdh-deggi-mirch-natural-red-pepper-100g",
+    "brand": "MDH",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "spices-masalas",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "100 g",
+    "mrpPaise": 8500,
+    "targetPricePaise": 7400,
+    "shortDescription": "Adds radiant natural red color.",
+    "description": "Blend of Kashmiri and Indian chillies.",
+    "variants": [
+      {
+        "name": "100 g",
+        "mrpPaise": 8500,
+        "pricePaise": 7400
+      }
+    ],
+    "specifications": {
+      "Color": "Natural Red"
+    },
+    "searchKeywords": [
+      "deggi mirch"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/red-chilli-powder.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-050",
+    "name": "Everest Garam Masala Blend 100g",
+    "slug": "everest-garam-masala-blend-100g",
+    "brand": "Everest",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "spices-masalas",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "100 g",
+    "mrpPaise": 9200,
+    "targetPricePaise": 7900,
+    "shortDescription": "Blend of 13 roasted spices.",
+    "description": "Adds richness to paneer and gravies.",
+    "variants": [
+      {
+        "name": "100 g",
+        "mrpPaise": 9200,
+        "pricePaise": 7900
+      }
+    ],
+    "specifications": {
+      "Spices": "13"
+    },
+    "searchKeywords": [
+      "garam masala"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/turmeric-powder.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-051",
+    "name": "Catch Black Pepper Sprinkler 100g",
+    "slug": "catch-black-pepper-sprinkler-100g",
+    "brand": "Catch",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "spices-masalas",
+    "department": "GROCERY",
+    "unit": "sprinkler",
+    "packageSize": "100 g",
+    "mrpPaise": 14500,
+    "targetPricePaise": 12500,
+    "shortDescription": "Malabar black pepper in table sprinkler.",
+    "description": "Fresh peppery heat for salads and eggs.",
+    "variants": [
+      {
+        "name": "100 g",
+        "mrpPaise": 14500,
+        "pricePaise": 12500
+      }
+    ],
+    "specifications": {
+      "Type": "Black Pepper"
+    },
+    "searchKeywords": [
+      "kali mirch"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-052",
+    "name": "MDH Chana Masala Seasoning 100g",
+    "slug": "mdh-chana-masala-seasoning-100g",
+    "brand": "MDH",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "spices-masalas",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "100 g",
+    "mrpPaise": 7800,
+    "targetPricePaise": 6800,
+    "shortDescription": "Seasoning for dark Amritsari chhole.",
+    "description": "Infused with amchur and roasted spices.",
+    "variants": [
+      {
+        "name": "100 g",
+        "mrpPaise": 7800,
+        "pricePaise": 6800
+      }
+    ],
+    "specifications": {
+      "Flavor": "Tangy"
+    },
+    "searchKeywords": [
+      "chana masala"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/turmeric-powder.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-053",
+    "name": "Everest Pav Bhaji Masala 100g",
+    "slug": "everest-pav-bhaji-masala-100g",
+    "brand": "Everest",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "spices-masalas",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "100 g",
+    "mrpPaise": 8200,
+    "targetPricePaise": 7200,
+    "shortDescription": "Mumbai style pav bhaji spice blend.",
+    "description": "Vibrant aroma for mashed vegetable bhaji.",
+    "variants": [
+      {
+        "name": "100 g",
+        "mrpPaise": 8200,
+        "pricePaise": 7200
+      }
+    ],
+    "specifications": {
+      "Style": "Mumbai"
+    },
+    "searchKeywords": [
+      "pav bhaji masala"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/turmeric-powder.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-054",
+    "name": "Catch Pure Hing Powder 50g Container",
+    "slug": "catch-pure-hing-powder-50g-container",
+    "brand": "Catch",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "spices-masalas",
+    "department": "GROCERY",
+    "unit": "container",
+    "packageSize": "50 g",
+    "mrpPaise": 6500,
+    "targetPricePaise": 5800,
+    "shortDescription": "Compounded asafoetida powder.",
+    "description": "Lingering digestive aroma.",
+    "variants": [
+      {
+        "name": "50 g",
+        "mrpPaise": 6500,
+        "pricePaise": 5800
+      }
+    ],
+    "specifications": {
+      "Form": "Powder"
+    },
+    "searchKeywords": [
+      "hing"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-055",
+    "name": "Everest Kasuri Methi Leaves 50g",
+    "slug": "everest-kasuri-methi-leaves-50g",
+    "brand": "Everest",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "spices-masalas",
+    "department": "GROCERY",
+    "unit": "box",
+    "packageSize": "50 g",
+    "mrpPaise": 4500,
+    "targetPricePaise": 3800,
+    "shortDescription": "Dried fragrant fenugreek leaves.",
+    "description": "Restaurant aroma in dals and gravies.",
+    "variants": [
+      {
+        "name": "50 g",
+        "mrpPaise": 4500,
+        "pricePaise": 3800
+      }
+    ],
+    "specifications": {
+      "Origin": "Nagaur"
+    },
+    "searchKeywords": [
+      "kasuri methi"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-056",
+    "name": "Joshi Indori Jeeravan Masala Traditional 100g",
+    "slug": "joshi-indori-jeeravan-masala-traditional-100g",
+    "brand": "Joshi Spices",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "spices-masalas",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "100 g",
+    "mrpPaise": 6000,
+    "targetPricePaise": 5000,
+    "shortDescription": "Authentic 16-spice Indori Poha seasoning.",
+    "description": "The soul of Sarafa and Chhappan Dukan.",
+    "variants": [
+      {
+        "name": "100 g",
+        "mrpPaise": 6000,
+        "pricePaise": 5000
+      }
+    ],
+    "specifications": {
+      "City": "Indore"
+    },
+    "searchKeywords": [
+      "jeeravan"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/snacks-beverages/indori-sev.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-057",
+    "name": "Tata Salt Vacuum Evaporated Iodized 1kg",
+    "slug": "tata-salt-vacuum-evaporated-iodized-1kg",
+    "brand": "Tata Salt",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "salt-sugar-jaggery",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 2800,
+    "targetPricePaise": 2600,
+    "shortDescription": "Desh Ka Namak vacuum evaporated salt.",
+    "description": "Guaranteed purity with iodine.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 2800,
+        "pricePaise": 2600
+      }
+    ],
+    "specifications": {
+      "Type": "Iodized"
+    },
+    "searchKeywords": [
+      "tata salt"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/tata-salt.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-058",
+    "name": "Tata Salt Lite 15% Low Sodium Salt 1kg",
+    "slug": "tata-salt-lite-low-sodium-salt-1kg",
+    "brand": "Tata Salt",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "salt-sugar-jaggery",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 4500,
+    "targetPricePaise": 4000,
+    "shortDescription": "15% less sodium with great taste.",
+    "description": "Formulated for healthy blood pressure.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 4500,
+        "pricePaise": 4000
+      }
+    ],
+    "specifications": {
+      "Sodium": "Low"
+    },
+    "searchKeywords": [
+      "low sodium salt"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/tata-salt.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-059",
+    "name": "Madhur Pure Refined Sugar 1kg",
+    "slug": "madhur-pure-refined-sugar-1kg",
+    "brand": "Madhur",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "salt-sugar-jaggery",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 6000,
+    "targetPricePaise": 5400,
+    "shortDescription": "Sulphur-free sparkling white sugar.",
+    "description": "Processed with 100% hygiene.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 6000,
+        "pricePaise": 5400
+      }
+    ],
+    "specifications": {
+      "Process": "Sulphur Free"
+    },
+    "searchKeywords": [
+      "sugar"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/madhur-sugar.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-060",
+    "name": "Organic Tattva Desi Khand Raw Sugar 1kg",
+    "slug": "organic-tattva-desi-khand-raw-sugar-1kg",
+    "brand": "Organic Tattva",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "salt-sugar-jaggery",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 12000,
+    "targetPricePaise": 10500,
+    "shortDescription": "Unbleached crystalline cane sugar.",
+    "description": "Retains natural sugarcane minerals.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 12000,
+        "pricePaise": 10500
+      }
+    ],
+    "specifications": {
+      "Type": "Raw Khand"
+    },
+    "searchKeywords": [
+      "desi khand"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/madhur-sugar.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-061",
+    "name": "24 Mantra Organic Jaggery Powder 500g",
+    "slug": "24-mantra-organic-jaggery-powder-500g",
+    "brand": "24 Mantra",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "salt-sugar-jaggery",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "500 g",
+    "mrpPaise": 7500,
+    "targetPricePaise": 6500,
+    "shortDescription": "Chemical-free powdered jaggery.",
+    "description": "Natural iron-rich sweetener.",
+    "variants": [
+      {
+        "name": "500 g",
+        "mrpPaise": 7500,
+        "pricePaise": 6500
+      }
+    ],
+    "specifications": {
+      "Purity": "Organic"
+    },
+    "searchKeywords": [
+      "jaggery"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-062",
+    "name": "Catch Sendha Namak Rock Salt Powder 500g",
+    "slug": "catch-sendha-namak-rock-salt-powder-500g",
+    "brand": "Catch",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "salt-sugar-jaggery",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "500 g",
+    "mrpPaise": 5000,
+    "targetPricePaise": 4200,
+    "shortDescription": "Pure pink rock salt for fasting.",
+    "description": "Rich in trace minerals.",
+    "variants": [
+      {
+        "name": "500 g",
+        "mrpPaise": 5000,
+        "pricePaise": 4200
+      }
+    ],
+    "specifications": {
+      "Type": "Rock Salt"
+    },
+    "searchKeywords": [
+      "sendha namak"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/tata-salt.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-063",
+    "name": "Tata Tea Premium Desh Ki Chai 1kg",
+    "slug": "tata-tea-premium-desh-ki-chai-1kg",
+    "brand": "Tata Tea",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "tea-coffee",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 52000,
+    "targetPricePaise": 46500,
+    "shortDescription": "Blend of big tea leaves and small grains.",
+    "description": "Robust kadak flavor and amber color.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 52000,
+        "pricePaise": 46500
+      }
+    ],
+    "specifications": {
+      "Origin": "Assam"
+    },
+    "searchKeywords": [
+      "tata tea"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/tata-tea.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-064",
+    "name": "Wagh Bakri Premium CTC Leaf Tea 1kg",
+    "slug": "wagh-bakri-premium-ctc-leaf-tea-1kg",
+    "brand": "Wagh Bakri",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "tea-coffee",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 55000,
+    "targetPricePaise": 49000,
+    "shortDescription": "Strong refreshing CTC leaf tea.",
+    "description": "Rich color and bold taste.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 55000,
+        "pricePaise": 49000
+      }
+    ],
+    "specifications": {
+      "Type": "CTC"
+    },
+    "searchKeywords": [
+      "wagh bakri"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/tata-tea.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-065",
+    "name": "Red Label Natural Care Immunity Tea 500g",
+    "slug": "red-label-natural-care-immunity-tea-500g",
+    "brand": "Brooke Bond",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "tea-coffee",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "500 g",
+    "mrpPaise": 31000,
+    "targetPricePaise": 27500,
+    "shortDescription": "Enriched with 5 Ayurvedic ingredients.",
+    "description": "Contains tulsi, ashwagandha and ginger.",
+    "variants": [
+      {
+        "name": "500 g",
+        "mrpPaise": 31000,
+        "pricePaise": 27500
+      }
+    ],
+    "specifications": {
+      "Herbs": "5"
+    },
+    "searchKeywords": [
+      "red label"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/tata-tea.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-066",
+    "name": "Taj Mahal Gourmet Rich Black Tea 500g",
+    "slug": "taj-mahal-gourmet-rich-black-tea-500g",
+    "brand": "Brooke Bond",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "tea-coffee",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "500 g",
+    "mrpPaise": 38000,
+    "targetPricePaise": 33500,
+    "shortDescription": "Precious leaves from upper Assam gardens.",
+    "description": "Signature royal aroma.",
+    "variants": [
+      {
+        "name": "500 g",
+        "mrpPaise": 38000,
+        "pricePaise": 33500
+      }
+    ],
+    "specifications": {
+      "Grade": "Gourmet"
+    },
+    "searchKeywords": [
+      "taj mahal"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/tata-tea.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-067",
+    "name": "Tetley Pure Green Tea 100 Tea Bags",
+    "slug": "tetley-pure-green-tea-100-tea-bags",
+    "brand": "Tetley",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "tea-coffee",
+    "department": "GROCERY",
+    "unit": "box",
+    "packageSize": "100 bags",
+    "mrpPaise": 52500,
+    "targetPricePaise": 45000,
+    "shortDescription": "100% natural green tea with antioxidants.",
+    "description": "Clean invigorating cup for detox.",
+    "variants": [
+      {
+        "name": "100 bags",
+        "mrpPaise": 52500,
+        "pricePaise": 45000
+      }
+    ],
+    "specifications": {
+      "Count": "100"
+    },
+    "searchKeywords": [
+      "green tea"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-068",
+    "name": "Nescafe Classic 100% Pure Instant Coffee 100g",
+    "slug": "nescafe-classic-100-pure-instant-coffee-100g",
+    "brand": "Nescafe",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "tea-coffee",
+    "department": "GROCERY",
+    "unit": "jar",
+    "packageSize": "100 g",
+    "mrpPaise": 38000,
+    "targetPricePaise": 34000,
+    "shortDescription": "Dark roast Robusta instant coffee.",
+    "description": "Rich frothy coffee taste.",
+    "variants": [
+      {
+        "name": "100 g",
+        "mrpPaise": 38000,
+        "pricePaise": 34000
+      }
+    ],
+    "specifications": {
+      "Roast": "Dark"
+    },
+    "searchKeywords": [
+      "nescafe"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-069",
+    "name": "Bru Instant Roasted Coffee Chicory Mix 100g",
+    "slug": "bru-instant-roasted-coffee-chicory-mix-100g",
+    "brand": "Bru",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "tea-coffee",
+    "department": "GROCERY",
+    "unit": "jar",
+    "packageSize": "100 g",
+    "mrpPaise": 29000,
+    "targetPricePaise": 25500,
+    "shortDescription": "Coffee and chicory roasted blend.",
+    "description": "Bold aroma for milk coffee.",
+    "variants": [
+      {
+        "name": "100 g",
+        "mrpPaise": 29000,
+        "pricePaise": 25500
+      }
+    ],
+    "specifications": {
+      "Blend": "Chicory Mix"
+    },
+    "searchKeywords": [
+      "bru"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-070",
+    "name": "Continental Xtra South Indian Filter Coffee 200g",
+    "slug": "continental-xtra-south-indian-filter-coffee-200g",
+    "brand": "Continental",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "tea-coffee",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "200 g",
+    "mrpPaise": 18000,
+    "targetPricePaise": 15500,
+    "shortDescription": "Coarsely ground filter coffee powder.",
+    "description": "Thick fragrant decoction.",
+    "variants": [
+      {
+        "name": "200 g",
+        "mrpPaise": 18000,
+        "pricePaise": 15500
+      }
+    ],
+    "specifications": {
+      "Type": "Filter"
+    },
+    "searchKeywords": [
+      "filter coffee"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-071",
+    "name": "Parle-G Original Glucose Biscuits 800g",
+    "slug": "parle-g-original-glucose-biscuits-800g",
+    "brand": "Parle",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "biscuits-snacks",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "800 g",
+    "mrpPaise": 9000,
+    "targetPricePaise": 8200,
+    "shortDescription": "Original glucose biscuits with wheat and milk.",
+    "description": "The iconic dunking biscuit.",
+    "variants": [
+      {
+        "name": "800 g",
+        "mrpPaise": 9000,
+        "pricePaise": 8200
+      }
+    ],
+    "specifications": {
+      "Type": "Glucose"
+    },
+    "searchKeywords": [
+      "parle g"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-072",
+    "name": "Britannia Good Day Cashew Cookies 600g",
+    "slug": "britannia-good-day-cashew-cookies-600g",
+    "brand": "Britannia",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "biscuits-snacks",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "600 g",
+    "mrpPaise": 15000,
+    "targetPricePaise": 13000,
+    "shortDescription": "Loaded with crunchy cashew bits.",
+    "description": "Crispy golden butter cookie.",
+    "variants": [
+      {
+        "name": "600 g",
+        "mrpPaise": 15000,
+        "pricePaise": 13000
+      }
+    ],
+    "specifications": {
+      "Nut": "Cashew"
+    },
+    "searchKeywords": [
+      "good day"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-073",
+    "name": "Britannia Marie Gold Crisp Tea Biscuits 1kg",
+    "slug": "britannia-marie-gold-crisp-tea-biscuits-1kg",
+    "brand": "Britannia",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "biscuits-snacks",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 14000,
+    "targetPricePaise": 12200,
+    "shortDescription": "Crisp light tea-time biscuits with vitamins.",
+    "description": "Pairs with evening tea.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 14000,
+        "pricePaise": 12200
+      }
+    ],
+    "specifications": {
+      "Vitamins": "10"
+    },
+    "searchKeywords": [
+      "marie gold"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-074",
+    "name": "Sunfeast Dark Fantasy Choco Fills 300g",
+    "slug": "sunfeast-dark-fantasy-choco-fills-300g",
+    "brand": "Sunfeast",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "biscuits-snacks",
+    "department": "GROCERY",
+    "unit": "box",
+    "packageSize": "300 g",
+    "mrpPaise": 16000,
+    "targetPricePaise": 13500,
+    "shortDescription": "Crisp crust filled with molten choco.",
+    "description": "Irresistible rich cookie.",
+    "variants": [
+      {
+        "name": "300 g",
+        "mrpPaise": 16000,
+        "pricePaise": 13500
+      }
+    ],
+    "specifications": {
+      "Filling": "Choco"
+    },
+    "searchKeywords": [
+      "dark fantasy"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-075",
+    "name": "Britannia Toastea Premium Wheat Rusk 400g",
+    "slug": "britannia-toastea-premium-wheat-rusk-400g",
+    "brand": "Britannia",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "biscuits-snacks",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "400 g",
+    "mrpPaise": 6500,
+    "targetPricePaise": 5500,
+    "shortDescription": "Crispy wheat rusk with cardamom.",
+    "description": "Fragrant tea companion.",
+    "variants": [
+      {
+        "name": "400 g",
+        "mrpPaise": 6500,
+        "pricePaise": 5500
+      }
+    ],
+    "specifications": {
+      "Flavor": "Elaichi"
+    },
+    "searchKeywords": [
+      "rusk"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-076",
+    "name": "Haldiram Ujjaini Sev Namkeen 400g",
+    "slug": "haldiram-ujjaini-sev-namkeen-400g",
+    "brand": "Haldiram",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "biscuits-snacks",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "400 g",
+    "mrpPaise": 12000,
+    "targetPricePaise": 10500,
+    "shortDescription": "Authentic Malwa besan sev.",
+    "description": "Essential topping on poha.",
+    "variants": [
+      {
+        "name": "400 g",
+        "mrpPaise": 12000,
+        "pricePaise": 10500
+      }
+    ],
+    "specifications": {
+      "Origin": "Ujjain"
+    },
+    "searchKeywords": [
+      "ujjaini sev"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/snacks-beverages/indori-sev.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-077",
+    "name": "Bikaji Ratlami Sev Crispy Spiced 400g",
+    "slug": "bikaji-ratlami-sev-crispy-spiced-400g",
+    "brand": "Bikaji",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "biscuits-snacks",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "400 g",
+    "mrpPaise": 12500,
+    "targetPricePaise": 10900,
+    "shortDescription": "Clove and black pepper spiced sev.",
+    "description": "Iconic Malwa snack.",
+    "variants": [
+      {
+        "name": "400 g",
+        "mrpPaise": 12500,
+        "pricePaise": 10900
+      }
+    ],
+    "specifications": {
+      "Flavor": "Ratlami"
+    },
+    "searchKeywords": [
+      "ratlami sev"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/snacks-beverages/indori-sev.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-078",
+    "name": "Haldiram Aloo Bhujia Crispy Snack 400g",
+    "slug": "haldiram-aloo-bhujia-crispy-snack-400g",
+    "brand": "Haldiram",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "biscuits-snacks",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "400 g",
+    "mrpPaise": 13000,
+    "targetPricePaise": 11500,
+    "shortDescription": "Potato and mint gram flour noodles.",
+    "description": "Tangy spicy potato bhujia.",
+    "variants": [
+      {
+        "name": "400 g",
+        "mrpPaise": 13000,
+        "pricePaise": 11500
+      }
+    ],
+    "specifications": {
+      "Flavor": "Mint"
+    },
+    "searchKeywords": [
+      "aloo bhujia"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/snacks-beverages/indori-sev.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-079",
+    "name": "Bikano Roasted Salted Peanuts 200g",
+    "slug": "bikano-roasted-salted-peanuts-200g",
+    "brand": "Bikano",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "biscuits-snacks",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "200 g",
+    "mrpPaise": 7000,
+    "targetPricePaise": 6000,
+    "shortDescription": "Roasted groundnuts tossed in rock salt.",
+    "description": "Protein-rich party snack.",
+    "variants": [
+      {
+        "name": "200 g",
+        "mrpPaise": 7000,
+        "pricePaise": 6000
+      }
+    ],
+    "specifications": {
+      "Type": "Roasted"
+    },
+    "searchKeywords": [
+      "peanuts"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-080",
+    "name": "Nutty Gritties California Almonds 500g",
+    "slug": "nutty-gritties-california-almonds-500g",
+    "brand": "Nutty Gritties",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "biscuits-snacks",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "500 g",
+    "mrpPaise": 55000,
+    "targetPricePaise": 47500,
+    "shortDescription": "Jumbo California badam nuts.",
+    "description": "Rich in Vitamin E and protein.",
+    "variants": [
+      {
+        "name": "500 g",
+        "mrpPaise": 55000,
+        "pricePaise": 47500
+      }
+    ],
+    "specifications": {
+      "Grade": "Jumbo"
+    },
+    "searchKeywords": [
+      "badam"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-081",
+    "name": "Indori Nylon Poha Premium Flattened Rice 1kg",
+    "slug": "indori-nylon-poha-premium-flattened-rice-1kg",
+    "brand": "Om Shree",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "breakfast-packaged",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 8500,
+    "targetPricePaise": 7200,
+    "shortDescription": "Translucent rice flakes for Indori Poha.",
+    "description": "Fluffy non-sticky poha.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 8500,
+        "pricePaise": 7200
+      }
+    ],
+    "specifications": {
+      "Type": "Nylon"
+    },
+    "searchKeywords": [
+      "poha"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/groceries/indori-poha.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-082",
+    "name": "Kelloggs Corn Flakes Original 875g",
+    "slug": "kelloggs-corn-flakes-original-875g",
+    "brand": "Kelloggs",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "breakfast-packaged",
+    "department": "GROCERY",
+    "unit": "box",
+    "packageSize": "875 g",
+    "mrpPaise": 38500,
+    "targetPricePaise": 33500,
+    "shortDescription": "Toasted sun-ripened corn flakes.",
+    "description": "Wholesome breakfast bowl.",
+    "variants": [
+      {
+        "name": "875 g",
+        "mrpPaise": 38500,
+        "pricePaise": 33500
+      }
+    ],
+    "specifications": {
+      "Fortified": "Yes"
+    },
+    "searchKeywords": [
+      "corn flakes"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-083",
+    "name": "Quaker Rolled Oats Whole Grain 1kg",
+    "slug": "quaker-rolled-oats-whole-grain-1kg",
+    "brand": "Quaker",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "breakfast-packaged",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "1 kg",
+    "mrpPaise": 21500,
+    "targetPricePaise": 18500,
+    "shortDescription": "100% whole grain rolled oats.",
+    "description": "High in beta-glucan heart fibre.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 21500,
+        "pricePaise": 18500
+      }
+    ],
+    "specifications": {
+      "Fibre": "High"
+    },
+    "searchKeywords": [
+      "oats"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-084",
+    "name": "Kelloggs Muesli Fruit & Nut 750g",
+    "slug": "kelloggs-muesli-fruit-nut-750g",
+    "brand": "Kelloggs",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "breakfast-packaged",
+    "department": "GROCERY",
+    "unit": "box",
+    "packageSize": "750 g",
+    "mrpPaise": 45000,
+    "targetPricePaise": 39500,
+    "shortDescription": "Multi-grain cereal with fruits and nuts.",
+    "description": "Rich crunchy texture.",
+    "variants": [
+      {
+        "name": "750 g",
+        "mrpPaise": 45000,
+        "pricePaise": 39500
+      }
+    ],
+    "specifications": {
+      "Grains": "5"
+    },
+    "searchKeywords": [
+      "muesli"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-085",
+    "name": "Maggi 2-Minute Masala Noodles 12-Pack",
+    "slug": "maggi-2-minute-masala-noodles-12-pack",
+    "brand": "Maggi",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "breakfast-packaged",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "840 g",
+    "mrpPaise": 16800,
+    "targetPricePaise": 15200,
+    "shortDescription": "Instant noodles with masala tastemaker.",
+    "description": "Comforting snack in 2 minutes.",
+    "variants": [
+      {
+        "name": "840 g",
+        "mrpPaise": 16800,
+        "pricePaise": 15200
+      }
+    ],
+    "specifications": {
+      "Pack": "12"
+    },
+    "searchKeywords": [
+      "maggi"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-086",
+    "name": "Bambino Roasted Vermicelli Seviyan 400g",
+    "slug": "bambino-roasted-vermicelli-seviyan-400g",
+    "brand": "Bambino",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "breakfast-packaged",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "400 g",
+    "mrpPaise": 5000,
+    "targetPricePaise": 4200,
+    "shortDescription": "Pre-roasted hard wheat vermicelli.",
+    "description": "Strands cook swiftly without stickiness.",
+    "variants": [
+      {
+        "name": "400 g",
+        "mrpPaise": 5000,
+        "pricePaise": 4200
+      }
+    ],
+    "specifications": {
+      "Roast": "Pre-roasted"
+    },
+    "searchKeywords": [
+      "vermicelli"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-087",
+    "name": "Kissan Fresh Tomato Ketchup 1kg Pouch",
+    "slug": "kissan-fresh-tomato-ketchup-1kg-pouch",
+    "brand": "Kissan",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "breakfast-packaged",
+    "department": "GROCERY",
+    "unit": "pouch",
+    "packageSize": "1 kg",
+    "mrpPaise": 15500,
+    "targetPricePaise": 13000,
+    "shortDescription": "Sweet and tangy tomato ketchup.",
+    "description": "Made from 100% farm tomatoes.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 15500,
+        "pricePaise": 13000
+      }
+    ],
+    "specifications": {
+      "Tomatoes": "Real"
+    },
+    "searchKeywords": [
+      "ketchup"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-088",
+    "name": "Chings Secret Hakka Noodles 600g",
+    "slug": "chings-secret-hakka-noodles-600g",
+    "brand": "Chings",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "breakfast-packaged",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "600 g",
+    "mrpPaise": 8500,
+    "targetPricePaise": 7200,
+    "shortDescription": "Non-sticky wheat hakka noodles.",
+    "description": "Long springy wheat strands.",
+    "variants": [
+      {
+        "name": "600 g",
+        "mrpPaise": 8500,
+        "pricePaise": 7200
+      }
+    ],
+    "specifications": {
+      "Style": "Desi Chinese"
+    },
+    "searchKeywords": [
+      "hakka noodles"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-089",
+    "name": "Dabur 100% Pure Squeezy Honey 400g",
+    "slug": "dabur-100-pure-squeezy-honey-400g",
+    "brand": "Dabur",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "breakfast-packaged",
+    "department": "GROCERY",
+    "unit": "bottle",
+    "packageSize": "400 g",
+    "mrpPaise": 23000,
+    "targetPricePaise": 19500,
+    "shortDescription": "NMR tested pure honey.",
+    "description": "Natural immunity booster.",
+    "variants": [
+      {
+        "name": "400 g",
+        "mrpPaise": 23000,
+        "pricePaise": 19500
+      }
+    ],
+    "specifications": {
+      "Purity": "NMR Tested"
+    },
+    "searchKeywords": [
+      "honey"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-090",
+    "name": "Pintola All Natural Peanut Butter Crunchy 1kg",
+    "slug": "pintola-all-natural-peanut-butter-crunchy-1kg",
+    "brand": "Pintola",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "breakfast-packaged",
+    "department": "GROCERY",
+    "unit": "jar",
+    "packageSize": "1 kg",
+    "mrpPaise": 49900,
+    "targetPricePaise": 42500,
+    "shortDescription": "100% roasted peanuts without sugar.",
+    "description": "Loaded with 30g protein.",
+    "variants": [
+      {
+        "name": "1 kg",
+        "mrpPaise": 49900,
+        "pricePaise": 42500
+      }
+    ],
+    "specifications": {
+      "Protein": "30g"
+    },
+    "searchKeywords": [
+      "peanut butter"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/brand/placeholders/grocery.svg",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-091",
+    "name": "Amul Pasteurized Salted Butter 500g",
+    "slug": "amul-pasteurized-salted-butter-500g",
+    "brand": "Amul",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "dairy-fresh-bakery",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "500 g",
+    "mrpPaise": 28500,
+    "targetPricePaise": 27500,
+    "shortDescription": "Utterly butterly delicious butter.",
+    "description": "The golden standard of table butter.",
+    "variants": [
+      {
+        "name": "500 g",
+        "mrpPaise": 28500,
+        "pricePaise": 27500
+      }
+    ],
+    "specifications": {
+      "Fat": "80%"
+    },
+    "searchKeywords": [
+      "butter"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/dairy-bakery/amul-butter.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-092",
+    "name": "Amul Fresh Malai Paneer Block 200g",
+    "slug": "amul-fresh-malai-paneer-block-200g",
+    "brand": "Amul",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "dairy-fresh-bakery",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "200 g",
+    "mrpPaise": 9500,
+    "targetPricePaise": 9000,
+    "shortDescription": "Vacuum sealed soft cottage cheese.",
+    "description": "Holds shape cleanly in cooking.",
+    "variants": [
+      {
+        "name": "200 g",
+        "mrpPaise": 9500,
+        "pricePaise": 9000
+      }
+    ],
+    "specifications": {
+      "Type": "Malai"
+    },
+    "searchKeywords": [
+      "paneer"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/dairy-bakery/fresh-paneer.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-093",
+    "name": "Sanchi Gold Full Cream Milk 500ml",
+    "slug": "sanchi-gold-full-cream-milk-500ml",
+    "brand": "Sanchi",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "dairy-fresh-bakery",
+    "department": "GROCERY",
+    "unit": "pouch",
+    "packageSize": "500 ml",
+    "mrpPaise": 3300,
+    "targetPricePaise": 3300,
+    "shortDescription": "Pasteurized full cream milk.",
+    "description": "Rich milk for creamy chai.",
+    "variants": [
+      {
+        "name": "500 ml",
+        "mrpPaise": 3300,
+        "pricePaise": 3300
+      }
+    ],
+    "specifications": {
+      "Fat": "6.0%"
+    },
+    "searchKeywords": [
+      "milk",
+      "sanchi"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/dairy-bakery/sanchi-gold-milk.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-094",
+    "name": "Amul Taaza Homogenised Toned Milk 1L",
+    "slug": "amul-taaza-homogenised-toned-milk-1l",
+    "brand": "Amul",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "dairy-fresh-bakery",
+    "department": "GROCERY",
+    "unit": "carton",
+    "packageSize": "1 L",
+    "mrpPaise": 7400,
+    "targetPricePaise": 7200,
+    "shortDescription": "UHT processed long life toned milk.",
+    "description": "Pour directly without boiling.",
+    "variants": [
+      {
+        "name": "1 L",
+        "mrpPaise": 7400,
+        "pricePaise": 7200
+      }
+    ],
+    "specifications": {
+      "Process": "UHT"
+    },
+    "searchKeywords": [
+      "amul taaza"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/dairy-bakery/sanchi-gold-milk.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-095",
+    "name": "Bake Well 100% Whole Wheat Bread 400g",
+    "slug": "bake-well-100-whole-wheat-bread-400g",
+    "brand": "Bake Well",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "dairy-fresh-bakery",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "400 g",
+    "mrpPaise": 5000,
+    "targetPricePaise": 4500,
+    "shortDescription": "Locally baked brown bread with zero maida.",
+    "description": "Hearty slices packed with fibre.",
+    "variants": [
+      {
+        "name": "400 g",
+        "mrpPaise": 5000,
+        "pricePaise": 4500
+      }
+    ],
+    "specifications": {
+      "Flour": "Atta"
+    },
+    "searchKeywords": [
+      "bread"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/dairy-bakery/fresh-whole-wheat-bread.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-096",
+    "name": "English Oven Soft Brown Bread 400g",
+    "slug": "english-oven-soft-brown-bread-400g",
+    "brand": "English Oven",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "dairy-fresh-bakery",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "400 g",
+    "mrpPaise": 5500,
+    "targetPricePaise": 5000,
+    "shortDescription": "Soft sandwich bread with natural malt.",
+    "description": "Ultra soft crumb for sandwiches.",
+    "variants": [
+      {
+        "name": "400 g",
+        "mrpPaise": 5500,
+        "pricePaise": 5000
+      }
+    ],
+    "specifications": {
+      "Type": "Brown"
+    },
+    "searchKeywords": [
+      "sandwich bread"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/dairy-bakery/fresh-whole-wheat-bread.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-097",
+    "name": "Bake Well Traditional Pav 6 Pieces",
+    "slug": "bake-well-traditional-pav-6-pieces",
+    "brand": "Bake Well",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "dairy-fresh-bakery",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "6 pcs",
+    "mrpPaise": 3000,
+    "targetPricePaise": 2500,
+    "shortDescription": "Fresh sponge pav buns baked daily.",
+    "description": "Pillowy soft pavs for pav bhaji.",
+    "variants": [
+      {
+        "name": "6 pcs",
+        "mrpPaise": 3000,
+        "pricePaise": 2500
+      }
+    ],
+    "specifications": {
+      "Count": "6"
+    },
+    "searchKeywords": [
+      "pav"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/dairy-bakery/fresh-whole-wheat-bread.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-098",
+    "name": "Fresh Farm Table Eggs 6-Pack Tray",
+    "slug": "fresh-farm-table-eggs-6-pack-tray",
+    "brand": "Eggoz",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "dairy-fresh-bakery",
+    "department": "GROCERY",
+    "unit": "tray",
+    "packageSize": "6 pcs",
+    "mrpPaise": 5500,
+    "targetPricePaise": 4800,
+    "shortDescription": "UV sanitized fresh farm eggs.",
+    "description": "Rich yellow yolk high in protein.",
+    "variants": [
+      {
+        "name": "6 pcs",
+        "mrpPaise": 5500,
+        "pricePaise": 4800
+      }
+    ],
+    "specifications": {
+      "Sanitized": "UV"
+    },
+    "searchKeywords": [
+      "eggs"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/dairy-bakery/farm-eggs.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-099",
+    "name": "Amul Masti Dahi Set Curd Cup 400g",
+    "slug": "amul-masti-dahi-set-curd-cup-400g",
+    "brand": "Amul",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "dairy-fresh-bakery",
+    "department": "GROCERY",
+    "unit": "cup",
+    "packageSize": "400 g",
+    "mrpPaise": 4000,
+    "targetPricePaise": 3800,
+    "shortDescription": "Thick creamy natural probiotic curd.",
+    "description": "Active live cultures for gut health.",
+    "variants": [
+      {
+        "name": "400 g",
+        "mrpPaise": 4000,
+        "pricePaise": 3800
+      }
+    ],
+    "specifications": {
+      "Type": "Probiotic"
+    },
+    "searchKeywords": [
+      "dahi",
+      "curd"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/dairy-bakery/fresh-paneer.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  },
+  {
+    "sku": "EB-GRO-100",
+    "name": "Amul Processed Cheese Slices 200g",
+    "slug": "amul-processed-cheese-slices-200g",
+    "brand": "Amul",
+    "categoryName": "Grocery & Daily Essentials",
+    "categorySlug": "grocery-daily-essentials",
+    "subcategorySlug": "dairy-fresh-bakery",
+    "department": "GROCERY",
+    "unit": "pack",
+    "packageSize": "200 g",
+    "mrpPaise": 14500,
+    "targetPricePaise": 13500,
+    "shortDescription": "Classic melt-in-mouth cheese slices.",
+    "description": "Individually wrapped slices.",
+    "variants": [
+      {
+        "name": "200 g",
+        "mrpPaise": 14500,
+        "pricePaise": 13500
+      }
+    ],
+    "specifications": {
+      "Slices": "10"
+    },
+    "searchKeywords": [
+      "cheese"
+    ],
+    "tags": [
+      "grocery",
+      "essentials"
+    ],
+    "taxClassification": "GST_5",
+    "imageUrl": "/product-images/dairy-bakery/amul-butter.webp",
+    "isPrescriptionRequired": false,
+    "isService": false,
+    "status": "ACTIVE",
+    "environment": "DEMO"
+  }
+]

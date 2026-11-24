@@ -7,6 +7,7 @@ import { FinancialEngine } from '../core/finance';
 import { DeliveryServiceAdapter } from '../core/deliveryAdapter';
 import { DeliveryPriorityEngine } from '../core/deliveryPriorityEngine';
 import { MultiStoreOrderEngine } from '../core/multiStoreOrderEngine';
+import { getActiveEnvironment } from './adminCatalogue';
 
 const router = Router();
 
@@ -19,10 +20,15 @@ router.get('/stores', async (req: Request, res: Response): Promise<void> => {
 
     const customerCoord = { latitude: lat, longitude: lng };
 
+    const activeEnv = await getActiveEnvironment();
+
     const whereClause: any = {
       isOpen: true,
       isVerified: true
     };
+    if (activeEnv === 'LIVE') {
+      whereClause.owner = { email: { not: { contains: 'demo.' } } };
+    }
     if (category && category !== 'all') {
       whereClause.category = category;
     }
@@ -31,8 +37,8 @@ router.get('/stores', async (req: Request, res: Response): Promise<void> => {
       where: whereClause,
       include: {
         products: {
-          where: { isAvailable: true },
-          take: 5
+          where: { isAvailable: true, environment: activeEnv },
+          take: 60
         },
         reviews: {
           select: { rating: true }
@@ -144,14 +150,17 @@ router.get('/products/search', async (req: Request, res: Response): Promise<void
     }
 
     const customerCoord = { latitude: lat, longitude: lng };
+    const activeEnv = await getActiveEnvironment();
 
     const products = await prisma.product.findMany({
       where: {
         isAvailable: true,
+        environment: activeEnv,
         OR: [
           { name: { contains: q } },
           { description: { contains: q } },
-          { category: { contains: q } }
+          { category: { contains: q } },
+          { brand: { contains: q } }
         ]
       },
       include: {
