@@ -35,6 +35,7 @@ fun HomeScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var showLocationDialog by remember { mutableStateOf(false) }
+    var showTaraDialog by remember { mutableStateOf(false) }
     var selectedProduct by remember { mutableStateOf<Product?>(null) }
     var selectedStore by remember { mutableStateOf<Store?>(null) }
 
@@ -57,7 +58,7 @@ fun HomeScreen(
                     .background(Color.White)
                     .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
-                // Official Customer Brand Logo & Cart Icon
+                // Official Customer Brand Logo, Ask Tara Pill & Cart Icon
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -65,22 +66,41 @@ fun HomeScreen(
                 ) {
                     CustomerBrandLogo(variant = LogoVariant.COMPACT)
 
-                    IconButton(
-                        onClick = onNavigateToCart,
-                        modifier = Modifier
-                            .background(AmberLight, RoundedCornerShape(10.dp))
-                            .size(38.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        BadgedBox(
-                            badge = {
-                                if (state.cart.items.isNotEmpty()) {
-                                    Badge(containerColor = ForestGreen) {
-                                        Text("${state.cart.items.size}")
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = Color(0xFFFEF3C7),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AmberPrimary),
+                            modifier = Modifier.clickable { showTaraDialog = true }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("✨ Ask Tara", fontSize = 11.sp, fontWeight = FontWeight.Black, color = TextDark)
+                            }
+                        }
+
+                        IconButton(
+                            onClick = onNavigateToCart,
+                            modifier = Modifier
+                                .background(AmberLight, RoundedCornerShape(10.dp))
+                                .size(38.dp)
+                        ) {
+                            BadgedBox(
+                                badge = {
+                                    if (state.cart.items.isNotEmpty()) {
+                                        Badge(containerColor = ForestGreen) {
+                                            Text("${state.cart.items.size}")
+                                        }
                                     }
                                 }
+                            ) {
+                                Icon(Icons.Default.ShoppingCart, contentDescription = "Cart", tint = AmberDark)
                             }
-                        ) {
-                            Icon(Icons.Default.ShoppingCart, contentDescription = "Cart", tint = AmberDark)
                         }
                     }
                 }
@@ -148,6 +168,27 @@ fun HomeScreen(
                     }
                 }
             }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showTaraDialog = true },
+                containerColor = AmberPrimary,
+                contentColor = TextDark,
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.padding(bottom = 12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "✨ Ask Tara",
+                        fontWeight = FontWeight.Black,
+                        fontSize = 13.sp,
+                        color = TextDark
+                    )
+                }
+            }
         }
     ) { padding ->
         LazyColumn(
@@ -156,6 +197,48 @@ fun HomeScreen(
                 .padding(padding)
                 .background(SurfaceOffWhite)
         ) {
+            // Official Brand Ribbon: Made for India. Rooted in Local.
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(14.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFEF3C7)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = ForestGreenLight,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.Storefront, contentDescription = null, tint = ForestGreen, modifier = Modifier.size(22.dp))
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Made for India. Rooted in Local.",
+                                fontWeight = FontWeight.Black,
+                                fontSize = 13.sp,
+                                color = TextDark
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                "Discover neighbourhood stores, shop locally and get what you need.",
+                                fontSize = 11.sp,
+                                color = TextMuted,
+                                lineHeight = 15.sp
+                            )
+                        }
+                    }
+                }
+            }
             // Backend Connectivity Warning Banner
             if (state.errorMessage != null) {
                 item {
@@ -349,9 +432,10 @@ fun HomeScreen(
             },
             text = {
                 Column {
-                    if (!prod.imageUrl.isNullOrBlank()) {
+                    val resolvedUrl = ImageUrlResolver.resolve(prod.imageUrl)
+                    if (!resolvedUrl.isNullOrBlank()) {
                         AsyncImage(
-                            model = prod.imageUrl,
+                            model = resolvedUrl,
                             contentDescription = prod.name,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -459,6 +543,58 @@ fun HomeScreen(
             },
             confirmButton = {
                 TextButton(onClick = { selectedStore = null }) { Text("Close") }
+            }
+        )
+    }
+
+    // Ask Tara Assistant Dialog
+    if (showTaraDialog) {
+        AlertDialog(
+            onDismissRequest = { showTaraDialog = false },
+            title = {
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFFEF3C7),
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text("✨", fontSize = 16.sp)
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text("Tara", fontWeight = FontWeight.Black, fontSize = 16.sp, color = TextDark)
+                            Text("Your Local Shopping Saathi", fontWeight = FontWeight.SemiBold, fontSize = 11.sp, color = AmberDark)
+                        }
+                    }
+                }
+            },
+            text = {
+                Text(
+                    "Namaste! I'm Tara, your local shopping saathi. Looking for something? I can help you discover products and local stores around you.",
+                    fontSize = 13.sp,
+                    color = TextDark,
+                    lineHeight = 18.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showTaraDialog = false
+                        onNavigateToSearch()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = ForestGreen),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Explore Products")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTaraDialog = false }) {
+                    Text("Close")
+                }
             }
         )
     }

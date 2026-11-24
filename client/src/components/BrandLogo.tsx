@@ -17,7 +17,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   className = '',
   linkToHome = false,
   onClick,
-  alt = 'Everything Local - Shop more. Save more. Live better.'
+  alt = 'Everything Local - Made for India. Rooted in Local.'
 }) => {
   // Determine asset source based on variant
   let src = '/brand/everything-local-logo-horizontal.svg';

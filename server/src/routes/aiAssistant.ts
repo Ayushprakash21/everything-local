@@ -260,7 +260,7 @@ aiAssistantRouter.post('/optimize-basket', optionalAuth, async (req: AuthRequest
 });
 
 /**
- * 2. Conversational Tool-Based AI Shopping Assistant
+ * 2. Conversational Tool-Based Tara Shopping Saathi
  */
 aiAssistantRouter.post('/chat', optionalAuth, async (req: AuthRequest, res: Response) => {
   try {
@@ -318,11 +318,11 @@ Would you like me to optimize this basket for the cheapest local price or 20-min
 
     // Default friendly assistant response with actual live categories
     res.json({
-      reply: `Hello! I am your Everything Local AI Shopping Assistant for Indore.
-I can help you:
-1. Compare prices of daily groceries and household items across local shops.
+      reply: `Namaste! I'm Tara, your local shopping saathi for Indore.
+Looking for something? I can help you discover products and local stores around you:
+1. Compare prices of daily groceries and household items across verified local shops.
 2. Optimize your multi-store basket for the lowest total payable amount.
-3. Book certified local plumbers, electricians, or salon experts.
+3. Discover fresh vegetables, spices, and regional staples in your locality.
 4. Upload prescriptions to licensed neighborhood pharmacies.
 
 What can I help you find today?`,

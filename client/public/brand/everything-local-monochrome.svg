@@ -64,8 +64,8 @@
   <!-- Leaf Accent over 'i' -->
   <path d="M 351 27 C 361 26, 366 33, 363 39 C 353 40, 347 32, 351 27 Z" fill="#0B1F3B"/>
 
-  <!-- Tagline: Shop more. Save more. Live better. -->
-  <text x="182" y="98" class="brand-full-tagline" fill="#334155">Shop more. Save more. Live better.</text>
+  <!-- Tagline: Made for India. Rooted in Local. -->
+  <text x="182" y="98" class="brand-full-tagline" fill="#334155" font-weight="600">Made for India. Rooted in Local.</text>
 
   <!-- Dynamic Amber Smile Curve under 'Live better.' -->
   <path d="M 388 108 Q 440 120 495 106" fill="none" stroke="#0B1F3B" stroke-width="3" stroke-linecap="round"/>

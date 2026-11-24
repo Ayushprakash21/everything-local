@@ -827,7 +827,16 @@ router.get('/orders/multi-store', authenticateToken, async (req: Request, res: R
             items: true
           }
         },
-        deliveryTasks: true
+        deliveryTasks: {
+          include: {
+            rider: {
+              include: {
+                user: { select: { name: true, phone: true } },
+                vehicles: { where: { isActive: true }, take: 1 }
+              }
+            }
+          }
+        }
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -851,7 +860,16 @@ router.get('/orders/multi-store/:id', authenticateToken, async (req: Request, re
             items: true
           }
         },
-        deliveryTasks: true
+        deliveryTasks: {
+          include: {
+            rider: {
+              include: {
+                user: { select: { name: true, phone: true } },
+                vehicles: { where: { isActive: true }, take: 1 }
+              }
+            }
+          }
+        }
       }
     });
 

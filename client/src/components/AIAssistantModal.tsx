@@ -61,12 +61,12 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
   const { coords, selectedLocation } = useLocation();
   const { addItem, clearCart, setIsCartOpen } = useCart();
 
-  const [activeTab, setActiveTab] = useState<'chat' | 'optimizer'>('optimizer');
+  const [activeTab, setActiveTab] = useState<'chat' | 'optimizer'>('chat');
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
       content:
-        'Namaste! I am your Everything Local AI Shopping Assistant in Indore. Ask me for recipes, grocery meal kits, price comparisons, or budget optimization.'
+        "Namaste! I'm Tara, your local shopping saathi. Looking for something? I can help you discover products and local stores around you."
     }
   ]);
   const [chatInput, setChatInput] = useState('');
@@ -174,26 +174,31 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
     <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/60 backdrop-blur-xs flex justify-end animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-lg h-full flex flex-col shadow-float relative animate-in slide-in-from-right duration-250">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-200/90 flex items-center justify-between bg-gradient-to-r from-amber-50 to-emerald-50">
+        <div className="p-4 sm:p-5 border-b border-slate-200/90 flex items-center justify-between bg-gradient-to-r from-amber-50 via-orange-50 to-emerald-50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center shadow-xs">
-              <Sparkles className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 flex items-center justify-center shadow-xs">
+              <Sparkles className="w-5 h-5 text-slate-950" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-black text-slate-900 text-base">AI Shopping Copilot</h3>
-                <span className="text-[10px] font-black uppercase bg-forest-900 text-white px-2 py-0.5 rounded-full">
+                <h3 className="font-black text-slate-900 text-base">Tara</h3>
+                <span className="text-[10px] font-black uppercase bg-forest-900 text-white px-2 py-0.5 rounded-full tracking-wide">
+                  Your Local Shopping Saathi
+                </span>
+                <span className="text-[10px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full">
                   Indore
                 </span>
               </div>
-              <p className="text-[11px] font-semibold text-slate-500">
-                Smart Basket Optimizer • Recipe Builder • Price Comparison
+              <p className="text-[11px] font-semibold text-slate-600 mt-0.5">
+                Discover neighbourhood stores, shop locally and get what you need
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-white transition"
+            aria-label="Close Tara assistant"
+            title="Close"
+            className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-white transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -202,6 +207,15 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
         {/* Tab Toggle */}
         <div className="flex border-b border-slate-200 bg-slate-50 p-1">
           <button
+            onClick={() => setActiveTab('chat')}
+            className={`flex-1 py-2 text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 ${
+              activeTab === 'chat' ? 'bg-white shadow-xs text-forest-900' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Bot className="w-3.5 h-3.5 text-amber-600" />
+            <span>Ask Tara Chat</span>
+          </button>
+          <button
             onClick={() => setActiveTab('optimizer')}
             className={`flex-1 py-2 text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 ${
               activeTab === 'optimizer' ? 'bg-white shadow-xs text-forest-900' : 'text-slate-500 hover:text-slate-800'
@@ -209,15 +223,6 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
           >
             <Zap className="w-3.5 h-3.5 text-amber-500" />
             <span>Smart Basket Optimizer</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('chat')}
-            className={`flex-1 py-2 text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 ${
-              activeTab === 'chat' ? 'bg-white shadow-xs text-forest-900' : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Bot className="w-3.5 h-3.5 text-emerald-600" />
-            <span>AI Recipe Assistant</span>
           </button>
         </div>
 
@@ -451,7 +456,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Ask e.g. 'What ingredients do I need for Sev Tamatar?'"
+                placeholder="Ask Tara e.g. 'What ingredients do I need for Sev Tamatar?'"
                 className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-amber-400 focus:outline-none"
               />
               <button

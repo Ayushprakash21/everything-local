@@ -5,6 +5,8 @@ import { request, formatPaise } from '../../api/client';
 import { BrandLogo } from '../../components/BrandLogo';
 import { ELLogo } from '../../components/ELLogo';
 import { AdminMerchantOnboardingView } from './AdminMerchantOnboardingView';
+import { AdminDeliveryOperationsView } from './delivery/AdminDeliveryOperationsView';
+import { AdminProductImageryView } from './AdminProductImageryView';
 import {
   Shield,
   TrendingUp,
@@ -30,7 +32,7 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
   const [merchants, setMerchants] = useState<Store[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ledger, setLedger] = useState<FinancialLedgerEntry[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'control_tower' | 'onboarding' | 'delivery_pricing' | 'settlements' | 'orders' | 'ledger' | 'services' | 'pharmacies'>('control_tower');
+  const [activeTab, setActiveTab] = useState<'overview' | 'control_tower' | 'delivery_operations' | 'onboarding' | 'product_imagery' | 'delivery_pricing' | 'settlements' | 'orders' | 'ledger' | 'services' | 'pharmacies'>('control_tower');
   const [controlMetrics, setControlMetrics] = useState<any>(null);
   const [liveTasks, setLiveTasks] = useState<any[]>([]);
   const [onlineRiders, setOnlineRiders] = useState<any[]>([]);
@@ -249,6 +251,18 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
         </button>
 
         <button
+          onClick={() => setActiveTab('delivery_operations')}
+          className={`pb-3 border-b-2 transition whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'delivery_operations'
+              ? 'border-blue-700 text-blue-800 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <MapPin className="w-4 h-4 text-blue-600" />
+          <span>Delivery Operations</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('onboarding')}
           className={`pb-3 border-b-2 transition whitespace-nowrap flex items-center gap-1.5 ${
             activeTab === 'onboarding'
@@ -258,6 +272,18 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
         >
           <Building2 className="w-4 h-4 text-emerald-600" />
           <span>Merchant Onboarding Desk</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('product_imagery')}
+          className={`pb-3 border-b-2 transition whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'product_imagery'
+              ? 'border-amber-600 text-amber-900 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Sparkles className="w-4 h-4 text-amber-500" />
+          <span>Product Imagery Studio</span>
         </button>
 
         <button
@@ -338,8 +364,14 @@ export const AdminDashboard: React.FC<{ openAuth: () => void }> = ({ openAuth })
         </button>
       </div>
 
+      {/* TAB: DELIVERY OPERATIONS CONTROL TOWER */}
+      {activeTab === 'delivery_operations' && <AdminDeliveryOperationsView />}
+
       {/* TAB: MERCHANT ONBOARDING DESK */}
       {activeTab === 'onboarding' && <AdminMerchantOnboardingView />}
+
+      {/* TAB: PRODUCT IMAGERY STUDIO */}
+      {activeTab === 'product_imagery' && <AdminProductImageryView />}
 
       {/* TAB: DISPATCH CONTROL TOWER */}
       {activeTab === 'control_tower' && (

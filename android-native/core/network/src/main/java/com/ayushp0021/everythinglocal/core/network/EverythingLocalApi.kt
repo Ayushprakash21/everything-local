@@ -129,4 +129,50 @@ interface EverythingLocalApi {
         @Part document: MultipartBody.Part,
         @Part("docType") docType: okhttp3.RequestBody
     ): ApplicationResponse
+
+    // --- Delivery Partner Endpoints ---
+    @POST("delivery-partner/auth/send-otp")
+    suspend fun sendDeliveryOtp(@Body req: Map<String, String>): Map<String, String>
+
+    @POST("delivery-partner/auth/verify-otp")
+    suspend fun verifyDeliveryOtp(@Body req: Map<String, String>): DeliveryAuthResponse
+
+    @GET("delivery-partner/profile")
+    suspend fun getDeliveryProfile(): DeliveryProfileResponse
+
+    @POST("delivery-partner/onboarding/apply")
+    suspend fun applyDeliveryOnboarding(@Body req: DeliveryOnboardingRequest): DeliveryOnboardingResponse
+
+    @POST("delivery-partner/availability")
+    suspend fun updateDeliveryAvailability(@Body req: Map<String, String>): Map<String, String>
+
+    @POST("delivery-partner/location")
+    suspend fun updateDeliveryLocation(@Body req: Map<String, String>): Map<String, String>
+
+    @GET("delivery-partner/tasks/requests")
+    suspend fun getDeliveryTaskOffers(): DeliveryTaskOffersResponse
+
+    @POST("delivery-partner/tasks/{id}/accept")
+    suspend fun acceptDeliveryTask(@Path("id") id: String): DeliveryTaskResponse
+
+    @POST("delivery-partner/tasks/{id}/reject")
+    suspend fun rejectDeliveryTask(@Path("id") id: String, @Body req: Map<String, String>): DeliveryTaskResponse
+
+    @POST("delivery-partner/tasks/{id}/at-store")
+    suspend fun arriveAtStore(@Path("id") id: String): DeliveryTaskResponse
+
+    @POST("delivery-partner/tasks/{id}/pickup")
+    suspend fun confirmPickup(@Path("id") id: String, @Body req: Map<String, String>): DeliveryTaskResponse
+
+    @POST("delivery-partner/tasks/{id}/deliver")
+    suspend fun verifyDeliveryAndComplete(@Path("id") id: String, @Body req: Map<String, String>): DeliveryTaskResponse
+
+    @POST("delivery-partner/tasks/{id}/incident")
+    suspend fun reportDeliveryIncident(@Path("id") id: String, @Body req: Map<String, String>): Map<String, String>
+
+    @GET("delivery-partner/earnings")
+    suspend fun getDeliveryEarnings(): DeliveryEarningsResponse
+
+    @GET("delivery-partner/settlements")
+    suspend fun getDeliverySettlements(): DeliverySettlementsResponse
 }

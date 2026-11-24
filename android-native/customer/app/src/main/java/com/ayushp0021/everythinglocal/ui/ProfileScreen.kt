@@ -198,8 +198,21 @@ fun ProfileScreen(
             // App Version Info & Official Branding
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CustomerBrandLogo(variant = LogoVariant.COMPACT)
-                    Spacer(modifier = Modifier.height(4.dp))
+                    CustomerBrandLogo(variant = LogoVariant.LIGHT)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        "Made for India. Rooted in Local.",
+                        fontWeight = FontWeight.Black,
+                        fontSize = 13.sp,
+                        color = ForestGreen
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        "Discover neighbourhood stores, shop locally and get what you need.",
+                        fontSize = 11.sp,
+                        color = TextMuted
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text("Everything Local Native Android v2.0 • Indore Pilot", fontSize = 11.sp, color = TextMuted)
                 }
             }

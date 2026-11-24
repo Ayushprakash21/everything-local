@@ -131,53 +131,223 @@ async function seed() {
         create: [
           {
             name: 'Aashirvaad Shudh Chakki Atta 5kg',
-            description: '100% whole wheat flour with natural dietary fibres.',
+            description: '100% whole wheat stoneground flour with natural dietary fibres.',
             category: 'Flour & Grains',
+            imageUrl: '/product-images/groceries/aashirvaad-chakki-atta.webp',
             mrpPaise: 26000,
             pricePaise: 23500, // ₹235.00
-            stock: 35,
+            stock: 45,
             isAvailable: true,
             sku: 'KIR-ATT-001'
           },
           {
             name: 'Fortune Sunlite Refined Sunflower Oil 1L',
-            description: 'Pure and light cooking oil enriched with vitamins.',
+            description: 'Pure and light cooking oil enriched with vitamins A & D.',
             category: 'Edible Oils',
+            imageUrl: '/product-images/groceries/fortune-sunflower-oil.webp',
             mrpPaise: 16500,
             pricePaise: 14500, // ₹145.00
-            stock: 40,
+            stock: 50,
             isAvailable: true,
             sku: 'KIR-OIL-002'
           },
           {
+            name: 'Fortune Kachi Ghani Pure Mustard Oil 1L',
+            description: 'Cold-pressed pungent mustard oil retaining natural antioxidants.',
+            category: 'Edible Oils',
+            imageUrl: '/product-images/groceries/mustard-oil.webp',
+            mrpPaise: 17500,
+            pricePaise: 15200, // ₹152.00
+            stock: 45,
+            isAvailable: true,
+            sku: 'KIR-OIL-003'
+          },
+          {
+            name: 'Amul Pure Cow Ghee Tin 1L',
+            description: 'Traditional golden granulated cow ghee with rich sacred aroma.',
+            category: 'Edible Oils',
+            imageUrl: '/product-images/groceries/cow-ghee.webp',
+            mrpPaise: 67500,
+            pricePaise: 62000, // ₹620.00
+            stock: 20,
+            isAvailable: true,
+            sku: 'KIR-GHE-004'
+          },
+          {
             name: 'Tata Salt Vacuum Evaporated 1kg',
-            description: 'Desh Ka Namak with essential iodine.',
+            description: 'Desh Ka Namak with essential guaranteed iodine.',
             category: 'Spices & Seasoning',
+            imageUrl: '/product-images/groceries/tata-salt.webp',
             mrpPaise: 3000,
             pricePaise: 2800, // ₹28.00
-            stock: 100,
+            stock: 120,
             isAvailable: true,
-            sku: 'KIR-SLT-003'
+            sku: 'KIR-SLT-005'
           },
           {
             name: 'Madhur Pure & Hygienic Sugar 1kg',
-            description: 'Sulphur-free refined crystalline sugar.',
+            description: 'Sulphur-free refined crystalline sugar prepared contactless.',
             category: 'Grocery Staples',
+            imageUrl: '/product-images/groceries/madhur-sugar.webp',
             mrpPaise: 6000,
             pricePaise: 5400, // ₹54.00
-            stock: 50,
+            stock: 80,
             isAvailable: true,
-            sku: 'KIR-SGR-004'
+            sku: 'KIR-SGR-006'
           },
           {
             name: 'India Gate Basmati Rice Feast Rozzana 1kg',
-            description: 'Aromatic basmati rice grains perfect for daily meals.',
+            description: 'Aromatic aged long-grain basmati rice perfect for daily meals.',
             category: 'Rice & Grains',
+            imageUrl: '/product-images/groceries/india-gate-basmati-rice.webp',
             mrpPaise: 12000,
             pricePaise: 9900, // ₹99.00
+            stock: 30,
+            isAvailable: true,
+            sku: 'KIR-RIC-007'
+          },
+          {
+            name: 'Tata Sampann Unpolished Toor Dal 1kg',
+            description: 'Natural unpolished yellow pigeon peas rich in wholesome protein.',
+            category: 'Pulses & Dals',
+            imageUrl: '/product-images/groceries/toor-dal.webp',
+            mrpPaise: 18500,
+            pricePaise: 16800, // ₹168.00
+            stock: 35,
+            isAvailable: true,
+            sku: 'KIR-DAL-008'
+          },
+          {
+            name: 'Organic Shudh Moong Dal Dhuli 1kg',
+            description: 'Easy-to-digest yellow split green gram with zero synthetic polish.',
+            category: 'Pulses & Dals',
+            imageUrl: '/product-images/groceries/moong-dal.webp',
+            mrpPaise: 16000,
+            pricePaise: 14200, // ₹142.00
+            stock: 40,
+            isAvailable: true,
+            sku: 'KIR-DAL-009'
+          },
+          {
+            name: 'Premium Unpolished Chana Dal 1kg',
+            description: 'Hearty split Bengal gram for tadka dal and evening snacks.',
+            category: 'Pulses & Dals',
+            imageUrl: '/product-images/groceries/chana-dal.webp',
+            mrpPaise: 12500,
+            pricePaise: 10800, // ₹108.00
+            stock: 30,
+            isAvailable: true,
+            sku: 'KIR-DAL-010'
+          },
+          {
+            name: 'Desi Masoor Dal Malka 1kg',
+            description: 'Fast-cooking orange-red split lentils enriched with dietary iron.',
+            category: 'Pulses & Dals',
+            imageUrl: '/product-images/groceries/masoor-dal.webp',
+            mrpPaise: 13000,
+            pricePaise: 11500, // ₹115.00
+            stock: 35,
+            isAvailable: true,
+            sku: 'KIR-DAL-011'
+          },
+          {
+            name: 'Chitra Red Kidney Beans Rajma 1kg',
+            description: 'Authentic Himalayan red kidney beans that cook tender in rich gravy.',
+            category: 'Pulses & Dals',
+            imageUrl: '/product-images/groceries/rajma.webp',
+            mrpPaise: 19500,
+            pricePaise: 17500, // ₹175.00
             stock: 25,
             isAvailable: true,
-            sku: 'KIR-RIC-005'
+            sku: 'KIR-PUL-012'
+          },
+          {
+            name: 'Amritsari Kabuli Chana 1kg',
+            description: 'Large, uniform white chickpeas ideal for classic Punjabi chole.',
+            category: 'Pulses & Dals',
+            imageUrl: '/product-images/groceries/kabuli-chana.webp',
+            mrpPaise: 18000,
+            pricePaise: 15900, // ₹159.00
+            stock: 28,
+            isAvailable: true,
+            sku: 'KIR-PUL-013'
+          },
+          {
+            name: 'Ujjaini Special Thick Poha 1kg',
+            description: 'Crisp, thick flattened rice from Malwa, ideal for Indori breakfast poha.',
+            category: 'Flour & Grains',
+            imageUrl: '/product-images/groceries/indori-poha.webp',
+            mrpPaise: 6500,
+            pricePaise: 5200, // ₹52.00
+            stock: 50,
+            isAvailable: true,
+            sku: 'KIR-POH-014'
+          },
+          {
+            name: 'Rajdhani Granular Sooji Rava 1kg',
+            description: 'Double-roasted granular durum wheat semolina for halwa, upma, and idli.',
+            category: 'Flour & Grains',
+            imageUrl: '/product-images/groceries/sooji-rava.webp',
+            mrpPaise: 6000,
+            pricePaise: 4800, // ₹48.00
+            stock: 40,
+            isAvailable: true,
+            sku: 'KIR-SOO-015'
+          },
+          {
+            name: 'Fortune Fine Stoneground Besan 500g',
+            description: 'Pure chana dal flour milled to micro-fine perfection for kadhi and pakoras.',
+            category: 'Flour & Grains',
+            imageUrl: '/product-images/groceries/besan.webp',
+            mrpPaise: 5500,
+            pricePaise: 4400, // ₹44.00
+            stock: 60,
+            isAvailable: true,
+            sku: 'KIR-BES-016'
+          },
+          {
+            name: 'Everest Agmark Turmeric Powder 200g',
+            description: 'Vibrant golden haldi powder ground from select Salem turmeric rhizomes.',
+            category: 'Spices & Seasoning',
+            imageUrl: '/product-images/groceries/turmeric-powder.webp',
+            mrpPaise: 6500,
+            pricePaise: 5800, // ₹58.00
+            stock: 60,
+            isAvailable: true,
+            sku: 'KIR-SPC-017'
+          },
+          {
+            name: 'Everest Tikhalal Red Chilli Powder 200g',
+            description: 'Pungent fiery red chilli powder for rich Malwa curry color and heat.',
+            category: 'Spices & Seasoning',
+            imageUrl: '/product-images/groceries/red-chilli-powder.webp',
+            mrpPaise: 9500,
+            pricePaise: 8500, // ₹85.00
+            stock: 50,
+            isAvailable: true,
+            sku: 'KIR-SPC-018'
+          },
+          {
+            name: 'Catch Whole Cumin Seeds Jeera 200g',
+            description: 'High-essential-oil aromatic whole cumin seeds for tempering dal and sabzi.',
+            category: 'Spices & Seasoning',
+            imageUrl: '/product-images/groceries/cumin-seeds.webp',
+            mrpPaise: 11000,
+            pricePaise: 9800, // ₹98.00
+            stock: 40,
+            isAvailable: true,
+            sku: 'KIR-SPC-019'
+          },
+          {
+            name: 'Tata Tea Premium Leaf Pouch 500g',
+            description: 'Desh Ki Chai — unique blend of large tea leaves and strong tea granules.',
+            category: 'Tea & Coffee',
+            imageUrl: '/product-images/groceries/tata-tea.webp',
+            mrpPaise: 26000,
+            pricePaise: 23500, // ₹235.00
+            stock: 35,
+            isAvailable: true,
+            sku: 'KIR-TEA-020'
           }
         ]
       }
@@ -215,8 +385,9 @@ async function seed() {
         create: [
           {
             name: 'Fresh Malwa Potatoes 1kg',
-            description: 'Locally grown crisp new-crop potatoes.',
+            description: 'Locally grown crisp new-crop Malwa potatoes.',
             category: 'Vegetables',
+            imageUrl: '/product-images/fruits-vegetables/fresh-malwa-potatoes.webp',
             mrpPaise: 4000,
             pricePaise: 3000, // ₹30.00
             stock: 80,
@@ -225,8 +396,9 @@ async function seed() {
           },
           {
             name: 'Red Hybrid Onions 1kg',
-            description: 'Pungent, dry, medium sized onions.',
+            description: 'Pungent, dry, medium sized onions with papery peel.',
             category: 'Vegetables',
+            imageUrl: '/product-images/fruits-vegetables/red-hybrid-onions.webp',
             mrpPaise: 4500,
             pricePaise: 3800, // ₹38.00
             stock: 60,
@@ -235,11 +407,12 @@ async function seed() {
           },
           {
             name: 'Ripe Country Tomatoes 1kg',
-            description: 'Juicy, naturally ripened country tomatoes.',
+            description: 'Juicy, naturally ripened country desi tomatoes with tart flavor.',
             category: 'Vegetables',
+            imageUrl: '/product-images/fruits-vegetables/ripe-country-tomatoes.webp',
             mrpPaise: 5000,
             pricePaise: 4000, // ₹40.00
-            stock: 45,
+            stock: 50,
             isAvailable: true,
             sku: 'VEG-TOM-003'
           },
@@ -247,11 +420,78 @@ async function seed() {
             name: 'Shimla Royal Delicious Apples 1kg',
             description: 'Sweet, crisp red apples directly from Himachal orchards.',
             category: 'Fruits',
+            imageUrl: '/product-images/fruits-vegetables/shimla-apples.webp',
             mrpPaise: 22000,
             pricePaise: 18000, // ₹180.00
-            stock: 20,
+            stock: 25,
             isAvailable: true,
             sku: 'FRT-APL-004'
+          },
+          {
+            name: 'Fresh Green Chillies 250g',
+            description: 'Spicy, fresh green chillies directly sourced from local farmers.',
+            category: 'Vegetables',
+            imageUrl: '/product-images/fruits-vegetables/green-chillies.webp',
+            mrpPaise: 2500,
+            pricePaise: 2000, // ₹20.00
+            stock: 40,
+            isAvailable: true,
+            sku: 'VEG-CHL-005'
+          },
+          {
+            name: 'Fresh Malwa Coriander Bunch 250g',
+            description: 'Aromatic leafy fresh green coriander for garnishing curry and poha.',
+            category: 'Vegetables',
+            imageUrl: '/product-images/fruits-vegetables/fresh-coriander.webp',
+            mrpPaise: 2000,
+            pricePaise: 1500, // ₹15.00
+            stock: 45,
+            isAvailable: true,
+            sku: 'VEG-COR-006'
+          },
+          {
+            name: 'Fresh Juicy Yellow Lemons (Pack of 4)',
+            description: 'Plump thin-skinned juicy yellow lemons full of natural citrus juice.',
+            category: 'Vegetables',
+            imageUrl: '/product-images/fruits-vegetables/fresh-lemon.webp',
+            mrpPaise: 3000,
+            pricePaise: 2400, // ₹24.00
+            stock: 35,
+            isAvailable: true,
+            sku: 'VEG-LEM-007'
+          },
+          {
+            name: 'Fresh Desi Adrak Ginger 250g',
+            description: 'Fresh unbleached pungent ginger root for morning chai and tadka.',
+            category: 'Vegetables',
+            imageUrl: '/product-images/fruits-vegetables/fresh-ginger.webp',
+            mrpPaise: 4500,
+            pricePaise: 3800, // ₹38.00
+            stock: 30,
+            isAvailable: true,
+            sku: 'VEG-GIN-008'
+          },
+          {
+            name: 'Fresh Robusta Bananas 1 Dozen',
+            description: 'Naturally ripened sweet and energy-dense golden yellow bananas.',
+            category: 'Fruits',
+            imageUrl: '/product-images/fruits-vegetables/fresh-bananas.webp',
+            mrpPaise: 7000,
+            pricePaise: 5500, // ₹55.00
+            stock: 40,
+            isAvailable: true,
+            sku: 'FRT-BAN-009'
+          },
+          {
+            name: 'Ratnagiri Alphonso Mangoes 1kg',
+            description: 'GI-tagged sweet aromatic Alphonso mangoes with rich saffron pulp.',
+            category: 'Fruits',
+            imageUrl: '/product-images/fruits-vegetables/alphonso-mangoes.webp',
+            mrpPaise: 45000,
+            pricePaise: 39900, // ₹399.00
+            stock: 15,
+            isAvailable: true,
+            sku: 'FRT-MNG-010'
           }
         ]
       }
@@ -291,6 +531,7 @@ async function seed() {
             name: 'Fresh Whole Wheat Sandwich Bread 400g',
             description: 'Daily baked soft multigrain loaf with zero preservatives.',
             category: 'Bread & Buns',
+            imageUrl: '/product-images/dairy-bakery/fresh-whole-wheat-bread.webp',
             mrpPaise: 5500,
             pricePaise: 5000, // ₹50.00
             stock: 30,
@@ -301,6 +542,7 @@ async function seed() {
             name: 'Amul Pasteurised Salted Butter 500g',
             description: 'Utterly butterly delicious fresh butter.',
             category: 'Dairy',
+            imageUrl: '/product-images/dairy-bakery/amul-butter.webp',
             mrpPaise: 29500,
             pricePaise: 28500, // ₹285.00
             stock: 20,
@@ -311,11 +553,34 @@ async function seed() {
             name: 'Sanchi Gold Full Cream Milk 500ml',
             description: 'Fresh pasteurized full cream milk from MP state dairy coop.',
             category: 'Dairy',
+            imageUrl: '/product-images/dairy-bakery/sanchi-gold-milk.webp',
             mrpPaise: 3400,
             pricePaise: 3400, // ₹34.00
             stock: 60,
             isAvailable: true,
             sku: 'DAI-MLK-003'
+          },
+          {
+            name: 'Fresh Malai Paneer Block 200g',
+            description: 'Soft, melt-in-mouth cottage cheese crafted from whole cow and buffalo milk.',
+            category: 'Dairy',
+            imageUrl: '/product-images/dairy-bakery/fresh-paneer.webp',
+            mrpPaise: 9500,
+            pricePaise: 8500, // ₹85.00
+            stock: 30,
+            isAvailable: true,
+            sku: 'DAI-PAN-004'
+          },
+          {
+            name: 'Farm Fresh Brown Eggs (Pack of 6)',
+            description: 'Nutritious protein-rich clean farm eggs in protective biodegradable tray.',
+            category: 'Dairy',
+            imageUrl: '/product-images/dairy-bakery/farm-eggs.webp',
+            mrpPaise: 6000,
+            pricePaise: 5200, // ₹52.00
+            stock: 40,
+            isAvailable: true,
+            sku: 'DAI-EGG-005'
           }
         ]
       }
@@ -560,9 +825,29 @@ async function seed() {
     }
   ];
 
+  const medicineImageMap: Record<string, string> = {
+    'Dolo 650 Tablet': '/product-images/pharmacy/dolo-650.webp',
+    'Digene Antacid Gel Orange 200ml': '/product-images/pharmacy/digene-gel.webp',
+    'Augmentin 625 Duo Tablet': '/product-images/pharmacy/augmentin-625.webp',
+    'Azithral 500 Tablet': '/product-images/pharmacy/azithral-500.webp',
+    'Pantocid 40 Tablet': '/product-images/pharmacy/pantocid-40.webp',
+    'Telma 40 Tablet': '/product-images/pharmacy/telma-40.webp',
+    'Cefix 200 Tablet': '/product-images/pharmacy/cefix-200.webp',
+    'Accu-Chek Active Blood Glucose Monitor Kit': '/product-images/pharmacy/accu-chek.webp',
+    'Omron HEM 7120 Digital Blood Pressure Monitor': '/product-images/pharmacy/omron-bp.webp',
+    'Dettol Antiseptic Liquid 250ml': '/product-images/pharmacy/dettol-antiseptic.webp',
+    'Volini Pain Relief Gel 75g': '/product-images/pharmacy/volini-gel.webp',
+    'Hansaplast Regular Bandage Strips (Pack of 20)': '/product-images/pharmacy/hansaplast-strips.webp'
+  };
+
   const createdMedicines: any[] = [];
   for (const m of medicinesData) {
-    const med = await prisma.medicine.create({ data: m });
+    const med = await prisma.medicine.create({
+      data: {
+        ...m,
+        imageUrl: medicineImageMap[m.name] || null
+      }
+    });
     createdMedicines.push(med);
   }
 

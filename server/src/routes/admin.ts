@@ -3,6 +3,9 @@ import { z } from 'zod';
 import { prisma } from '../db';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import { FinancialEngine } from '../core/finance';
+import { ProductImageValidator } from '../core/productImageValidator';
+import { MerchantSettlementEngine } from '../core/merchantSettlementEngine';
+import { BankVerificationService } from '../core/bankVerificationService';
 
 const router = Router();
 
@@ -533,7 +536,16 @@ router.get('/onboarding/applications/:id', async (req: Request, res: Response): 
 
 // 8.3 Admin Decision Action on Application
 const AdminOnboardingActionSchema = z.object({
-  action: z.enum(['APPROVE', 'REJECT', 'REQUEST_DOCUMENTS', 'RETURN_FOR_CORRECTION', 'SUSPEND', 'REACTIVATE']),
+  action: z.enum([
+    'APPROVE',
+    'REJECT',
+    'REQUEST_DOCUMENTS',
+    'RETURN_FOR_CORRECTION',
+    'SUSPEND',
+    'REACTIVATE',
+    'VERIFY_BANK_MANUAL',
+    'REJECT_BANK'
+  ]),
   reason: z.string().optional(),
   feedback: z.string().optional(),
   commissionRatePct: z.number().optional()
@@ -616,11 +628,46 @@ router.post('/onboarding/applications/:id/action', async (req: Request, res: Res
       activatedStoreId = store.id;
       nextStatus = 'APPROVED';
 
-      // Mark bank account and documents as verified
+      // 3. Auto-populate draft catalogue items into store product catalogue
+      if (application.productsCatalogueJson) {
+        try {
+          const items = JSON.parse(application.productsCatalogueJson);
+          if (Array.isArray(items)) {
+            for (const item of items) {
+              const existingProd = await prisma.product.findFirst({
+                where: { storeId: store.id, name: item.name }
+              });
+              if (!existingProd) {
+                await prisma.product.create({
+                  data: {
+                    storeId: store.id,
+                    name: item.name,
+                    category: item.category || store.category,
+                    pricePaise: item.pricePaise || 10000,
+                    mrpPaise: item.mrpPaise || item.pricePaise || 12000,
+                    stock: item.stock !== undefined ? parseInt(item.stock, 10) : 50,
+                    isAvailable: true,
+                    imageUrl: item.imageUrl || null
+                  }
+                });
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Failed to populate catalogue on store activation:', err);
+        }
+      }
+
+      // 4. Mark bank account and documents as verified
       if (application.bankAccount) {
         await prisma.merchantBankAccount.update({
           where: { id: application.bankAccount.id },
-          data: { verificationStatus: 'VERIFIED', verifiedAt: new Date() }
+          data: {
+            verificationStatus: 'VERIFIED',
+            pennyDropStatus: 'SUCCESS',
+            verifiedByAdminId: req.user!.userId,
+            verifiedAt: new Date()
+          }
         });
       }
 
@@ -633,6 +680,8 @@ router.post('/onboarding/applications/:id/action', async (req: Request, res: Res
         where: { id: application.id },
         data: {
           status: 'APPROVED',
+          currentStep: 11,
+          completionPct: 100,
           approvedAt: new Date(),
           reviewedByAdminId: req.user!.userId,
           reviewedAt: new Date(),
@@ -640,6 +689,43 @@ router.post('/onboarding/applications/:id/action', async (req: Request, res: Res
           commissionRatePct: finalCommission,
           adminFeedback: null,
           rejectionReason: null
+        }
+      });
+    } else if (action === 'VERIFY_BANK_MANUAL') {
+      if (application.bankAccount) {
+        await prisma.merchantBankAccount.update({
+          where: { id: application.bankAccount.id },
+          data: {
+            verificationStatus: 'VERIFIED',
+            pennyDropStatus: 'SUCCESS',
+            verificationMethod: 'MANUAL_ADMIN',
+            verifiedByAdminId: req.user!.userId,
+            verifiedAt: new Date(),
+            rejectionReason: null
+          }
+        });
+      }
+    } else if (action === 'REJECT_BANK') {
+      if (!reason) {
+        res.status(400).json({ error: 'Rejection reason is required for bank rejection' });
+        return;
+      }
+      if (application.bankAccount) {
+        await prisma.merchantBankAccount.update({
+          where: { id: application.bankAccount.id },
+          data: {
+            verificationStatus: 'REJECTED',
+            pennyDropStatus: 'FAILED',
+            rejectionReason: reason
+          }
+        });
+      }
+      nextStatus = 'DOCUMENTS_REQUIRED';
+      await prisma.merchantApplication.update({
+        where: { id: application.id },
+        data: {
+          status: 'DOCUMENTS_REQUIRED',
+          adminFeedback: `Bank Account Rejected: ${reason}`
         }
       });
     } else if (action === 'REJECT') {
@@ -746,6 +832,408 @@ router.post('/onboarding/applications/:id/action', async (req: Request, res: Res
   } catch (error) {
     console.error('Admin onboarding action error:', error);
     res.status(500).json({ error: 'Failed to process admin onboarding action' });
+  }
+});
+
+// 8.4 Review Individual Document
+const ReviewDocumentSchema = z.object({
+  status: z.enum(['VERIFIED', 'REJECTED', 'RESUBMISSION_REQUIRED']),
+  reason: z.string().optional(),
+  comment: z.string().optional()
+});
+
+router.post('/onboarding/applications/:id/documents/:docId/review', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id, docId } = req.params;
+    const parse = ReviewDocumentSchema.safeParse(req.body);
+    if (!parse.success) {
+      res.status(400).json({ error: 'Validation failed', details: parse.error.errors });
+      return;
+    }
+
+    const { status, reason, comment } = parse.data;
+
+    const document = await prisma.merchantDocument.findFirst({
+      where: { id: docId, applicationId: id }
+    });
+
+    if (!document) {
+      res.status(404).json({ error: 'Document not found' });
+      return;
+    }
+
+    const updated = await prisma.merchantDocument.update({
+      where: { id: docId },
+      data: {
+        verificationStatus: status,
+        rejectionReason: reason || null,
+        adminComment: comment || reason || null
+      }
+    });
+
+    // If document is rejected, update application to DOCUMENTS_REQUIRED
+    if (['REJECTED', 'RESUBMISSION_REQUIRED'].includes(status)) {
+      await prisma.merchantApplication.update({
+        where: { id },
+        data: {
+          status: 'DOCUMENTS_REQUIRED',
+          adminFeedback: `Document Rejected (${document.documentType}): ${reason || 'Resubmission required'}`
+        }
+      });
+    }
+
+    res.json({ message: 'Document review updated', document: updated });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to review document' });
+  }
+});
+
+// =========================================================================
+// 8.5 MERCHANT PAYOUT & SETTLEMENT ENGINE CONSOLE
+// =========================================================================
+
+// Overview of platform-wide merchant payouts
+router.get('/payouts/overview', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const stores = await prisma.store.findMany({
+      include: {
+        merchantChildOrders: {
+          where: { status: { in: ['DELIVERED', 'COMPLETED', 'READY_FOR_PICKUP'] } }
+        },
+        settlementStatements: true
+      }
+    });
+
+    let totalGrossSalesPaise = 0;
+    let totalCommissionPaise = 0;
+    let totalSettledPaise = 0;
+
+    stores.forEach((store) => {
+      store.merchantChildOrders.forEach((order) => {
+        totalGrossSalesPaise += order.subtotalPaise;
+        totalCommissionPaise += order.commissionPaise;
+      });
+
+      store.settlementStatements.forEach((stmt) => {
+        if (stmt.status === 'SETTLED') {
+          totalSettledPaise += stmt.netMerchantPayablePaise;
+        }
+      });
+    });
+
+    const netPayablePendingPaise = Math.max(0, totalGrossSalesPaise - totalCommissionPaise - totalSettledPaise);
+
+    res.json({
+      overview: {
+        totalStoresCount: stores.length,
+        totalGrossSalesPaise,
+        totalGrossSalesFormatted: FinancialEngine.formatPaiseToRupees(totalGrossSalesPaise),
+        totalCommissionEarnedPaise: totalCommissionPaise,
+        totalCommissionEarnedFormatted: FinancialEngine.formatPaiseToRupees(totalCommissionPaise),
+        totalSettledPaise,
+        totalSettledFormatted: FinancialEngine.formatPaiseToRupees(totalSettledPaise),
+        netPayablePendingPaise,
+        netPayablePendingFormatted: FinancialEngine.formatPaiseToRupees(netPayablePendingPaise),
+        settlementCycle: 'T+1 (Next Business Day)'
+      }
+    });
+  } catch (error) {
+    console.error('Failed to fetch payouts overview:', error);
+    res.status(500).json({ error: 'Failed to fetch payouts overview' });
+  }
+});
+
+// Merchant settlement balances and linked bank status
+router.get('/payouts/merchants', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const stores = await prisma.store.findMany({
+      include: {
+        owner: {
+          include: {
+            merchantApplications: {
+              where: { status: { in: ['APPROVED', 'ACTIVE'] } },
+              include: { bankAccount: true },
+              orderBy: { createdAt: 'desc' },
+              take: 1
+            }
+          }
+        },
+        merchantChildOrders: {
+          where: { status: { in: ['DELIVERED', 'COMPLETED', 'READY_FOR_PICKUP'] } }
+        },
+        settlementStatements: {
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    });
+
+    const results = stores.map((store) => {
+      let grossSalesPaise = 0;
+      let commissionPaise = 0;
+
+      store.merchantChildOrders.forEach((o) => {
+        grossSalesPaise += o.subtotalPaise;
+        commissionPaise += o.commissionPaise;
+      });
+
+      let settledPaise = 0;
+      store.settlementStatements.forEach((stmt) => {
+        if (stmt.status === 'SETTLED') {
+          settledPaise += stmt.netMerchantPayablePaise;
+        }
+      });
+
+      const netPendingPaise = Math.max(0, grossSalesPaise - commissionPaise - settledPaise);
+      const app = store.owner.merchantApplications[0];
+      const bank = app?.bankAccount;
+
+      const isBankVerified = bank?.verificationStatus === 'VERIFIED';
+      const payoutStatus = !bank
+        ? 'BANK_NOT_ADDED'
+        : isBankVerified
+        ? 'READY'
+        : bank.verificationStatus === 'MANUAL_REVIEW'
+        ? 'BANK_REVIEW_REQUIRED'
+        : 'BANK_UNVERIFIED';
+
+      return {
+        storeId: store.id,
+        storeName: store.name,
+        category: store.category,
+        ownerName: store.owner.name,
+        ownerEmail: store.owner.email,
+        ownerPhone: store.owner.phone,
+        commissionRatePct: store.commissionRatePct,
+        grossSalesPaise,
+        grossSalesFormatted: FinancialEngine.formatPaiseToRupees(grossSalesPaise),
+        commissionPaise,
+        commissionFormatted: FinancialEngine.formatPaiseToRupees(commissionPaise),
+        netPendingPaise,
+        netPendingFormatted: FinancialEngine.formatPaiseToRupees(netPendingPaise),
+        payoutStatus,
+        bankAccount: bank
+          ? {
+              bankName: bank.bankName,
+              branchName: bank.branchName,
+              accountHolderName: bank.accountHolderName,
+              accountNumberMasked: bank.accountNumberMasked,
+              ifsc: bank.ifsc,
+              verificationStatus: bank.verificationStatus,
+              pennyDropStatus: bank.pennyDropStatus,
+              pennyDropRef: bank.pennyDropRef
+            }
+          : null,
+        statementsCount: store.settlementStatements.length,
+        lastSettlement: store.settlementStatements[0] || null
+      };
+    });
+
+    res.json({ merchants: results });
+  } catch (error) {
+    console.error('Failed to fetch merchant payouts:', error);
+    res.status(500).json({ error: 'Failed to fetch merchant payouts' });
+  }
+});
+
+// Generate Settlement Statement for a store
+const GenerateStatementSchema = z.object({
+  storeId: z.string().uuid('Valid store ID is required'),
+  periodStart: z.string(),
+  periodEnd: z.string()
+});
+
+router.post('/payouts/generate-statement', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const parse = GenerateStatementSchema.safeParse(req.body);
+    if (!parse.success) {
+      res.status(400).json({ error: 'Validation failed', details: parse.error.errors });
+      return;
+    }
+
+    const { storeId, periodStart, periodEnd } = parse.data;
+    const pStart = new Date(periodStart);
+    const pEnd = new Date(periodEnd);
+
+    const statement = await MerchantSettlementEngine.generateStatement(storeId, pStart, pEnd);
+
+    await prisma.auditLog.create({
+      data: {
+        userId: req.user!.userId,
+        action: 'PAYOUT_STATEMENT_GENERATED',
+        resourceType: 'MerchantSettlementStatement',
+        resourceId: statement.id,
+        detailsJson: JSON.stringify({ storeId, statementNumber: statement.statementNumber })
+      }
+    });
+
+    res.status(201).json({
+      message: 'Settlement statement generated successfully',
+      statement
+    });
+  } catch (error: any) {
+    console.error('Failed to generate settlement statement:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate statement' });
+  }
+});
+
+// Settle Statement with Verified Bank UTR Transfer Reference
+const SettleStatementSchema = z.object({
+  statementId: z.string().uuid('Valid statement ID is required'),
+  bankReference: z.string().min(6, 'Valid bank UTR / transfer reference is required')
+});
+
+router.post('/payouts/settle', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const parse = SettleStatementSchema.safeParse(req.body);
+    if (!parse.success) {
+      res.status(400).json({ error: 'Validation failed', details: parse.error.errors });
+      return;
+    }
+
+    const { statementId, bankReference } = parse.data;
+
+    const statement = await prisma.merchantSettlementStatement.findUnique({
+      where: { id: statementId }
+    });
+
+    if (!statement) {
+      res.status(404).json({ error: 'Statement not found' });
+      return;
+    }
+
+    if (statement.status === 'SETTLED') {
+      res.status(400).json({ error: 'Statement is already settled' });
+      return;
+    }
+
+    const cleanRef = bankReference.trim().toUpperCase();
+
+    const updated = await prisma.merchantSettlementStatement.update({
+      where: { id: statementId },
+      data: {
+        status: 'SETTLED',
+        settledAt: new Date(),
+        bankReference: cleanRef
+      }
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        userId: req.user!.userId,
+        action: 'PAYOUT_STATEMENT_SETTLED',
+        resourceType: 'MerchantSettlementStatement',
+        resourceId: statement.id,
+        detailsJson: JSON.stringify({
+          statementNumber: statement.statementNumber,
+          netPayablePaise: statement.netMerchantPayablePaise,
+          bankReference: cleanRef
+        })
+      }
+    });
+
+    res.json({
+      message: 'Settlement transfer marked as settled successfully with verified bank reference',
+      statement: updated
+    });
+  } catch (error) {
+    console.error('Failed to settle statement:', error);
+    res.status(500).json({ error: 'Failed to settle statement' });
+  }
+});
+
+// =========================================================================
+// PRODUCT IMAGERY QUALITY CONTROL & STUDIO ECOSYSTEM ENDPOINTS
+// =========================================================================
+
+router.get('/imagery/products', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const products = await prisma.product.findMany({
+      include: {
+        store: { select: { id: true, name: true, category: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const evaluated = products.map((p) => {
+      const hasImg = Boolean(p.imageUrl && p.imageUrl.trim() !== '');
+      let imageSource: 'AI_STUDIO' | 'MERCHANT_UPLOAD' | 'MISSING' = 'MISSING';
+      if (hasImg) {
+        if (p.imageUrl?.includes('/product-images/')) {
+          imageSource = 'AI_STUDIO';
+        } else {
+          imageSource = 'MERCHANT_UPLOAD';
+        }
+      }
+
+      return {
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        brand: p.brand || null,
+        packageSize: p.packageSize || null,
+        pricePaise: p.pricePaise,
+        mrpPaise: p.mrpPaise,
+        stock: p.stock,
+        isAvailable: p.isAvailable,
+        imageUrl: p.imageUrl,
+        hasImage: hasImg,
+        imageSource,
+        isVerifiedRealistic: imageSource === 'AI_STUDIO',
+        store: p.store
+      };
+    });
+
+    const total = evaluated.length;
+    const covered = evaluated.filter((e) => e.hasImage).length;
+    const aiStudio = evaluated.filter((e) => e.imageSource === 'AI_STUDIO').length;
+    const merchantUploaded = evaluated.filter((e) => e.imageSource === 'MERCHANT_UPLOAD').length;
+    const missing = total - covered;
+
+    res.json({
+      metrics: {
+        totalProducts: total,
+        coveredProducts: covered,
+        coveragePct: total > 0 ? Math.round((covered / total) * 100) : 0,
+        aiStudioCount: aiStudio,
+        merchantUploadedCount: merchantUploaded,
+        missingCount: missing
+      },
+      products: evaluated
+    });
+  } catch (error) {
+    console.error('Failed to fetch product imagery status:', error);
+    res.status(500).json({ error: 'Failed to fetch product imagery status' });
+  }
+});
+
+router.patch('/imagery/products/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { imageUrl } = req.body;
+
+    const updated = await prisma.product.update({
+      where: { id },
+      data: { imageUrl: imageUrl || null }
+    });
+
+    res.json({ message: 'Product imagery updated successfully', product: updated });
+  } catch (error) {
+    console.error('Failed to update product imagery:', error);
+    res.status(500).json({ error: 'Failed to update product imagery' });
+  }
+});
+
+router.get('/imagery/audit', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const products = await prisma.product.findMany({
+      select: { id: true, name: true, category: true, imageUrl: true }
+    });
+
+    const audit = ProductImageValidator.auditCatalogue(products);
+    res.json(audit);
+  } catch (error) {
+    console.error('Failed to run product imagery audit:', error);
+    res.status(500).json({ error: 'Failed to run product imagery audit' });
   }
 });
 

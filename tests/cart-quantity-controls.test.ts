@@ -50,6 +50,7 @@ describe('Everything Local — Product Add-To-Cart Quantity Controls & Shared Ca
         storeId: testStoreId,
         name: 'Special Limited Season Alphonso Mango (Out of Stock)',
         category: 'Produce',
+        imageUrl: '/product-images/fruits-vegetables/alphonso-mangoes.webp',
         mrpPaise: 120000,
         pricePaise: 99900,
         stock: 0,
@@ -267,5 +268,11 @@ describe('Everything Local — Product Add-To-Cart Quantity Controls & Shared Ca
     expect(remainingProductIds).not.toContain(productAId);
     expect(remainingProductIds).toContain(productBId);
     expect(remainingProductIds).toContain(productCId);
+  });
+
+  afterAll(async () => {
+    if (outOfStockProductId) {
+      await prisma.product.deleteMany({ where: { id: outOfStockProductId } });
+    }
   });
 });

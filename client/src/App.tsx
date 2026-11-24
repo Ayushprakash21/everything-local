@@ -86,6 +86,24 @@ function MainLayout() {
   const [isCategoriesSheetOpen, setIsCategoriesSheetOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // Support URL hash navigation for direct linking: e.g. #merchant, #admin, #orders
+  React.useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.toLowerCase();
+      if (hash.includes('merchant')) {
+        setCurrentTab('merchant');
+        setDiscoveryMode('shop');
+      } else if (hash.includes('admin')) {
+        setCurrentTab('admin');
+      } else if (hash.includes('orders')) {
+        setCurrentTab('orders');
+      }
+    };
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
   const handleAddToCart = async (storeId: string, productId: string) => {
     if (!user) {
       setIsAuthOpen(true);
@@ -333,33 +351,17 @@ function MainLayout() {
         )}
       </main>
 
-      {/* Global Application Footer with Brand Identity */}
-      <footer className="mt-16 border-t border-slate-200 bg-white py-12 px-4 sm:px-6 lg:px-8 pb-24 md:pb-12">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-            <BrandLogo variant="horizontal" size="medium" className="h-10 w-auto" />
-            <div className="sm:border-l sm:border-slate-200 sm:pl-4">
-              <p className="text-xs font-black text-slate-900">Hyperlocal Commerce &amp; Local Services Platform</p>
-              <p className="text-[11px] text-slate-500">Initial Pilot: Indore, Madhya Pradesh • Palasia, Vijay Nagar, Bhawarkua &amp; 40+ localities</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-slate-500">
-            <span>© {new Date().getFullYear()} Everything Local</span>
-            <span className="hidden sm:inline">•</span>
-            <span>Shop more. Save more. Live better.</span>
-          </div>
-        </div>
-      </footer>
-
-      {/* Floating AI Shopping Copilot Button (Shop Mode) */}
+      {/* Floating Ask Tara Assistant Button (Shop Mode) */}
       {discoveryMode === 'shop' && currentTab === 'customer' && (
         <button
           onClick={() => setIsAIOpen(true)}
-          className="fixed bottom-20 md:bottom-6 right-5 z-40 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-black text-xs px-4 py-3 rounded-2xl shadow-float flex items-center gap-2 border border-amber-300 transition active:scale-95 group"
-          title="Open AI Smart Basket Optimizer"
+          className={`fixed ${
+            cartCount > 0 ? 'bottom-32 md:bottom-6' : 'bottom-20 md:bottom-6'
+          } right-4 sm:right-6 md:right-8 z-40 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 font-black text-xs sm:text-sm px-4 sm:px-5 py-2.5 sm:py-3 rounded-full shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/30 border border-amber-300/80 flex items-center gap-1.5 transition-all duration-200 active:scale-95 group cursor-pointer`}
+          title="Tara — Your Local Shopping Saathi"
+          aria-label="Ask Tara — Your Local Shopping Saathi"
         >
-          <Sparkles className="w-4 h-4 text-slate-950 group-hover:rotate-12 transition-transform" />
-          <span className="hidden sm:inline">AI Shopping Copilot</span>
+          <span className="font-black tracking-tight">✨ Ask Tara</span>
         </button>
       )}
 
@@ -398,12 +400,15 @@ function MainLayout() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-3">
               <BrandLogo size="md" />
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <p className="text-sm font-black text-slate-900 tracking-tight">
+                Made for India. Rooted in Local.
+              </p>
+              <p className="text-xs font-medium text-slate-600">
+                Discover neighbourhood stores, shop locally and get what you need.
+              </p>
+              <p className="text-[11px] text-slate-500 leading-relaxed pt-1">
                 Hyperlocal neighbourhood commerce and instant services platform for Indore, Madhya Pradesh.
               </p>
-              <div className="text-[11px] font-bold text-slate-400">
-                Shop more. Save more. Live better.
-              </div>
             </div>
 
             <div>
@@ -449,9 +454,9 @@ function MainLayout() {
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400">
+          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500">
             <p>© 2026 Everything Local Technologies Pvt Ltd. All rights reserved.</p>
-            <p>Made for Indore • Local Supply Chain Engine v2.0</p>
+            <p className="font-semibold text-slate-700">Made for India. Rooted in Local. • Indore Pilot</p>
           </div>
         </div>
       </footer>

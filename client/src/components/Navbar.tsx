@@ -535,10 +535,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {openAI && (
                   <button
                     onClick={openAI}
-                    className="flex items-center gap-1 px-2.5 py-1 bg-amber-100/80 hover:bg-amber-200/80 text-amber-900 border border-amber-300 rounded-xl font-bold transition shadow-2xs"
+                    className="flex items-center gap-1.5 px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 rounded-full font-bold text-xs transition shadow-2xs"
+                    title="Tara — Your Local Shopping Saathi"
                   >
-                    <Sparkles className="w-3 h-3 text-amber-600" />
-                    <span>AI Copilot</span>
+                    <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Ask Tara</span>
                   </button>
                 )}
                 {openHousehold && (

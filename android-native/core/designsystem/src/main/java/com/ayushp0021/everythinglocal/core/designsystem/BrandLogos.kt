@@ -79,10 +79,10 @@ fun CustomerBrandLogo(
             }
             if (variant != LogoVariant.COMPACT) {
                 Text(
-                    "Shop more. Save more. Live better.",
+                    "Made for India. Rooted in Local.",
                     fontSize = 10.sp,
                     color = subtitleColor,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }
@@ -148,7 +148,7 @@ fun MerchantBrandLogo(
             }
             if (showTagline) {
                 Text(
-                    "Indore Hyperlocal Retail Partner Console",
+                    "Made for India. Rooted in Local. • Partner Console",
                     fontSize = 10.sp,
                     color = Color(0xFF64748B),
                     fontWeight = FontWeight.Medium

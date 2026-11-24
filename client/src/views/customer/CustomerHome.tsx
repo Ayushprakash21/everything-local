@@ -4,6 +4,7 @@ import { request, formatPaise } from '../../api/client';
 import { useLocation } from '../../context/LocationContext';
 import { ProductCard } from '../../components/ProductCard';
 import { ProductDetailModal } from '../../components/ProductDetailModal';
+import { BrandLogo } from '../../components/BrandLogo';
 import { MainContentContainer } from '../../components/layout/MainContentContainer';
 import {
   Search,
@@ -88,7 +89,7 @@ export const SHOPPING_CATEGORIES = [
     bgColor: 'bg-orange-50',
     borderColor: 'border-orange-200',
     textColor: 'text-orange-900',
-    keywords: ['atta', 'rice', 'dal', 'flour', 'grains', 'wheat', 'staples', 'chana']
+    keywords: ['atta', 'rice', 'dal', 'flour', 'grain', 'wheat', 'pulse', 'chana', 'rajma', 'poha', 'sooji', 'besan']
   },
   {
     id: 'oils',
@@ -98,7 +99,7 @@ export const SHOPPING_CATEGORIES = [
     bgColor: 'bg-yellow-50',
     borderColor: 'border-yellow-200',
     textColor: 'text-yellow-900',
-    keywords: ['oil', 'ghee', 'sunflower', 'mustard', 'refined', 'edible']
+    keywords: ['oil', 'ghee', 'sunflower', 'mustard', 'refined']
   },
   {
     id: 'snacks',
@@ -108,7 +109,7 @@ export const SHOPPING_CATEGORIES = [
     bgColor: 'bg-rose-50',
     borderColor: 'border-rose-200',
     textColor: 'text-rose-900',
-    keywords: ['snack', 'drink', 'beverage', 'juice', 'chips', 'biscuit', 'tea', 'coffee']
+    keywords: ['snack', 'drink', 'beverage', 'juice', 'chips', 'biscuit', 'tea', 'coffee', 'sev', 'namkeen']
   },
   {
     id: 'personal_care',
@@ -122,13 +123,13 @@ export const SHOPPING_CATEGORIES = [
   },
   {
     id: 'household',
-    label: 'Household Essentials',
-    shortLabel: 'Household',
-    icon: '🧻',
+    label: 'Household & Pantry Staples',
+    shortLabel: 'Pantry & Sugar',
+    icon: '🧂',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
     textColor: 'text-blue-900',
-    keywords: ['household', 'tissue', 'foil', 'salt', 'sugar', 'matchbox', 'pooja']
+    keywords: ['sugar', 'salt', 'spice', 'turmeric', 'chilli', 'jeera', 'cumin', 'seasoning', 'household', 'tissue']
   },
   {
     id: 'cleaning',
@@ -334,7 +335,7 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
     }
 
     // Sorting
-    return [...result].sort((a, b) => {
+    const sorted = [...result].sort((a, b) => {
       if (sortBy === 'price_asc') return a.product.pricePaise - b.product.pricePaise;
       if (sortBy === 'price_desc') return b.product.pricePaise - a.product.pricePaise;
       if (sortBy === 'discount') {
@@ -344,6 +345,19 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
       }
       return 0;
     });
+
+    // Marketplace Visual Diversity: Deduplicate by normalized product name so distinct products are showcased
+    const diverseList: Array<{ product: Product; store: Store }> = [];
+    const seenNames = new Set<string>();
+    sorted.forEach((item) => {
+      const normName = item.product.name.toLowerCase().trim();
+      if (!seenNames.has(normName)) {
+        seenNames.add(normName);
+        diverseList.push(item);
+      }
+    });
+
+    return diverseList;
   }, [allProductsWithStore, searchQuery, selectedCategory, selectedBrand, inStockOnly, sortBy]);
 
   // --- Curated Product Sections ---
@@ -412,6 +426,41 @@ export const CustomerHome: React.FC<CustomerHomeProps> = ({
 
   return (
     <MainContentContainer className="py-6 space-y-6 sm:space-y-8">
+      {/* BRANDING SECTION: MADE FOR INDIA. ROOTED IN LOCAL. */}
+      <section className="bg-gradient-to-r from-amber-500/10 via-white to-emerald-500/10 border border-amber-200/80 rounded-3xl p-4 sm:p-5 shadow-xs">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+          <div className="flex flex-col sm:flex-row items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-[#0B1F3B] p-2 flex items-center justify-center shrink-0 shadow-xs">
+              <BrandLogo variant="symbol" size="small" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                <span className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                  Made for India. Rooted in Local.
+                </span>
+                <span className="text-[10px] font-black uppercase tracking-wider bg-forest-900 text-white px-2 py-0.5 rounded-full">
+                  100% Local Kirana Network
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-0.5">
+                Discover neighbourhood stores, shop locally and get what you need.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-3 text-[11px] font-bold text-slate-700 bg-white/80 py-1.5 px-3 rounded-2xl border border-slate-200/80 shrink-0">
+            <span className="flex items-center gap-1 text-emerald-800">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Indore Hub Active
+            </span>
+            <span className="text-slate-300">•</span>
+            <span>15–20 Min Delivery</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-amber-700">₹0 Delivery Fee &gt; ₹299</span>
+          </div>
+        </div>
+      </section>
+
       {/* SERVICEABILITY LIMITATION WARNING BANNER (If out of delivery zone) */}
       {!isServiceable && (
         <div className="bg-amber-50 border border-amber-300 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-subtle animate-in fade-in duration-200">

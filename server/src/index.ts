@@ -15,6 +15,8 @@ import { aiAssistantRouter } from './routes/aiAssistant';
 import { householdRouter } from './routes/household';
 import { communityRouter } from './routes/community';
 import merchantOnboardingRouter from './routes/merchantOnboarding';
+import deliveryPartnerRouter from './routes/deliveryPartner';
+import deliveryOperationsRouter from './routes/deliveryOperations';
 
 dotenv.config();
 
@@ -62,6 +64,10 @@ app.use(express.json());
 const UPLOADS_DIR = path.resolve(__dirname, '../../uploads');
 app.use('/uploads', express.static(UPLOADS_DIR));
 
+// Serve production product images statically
+const PRODUCT_IMAGES_DIR = path.resolve(__dirname, '../../client/public/product-images');
+app.use('/product-images', express.static(PRODUCT_IMAGES_DIR));
+
 // API Health Check
 app.get('/api/health', (_req: Request, res: Response) => {
   res.json({
@@ -86,6 +92,8 @@ app.use('/api/ai', aiAssistantRouter);
 app.use('/api/household', householdRouter);
 app.use('/api/community', communityRouter);
 app.use('/api/onboarding', merchantOnboardingRouter);
+app.use('/api/delivery-partner', deliveryPartnerRouter);
+app.use('/api/admin/delivery-operations', deliveryOperationsRouter);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {

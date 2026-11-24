@@ -830,12 +830,20 @@ model RiderProfile {
   currentLongitude      Float?
   rating                Float                 @default(4.9)
   totalDeliveries       Int                   @default(0)
+  approvalStatus        String                @default("APPROVED") // APPLIED, UNDER_REVIEW, APPROVED, SUSPENDED, REJECTED
+  serviceArea           String                @default("Indore - All Zones")
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
 
   tasks                 DeliveryTask[]
   earnings              RiderEarningLedger[]
   settlements           RiderSettlement[]
+  documents             DeliveryPartnerDocument[]
+  vehicles              DeliveryPartnerVehicle[]
+  availabilities        DeliveryPartnerAvailability[]
+  assignments           DeliveryAssignment[]
+  locations             DeliveryLocation[]
+  incidents             DeliveryIncident[]
 }
 
 model DeliveryTask {
@@ -865,6 +873,14 @@ model DeliveryTask {
   totalPayoutPaise           Int                 @default(3000)
   pickupOtp                  String              // 4-digit code for merchant handover
   deliveryOtp                String              // 4-digit code for customer handover
+  deliveryOtpHashed          String?
+  deliveryOtpExpiresAt       DateTime?
+  deliveryOtpAttempts        Int                 @default(0)
+  deliveryOtpMaxAttempts     Int                 @default(5)
+  pickupOtpHashed            String?
+  version                    Int                 @default(1)
+  acceptanceDeadline         DateTime?
+  cancellationReason         String?
   specialHandling            String?
   acceptedAt                 DateTime?
   atStoreAt                  DateTime?
@@ -874,6 +890,130 @@ model DeliveryTask {
   updatedAt                  DateTime            @updatedAt
 
   earningEntries             RiderEarningLedger[]
+  assignments                DeliveryAssignment[]
+  locations                  DeliveryLocation[]
+  statusHistories            DeliveryStatusHistory[]
+  proofs                     DeliveryProof[]
+  incidents                  DeliveryIncident[]
+}
+
+model DeliveryPartnerDocument {
+  id                 String       @id @default(uuid())
+  partnerId          String
+  partner            RiderProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  documentType       String       // DRIVING_LICENCE, PAN, VEHICLE_RC, VEHICLE_INSURANCE
+  documentNumber     String?
+  fileUrl            String
+  mimeType           String
+  fileSizeBytes      Int?
+  verificationStatus String       @default("PENDING") // PENDING, APPROVED, REJECTED
+  verifiedByAdminId  String?
+  rejectionReason    String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
+
+model DeliveryPartnerVehicle {
+  id                     String       @id @default(uuid())
+  partnerId              String
+  partner                RiderProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  vehicleType            String       // BICYCLE, MOTORCYCLE, SCOOTER, EV
+  registrationNumber     String
+  makeModel              String?
+  rcDocumentUrl          String?
+  insurancePolicyNumber  String?
+  insuranceExpiryDate    DateTime?
+  isVerified             Boolean      @default(false)
+  isActive               Boolean      @default(true)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+}
+
+model DeliveryPartnerAvailability {
+  id                 String       @id @default(uuid())
+  partnerId          String
+  partner            RiderProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  isOnline           Boolean
+  shiftStart         DateTime     @default(now())
+  shiftEnd           DateTime?
+  durationMinutes    Int          @default(0)
+  batteryPercentage  Int?
+  networkType        String?
+  latitude           Float?
+  longitude          Float?
+  emergencyReason    String?
+  lastPingAt         DateTime     @default(now())
+}
+
+model DeliveryAssignment {
+  id                     String       @id @default(uuid())
+  taskId                 String
+  task                   DeliveryTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  partnerId              String
+  partner                RiderProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  status                 String       @default("OFFERED") // OFFERED, ACCEPTED, DECLINED, TIMED_OUT, REVOKED
+  offeredAt              DateTime     @default(now())
+  expiresAt              DateTime
+  respondedAt            DateTime?
+  responseLatencySeconds Int?
+  declineReason          String?
+}
+
+model DeliveryLocation {
+  id             String        @id @default(uuid())
+  partnerId      String
+  partner        RiderProfile  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  taskId         String?
+  task           DeliveryTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  latitude       Float
+  longitude      Float
+  accuracyMeters Float?
+  speedKmph      Float?
+  headingDegrees Float?
+  recordedAt     DateTime      @default(now())
+}
+
+model DeliveryStatusHistory {
+  id         String       @id @default(uuid())
+  taskId     String
+  task       DeliveryTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  fromStatus String
+  toStatus   String
+  actorRole  String       // RIDER, ADMIN, SYSTEM, MERCHANT
+  actorId    String?
+  latitude   Float?
+  longitude  Float?
+  notes      String?
+  timestamp  DateTime     @default(now())
+}
+
+model DeliveryProof {
+  id                   String       @id @default(uuid())
+  taskId               String       @unique
+  task                 DeliveryTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  pickupConfirmedAt    DateTime?
+  deliveryConfirmedAt  DateTime?
+  deliveryOtpProvided  String?
+  photoProofUrl        String?
+  signatureUrl         String?
+  recipientNotes       String?
+  createdAt            DateTime     @default(now())
+}
+
+model DeliveryIncident {
+  id              String        @id @default(uuid())
+  taskId          String?
+  task            DeliveryTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  partnerId       String
+  partner         RiderProfile  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  incidentType    String        // CUSTOMER_UNREACHABLE, MERCHANT_DELAY, ADDRESS_INACCURATE, VEHICLE_BREAKDOWN, ACCIDENT, DAMAGED_GOODS, CASH_DISCREPANCY, EMERGENCY_OFFLINE
+  description     String
+  photoUrl        String?
+  status          String        @default("OPEN") // OPEN, INVESTIGATING, RESOLVED, DISMISSED
+  reportedAt      DateTime      @default(now())
+  resolvedAt      DateTime?
+  resolutionNotes String?
+  adminAction     String?
 }
 
 model RiderEarningLedger {
@@ -1072,8 +1212,9 @@ model MerchantApplication {
   referenceNumber            String                      @unique // e.g. "EL-MAPP-1002"
   userId                     String
   user                       User                        @relation("UserMerchantApplications", fields: [userId], references: [id], onDelete: Cascade)
-  status                     String                      @default("DRAFT") // DRAFT, SUBMITTED, UNDER_REVIEW, DOCUMENTS_REQUIRED, APPROVED, REJECTED, SUSPENDED, WITHDRAWN, ACTIVE
+  status                     String                      @default("DRAFT") // DRAFT, CONTACT_VERIFICATION_PENDING, KYC_PENDING, BANK_DETAILS_PENDING, BANK_VERIFICATION_PENDING, STORE_SETUP_PENDING, CATALOGUE_PENDING, SUBMITTED, UNDER_REVIEW, ACTION_REQUIRED, APPROVED, REJECTED, SUSPENDED, ACTIVE
   currentStep                Int                         @default(1)
+  completionPct              Int                         @default(10)
   
   // Step 1: Owner Information
   ownerName                  String
@@ -1104,6 +1245,8 @@ model MerchantApplication {
   latitude                   Float?                      @default(22.7196)
   longitude                  Float?                      @default(75.8577)
   storePhotos                String?                     // Comma-separated or JSON array of image URLs
+  storeLogoUrl               String?
+  storeCoverPhoto            String?
   openingTime                String?                     @default("09:00")
   closingTime                String?                     @default("21:00")
   weeklyClosingDay           String?                     @default("None")
@@ -1121,6 +1264,10 @@ model MerchantApplication {
   fssaiNumber                String?
   drugLicenseNumber          String?
   
+  // Draft Product Catalogue Setup during Onboarding
+  productsCatalogueJson      String?                     // JSON string of preliminary catalogue items added before activation
+  initialProductsCount       Int                         @default(0)
+
   // Commercial Agreement Configuration
   commissionRatePct          Float                       @default(3.5)
   listingFeePaise            Int                         @default(0)
@@ -1151,31 +1298,44 @@ model MerchantDocument {
   id                 String              @id @default(uuid())
   applicationId      String
   application        MerchantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  documentType       String              // PAN_CARD, GST_CERTIFICATE, BUSINESS_REGISTRATION, CANCELLED_CHEQUE, STORE_PHOTO, FSSAI_LICENSE, DRUG_LICENSE, OTHER
+  documentType       String              // PAN_CARD, GST_CERTIFICATE, BUSINESS_REGISTRATION, CANCELLED_CHEQUE, STORE_PHOTO, FSSAI_LICENSE, DRUG_LICENSE, ADDRESS_PROOF, OTHER
   fileName           String
   fileUrl            String
   fileSizeBytes      Int
   mimeType           String
-  verificationStatus String              @default("PENDING") // PENDING, VERIFIED, REJECTED
+  verificationStatus String              @default("PENDING") // NOT_UPLOADED, UPLOADED, UNDER_REVIEW, VERIFIED, REJECTED, RESUBMISSION_REQUIRED
   adminComment       String?
+  rejectionReason    String?
   isProtected        Boolean             @default(true)
   uploadedAt         DateTime            @default(now())
 }
 
 model MerchantBankAccount {
-  id                  String              @id @default(uuid())
-  applicationId       String              @unique
-  application         MerchantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  accountHolderName   String
-  bankName            String
-  accountNumber       String              // Encrypted or restricted bank account number
-  accountNumberMasked String              // Formatted masked string: e.g. "•••• •••• 5678"
-  ifsc                String
-  chequeDocumentUrl   String?
-  verificationStatus  String              @default("PENDING") // PENDING, VERIFIED, REJECTED
-  verifiedAt          DateTime?
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
+  id                          String              @id @default(uuid())
+  applicationId               String              @unique
+  application                 MerchantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  accountHolderName           String
+  bankName                    String
+  branchName                  String?
+  accountType                 String              @default("CURRENT") // SAVINGS, CURRENT
+  accountNumber               String              // Encrypted or restricted bank account number (AES-256-GCM)
+  accountNumberMasked         String              // Formatted masked string: e.g. "•••• •••• 5678"
+  ifsc                        String
+  ownershipDeclaration        Boolean             @default(true)
+  chequeDocumentUrl           String?
+  verificationStatus          String              @default("PENDING") // NOT_ADDED, PENDING, VERIFIED, REJECTED, MANUAL_REVIEW
+  pennyDropRef                String?             // External banking / penny-drop provider reference
+  pennyDropBeneficiaryName    String?             // Beneficiary name returned by bank network
+  pennyDropMatchScore         Float?              // Name match confidence score
+  pennyDropStatus             String              @default("NOT_INITIATED") // NOT_INITIATED, SUCCESS, FAILED, MANUAL_REVIEW
+  verificationMethod          String              @default("AUTOMATED_PENNY_DROP") // AUTOMATED_PENNY_DROP, MANUAL_ADMIN
+  verifiedByAdminId           String?
+  rejectionReason             String?
+  lastReverificationTriggeredAt DateTime?
+  auditTrail                  String?             // JSON string of bank detail change events
+  verifiedAt                  DateTime?
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
 }
 
 model MerchantAgreement {

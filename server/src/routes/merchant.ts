@@ -477,7 +477,16 @@ router.get('/orders/child', requireMerchantTenant, async (req: Request, res: Res
             createdAt: true
           }
         },
-        deliveryTasks: true
+        deliveryTasks: {
+          include: {
+            rider: {
+              include: {
+                user: { select: { name: true, phone: true } },
+                vehicles: { where: { isActive: true }, take: 1 }
+              }
+            }
+          }
+        }
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -591,8 +600,39 @@ router.get('/settlements/statements', requireMerchantTenant, async (req: Request
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
     const liveCalc = await MerchantSettlementEngine.calculateSettlement(storeId, thirtyDaysAgo, now);
 
+    // Fetch verified bank account details for payout display
+    const store = await prisma.store.findUnique({
+      where: { id: storeId },
+      include: {
+        owner: {
+          include: {
+            merchantApplications: {
+              where: { status: { in: ['APPROVED', 'ACTIVE'] } },
+              include: { bankAccount: true },
+              orderBy: { createdAt: 'desc' },
+              take: 1
+            }
+          }
+        }
+      }
+    });
+
+    const bankAccount = store?.owner.merchantApplications[0]?.bankAccount || null;
+
     res.json({
       currentUnsettled: liveCalc,
+      settlementCycle: 'T+1 (Next Business Day)',
+      payoutBank: bankAccount
+        ? {
+            bankName: bankAccount.bankName,
+            branchName: bankAccount.branchName,
+            accountHolderName: bankAccount.accountHolderName,
+            accountNumberMasked: bankAccount.accountNumberMasked,
+            ifsc: bankAccount.ifsc,
+            verificationStatus: bankAccount.verificationStatus,
+            pennyDropStatus: bankAccount.pennyDropStatus
+          }
+        : null,
       statements
     });
   } catch (error: any) {
