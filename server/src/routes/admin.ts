@@ -6,6 +6,7 @@ import { FinancialEngine } from '../core/finance';
 import { ProductImageValidator } from '../core/productImageValidator';
 import { MerchantSettlementEngine } from '../core/merchantSettlementEngine';
 import { BankVerificationService } from '../core/bankVerificationService';
+import { resolveProductImage } from '../utils/productImageFallback';
 
 const router = Router();
 
@@ -638,6 +639,7 @@ router.post('/onboarding/applications/:id/action', async (req: Request, res: Res
                 where: { storeId: store.id, name: item.name }
               });
               if (!existingProd) {
+                const fallbackImg = resolveProductImage(item.name, item.category || store.category, item.imageUrl);
                 await prisma.product.create({
                   data: {
                     storeId: store.id,
@@ -647,7 +649,7 @@ router.post('/onboarding/applications/:id/action', async (req: Request, res: Res
                     mrpPaise: item.mrpPaise || item.pricePaise || 12000,
                     stock: item.stock !== undefined ? parseInt(item.stock, 10) : 50,
                     isAvailable: true,
-                    imageUrl: item.imageUrl || null
+                    imageUrl: fallbackImg
                   }
                 });
               }

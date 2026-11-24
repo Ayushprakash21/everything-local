@@ -205,6 +205,8 @@ router.get('/catalogue/search', requireMerchantTenant, async (req: Request, res:
 });
 
 // 5. Add Product
+import { resolveProductImage } from '../utils/productImageFallback';
+
 const ProductSchema = z.object({
   name: z.string().min(2),
   description: z.string().optional(),
@@ -230,9 +232,12 @@ router.post('/products', requireMerchantTenant, async (req: Request, res: Respon
       return;
     }
 
+    const resolvedImage = resolveProductImage(parse.data.name, parse.data.category, parse.data.imageUrl);
+
     const product = await prisma.product.create({
       data: {
         ...parse.data,
+        imageUrl: resolvedImage,
         storeId: req.user!.storeId!
       }
     });

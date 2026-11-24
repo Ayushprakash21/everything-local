@@ -68,5 +68,40 @@ ENVIRONMENT = "development"
 CITY = "Indore"
 COMMISSION_RATE_PCT = "3.5"
 JWT_EXPIRY = "7d"
-JWT_SECRET = "everybazaar_dev_indore_jwt_secret_token_2026_secured_key"
 CORS_ORIGIN = "*"
+
+# ==============================================================================
+# STAGING ENVIRONMENT (EveryBazaar Staging Worker)
+# Worker: everybazaar-api-staging
+# Expected URL: https://everybazaar-api-staging.everything-local.workers.dev
+# Provisioning: npx wrangler d1 create everybazaar-staging-db
+#               npx wrangler r2 bucket create everybazaar-staging-media
+#               npx wrangler kv:namespace create everybazaar-staging-kv
+# ==============================================================================
+[env.staging]
+name = "everybazaar-api-staging"
+main = "server/src/worker.ts"
+compatibility_date = "2026-10-19"
+compatibility_flags = ["nodejs_compat"]
+account_id = "6ab31e6d677b2f74c2b27f217c2f4c9c"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "everybazaar-staging-db"
+database_id = "everybazaar-staging-db-unprovisioned"
+migrations_dir = "d1-migrations"
+
+[[env.staging.r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "everybazaar-staging-media"
+
+[[env.staging.kv_namespaces]]
+binding = "CACHE_KV"
+id = "everybazaar-staging-kv-unprovisioned"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+CITY = "Indore"
+COMMISSION_RATE_PCT = "3.5"
+JWT_EXPIRY = "7d"
+CORS_ORIGIN = "https://everybazaar-staging-web.everything-local.workers.dev"

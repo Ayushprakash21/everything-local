@@ -10,6 +10,7 @@ backups/
 .env
 .env*
 .env.*
+.dev.vars*
 *.log
 *.baseline-backup
 *.release-candidate-backup
