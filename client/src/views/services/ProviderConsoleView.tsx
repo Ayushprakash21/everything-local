@@ -46,6 +46,7 @@ export const ProviderConsoleView: React.FC<ProviderConsoleViewProps> = ({ openAu
   const [activeTab, setActiveTab] = useState<'BOOKINGS' | 'SERVICES' | 'STAFF' | 'EARNINGS'>('BOOKINGS');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [authError, setAuthError] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [isDemoSubmitting, setIsDemoSubmitting] = useState(false);
 
   // Add Service Modal State
@@ -61,17 +62,25 @@ export const ProviderConsoleView: React.FC<ProviderConsoleViewProps> = ({ openAu
   // Status Update State
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const fetchConsoleData = async () => {
-    if (!user) {
+  const fetchConsoleData = async (explicitUser?: any) => {
+    const currentUser = explicitUser !== undefined ? explicitUser : user;
+    const token = localStorage.getItem('el_token');
+
+    if (!currentUser && !token) {
       setLoading(false);
+      setData(null);
       return;
     }
+
     setLoading(true);
+    setFetchError(null);
     try {
       const res = await request<any>('/services/provider/console');
       setData(res);
-    } catch (err) {
+      setFetchError(null);
+    } catch (err: any) {
       console.error('Provider console fetch error:', err);
+      setFetchError(err.message || 'No service provider profile registered for this account');
       setData(null);
     } finally {
       setLoading(false);
@@ -135,19 +144,34 @@ export const ProviderConsoleView: React.FC<ProviderConsoleViewProps> = ({ openAu
 
   const handleDemoLogin = async (email: string) => {
     setAuthError(null);
+    setFetchError(null);
     setIsDemoSubmitting(true);
+    setLoading(true);
     try {
-      await login(email, 'Password@123');
-      await fetchConsoleData();
+      const loggedInUser = await login(email, 'Password@123');
+      // Pass the newly authenticated user explicitly to avoid stale React closure
+      await fetchConsoleData(loggedInUser);
     } catch (err: any) {
       console.error('Demo partner login error:', err);
-      setAuthError(err.message || 'Demo login failed. Please verify network or credentials.');
+      setAuthError(err.message || 'Demo login failed. Please verify credentials or connection.');
+      setLoading(false);
     } finally {
       setIsDemoSubmitting(false);
     }
   };
 
-  // Not signed in state
+  // 1. Loading state (during login transition or initial data fetch)
+  if (loading || isDemoSubmitting) {
+    return (
+      <div className="py-24 text-center">
+        <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-sm text-slate-700 font-bold">Connecting to Service Partner Console...</p>
+        <p className="text-xs text-slate-400 mt-1">Verifying credentials and synchronizing store metrics</p>
+      </div>
+    );
+  }
+
+  // 2. Not signed in state
   if (!user) {
     return (
       <div className="max-w-md mx-auto px-4 py-20 text-center">
@@ -168,7 +192,7 @@ export const ProviderConsoleView: React.FC<ProviderConsoleViewProps> = ({ openAu
 
         <div className="space-y-3">
           <button
-            onClick={() => handleDemoLogin('quickfix.electric@everythinglocal.in')}
+            onClick={() => handleDemoLogin('quickfix.indore@everythinglocal.in')}
             disabled={isDemoSubmitting}
             className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold py-3 px-4 rounded-xl text-xs transition flex items-center justify-between shadow-xs"
           >
@@ -196,8 +220,8 @@ export const ProviderConsoleView: React.FC<ProviderConsoleViewProps> = ({ openAu
     );
   }
 
-  // Not a provider registered state
-  if (!loading && !data) {
+  // 3. User authenticated but no service partner profile found
+  if (!data) {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -208,6 +232,16 @@ export const ProviderConsoleView: React.FC<ProviderConsoleViewProps> = ({ openAu
           The current account (<span className="font-semibold text-slate-800">{user.email}</span>) is not registered as a service provider yet. Switch to our pre-seeded Indore service providers below to view the verified partner console:
         </p>
 
+        {fetchError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center gap-2 text-left">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+            <div>
+              <span className="font-bold">API Notice: </span>
+              <span>{fetchError}</span>
+            </div>
+          </div>
+        )}
+
         {authError && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center gap-2 text-left">
             <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
@@ -217,7 +251,7 @@ export const ProviderConsoleView: React.FC<ProviderConsoleViewProps> = ({ openAu
 
         <div className="space-y-3">
           <button
-            onClick={() => handleDemoLogin('quickfix.electric@everythinglocal.in')}
+            onClick={() => handleDemoLogin('quickfix.indore@everythinglocal.in')}
             disabled={isDemoSubmitting}
             className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold py-3 px-4 rounded-xl text-xs transition flex items-center justify-between shadow-xs"
           >
@@ -244,15 +278,6 @@ export const ProviderConsoleView: React.FC<ProviderConsoleViewProps> = ({ openAu
             </button>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (loading || !data) {
-    return (
-      <div className="py-20 text-center">
-        <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-xs text-slate-500 font-semibold">Loading partner console...</p>
       </div>
     );
   }
@@ -656,7 +681,7 @@ export const ProviderConsoleView: React.FC<ProviderConsoleViewProps> = ({ openAu
                     <h4 className="text-sm font-black text-slate-900">{s.name}</h4>
                     <p className="text-xs text-slate-500">{s.role}</p>
                     <span className="text-[10px] font-bold text-amber-700">
-                      {s.experienceYears} Years Experience
+                      {s.experienceYears ? `${s.experienceYears} Years Experience` : 'Verified Specialist'}
                     </span>
                   </div>
                 </div>

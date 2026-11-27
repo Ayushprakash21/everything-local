@@ -1370,6 +1370,10 @@ app.get('/api/services/provider/console', authMiddleware, async (c) => {
   const prisma = c.get('prisma');
   const userId = user.userId || user.id;
 
+  if (user.role !== 'MERCHANT' && user.role !== 'PROVIDER' && user.role !== 'ADMIN') {
+    return c.json({ error: 'Access denied: Partner console is restricted to registered service providers' }, 403);
+  }
+
   try {
     const provider = await prisma.serviceProvider.findFirst({
       where: {
