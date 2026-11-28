@@ -73,7 +73,7 @@ export const AppsPortalView: React.FC<AppsPortalViewProps> = ({ onBackHome }) =>
                 <Smartphone className="w-3.5 h-3.5" />
                 <span>EveryBazaar App Download Centre • Official Android Builds</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
                 EveryBazaar in Your Pocket
               </h1>
               <p className="text-sm sm:text-base text-slate-300 mt-2.5 max-w-2xl">
