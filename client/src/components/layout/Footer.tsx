@@ -165,6 +165,22 @@ export const Footer: React.FC<FooterProps> = ({
                   Partner with Us
                 </button>
               </li>
+              <li>
+                <button
+                  onClick={(e) => handleLinkClick(e, '/wholesale')}
+                  className="hover:text-amber-600 transition-colors text-left cursor-pointer font-semibold text-slate-800"
+                >
+                  Wholesale Marketplace
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={(e) => handleLinkClick(e, '/apps')}
+                  className="hover:text-amber-600 transition-colors text-left cursor-pointer font-semibold text-amber-700"
+                >
+                  Download Apps
+                </button>
+              </li>
             </ul>
           </div>
 

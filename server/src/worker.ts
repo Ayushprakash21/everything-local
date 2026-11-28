@@ -4,6 +4,8 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaD1 } from '@prisma/adapter-d1';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { wholesaleRouter } from './workerRoutes/wholesale';
+import { publicAppsRouter, adminAppReleasesRouter } from './workerRoutes/appReleases';
 
 declare type D1Database = any;
 declare type R2Bucket = any;
@@ -1654,8 +1656,8 @@ app.get('/media/public/*', async (c) => {
 // Serve Private KYC from R2 (Strict Tenant Isolated Access)
 app.get('/media/kyc/*', authMiddleware, async (c) => {
   const user = c.get('user')!;
-  // Check authorization: only ADMIN or MERCHANT role allowed
-  if (user.role !== 'ADMIN' && user.role !== 'MERCHANT') {
+  // Check authorization: only ADMIN, MERCHANT, or WHOLESALER role allowed
+  if (user.role !== 'ADMIN' && user.role !== 'MERCHANT' && user.role !== 'WHOLESALER') {
     return c.text('Forbidden: Unauthorized KYC Access', 403);
   }
 
@@ -1716,5 +1718,10 @@ app.get('/media/prescriptions/*', authMiddleware, async (c) => {
 
   return new Response(object.body, { headers });
 });
+
+// Mount Wholesale Marketplace & App Download Centre Routers
+app.route('/api/wholesale', wholesaleRouter);
+app.route('/api/apps', publicAppsRouter);
+app.route('/api/admin/app-releases', adminAppReleasesRouter);
 
 export default app;

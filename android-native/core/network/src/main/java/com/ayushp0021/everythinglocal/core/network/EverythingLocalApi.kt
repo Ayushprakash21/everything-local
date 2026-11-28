@@ -175,4 +175,59 @@ interface EverythingLocalApi {
 
     @GET("delivery-partner/settlements")
     suspend fun getDeliverySettlements(): DeliverySettlementsResponse
+
+    // --- Wholesale Marketplace & Wholesaler Endpoints ---
+    @GET("wholesale/categories")
+    suspend fun getWholesaleCategories(): WholesaleCategoriesResponse
+
+    @GET("wholesale/products")
+    suspend fun getWholesaleProducts(
+        @Query("q") q: String? = null,
+        @Query("categoryId") categoryId: String? = null
+    ): WholesaleProductsResponse
+
+    @GET("wholesale/cart")
+    suspend fun getWholesaleCart(): WholesaleCartResponse
+
+    @POST("wholesale/cart/items")
+    suspend fun addToWholesaleCart(@Body body: WholesaleCartAddRequest): WholesaleActionResponse
+
+    @POST("wholesale/orders/checkout")
+    suspend fun checkoutWholesale(@Body body: WholesaleCheckoutRequest): WholesaleOrdersResponse
+
+    @GET("wholesale/orders")
+    suspend fun getWholesaleBuyerOrders(): WholesaleOrdersResponse
+
+    @POST("wholesale/rfqs")
+    suspend fun submitWholesaleRfq(@Body body: WholesaleRfqCreateRequest): WholesaleActionResponse
+
+    @GET("wholesale/rfqs")
+    suspend fun getWholesaleBuyerRfqs(): WholesaleRfqsResponse
+
+    @POST("wholesale/quotations/{id}/accept")
+    suspend fun acceptWholesaleQuotation(@Path("id") quotationId: String): WholesaleActionResponse
+
+    @POST("wholesale/onboarding/register")
+    suspend fun registerWholesaler(@Body body: Map<String, String>): WholesaleActionResponse
+
+    @GET("wholesale/console/overview")
+    suspend fun getWholesalerConsoleOverview(): WholesalerConsoleOverviewResponse
+
+    @POST("wholesale/console/products")
+    suspend fun createWholesaleProduct(@Body body: WholesaleProductCreateRequest): WholesaleActionResponse
+
+    @PATCH("wholesale/console/orders/{id}/status")
+    suspend fun updateWholesaleOrderStatus(
+        @Path("id") orderId: String,
+        @Body body: Map<String, String>
+    ): WholesaleActionResponse
+
+    @POST("wholesale/console/rfqs/{id}/quote")
+    suspend fun submitWholesalerQuote(
+        @Path("id") rfqId: String,
+        @Body body: WholesaleQuoteCreateRequest
+    ): WholesaleActionResponse
+
+    @POST("wholesale/warehouses")
+    suspend fun createWholesaleWarehouse(@Body body: Map<String, String>): WholesaleActionResponse
 }

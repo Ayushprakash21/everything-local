@@ -31,8 +31,8 @@ import {
 } from 'lucide-react';
 
 interface NavbarProps {
-  discoveryMode: 'shop' | 'services' | 'pharmacy' | 'rider';
-  setDiscoveryMode: (mode: 'shop' | 'services' | 'pharmacy' | 'rider') => void;
+  discoveryMode: 'shop' | 'services' | 'pharmacy' | 'rider' | 'wholesale';
+  setDiscoveryMode: (mode: 'shop' | 'services' | 'pharmacy' | 'rider' | 'wholesale') => void;
   currentTab: 'customer' | 'merchant' | 'admin' | 'orders';
   setCurrentTab: (tab: 'customer' | 'merchant' | 'admin' | 'orders') => void;
   servicesTab: 'explore' | 'bookings' | 'provider';
@@ -49,6 +49,8 @@ interface NavbarProps {
   openCommunity?: () => void;
   onNavigateHome?: () => void;
   onNavigateAbout?: () => void;
+  onNavigateApps?: () => void;
+  onNavigateWholesale?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -69,7 +71,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   openHousehold,
   openCommunity,
   onNavigateHome,
-  onNavigateAbout
+  onNavigateAbout,
+  onNavigateApps,
+  onNavigateWholesale
 }) => {
   const { user, logout } = useAuth();
   const {
@@ -238,6 +242,30 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Bike className="w-3.5 h-3.5" />
               <span>Delivery Partner</span>
             </button>
+
+            <button
+              onClick={() => {
+                if (onNavigateWholesale) onNavigateWholesale();
+                else setDiscoveryMode('wholesale');
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                discoveryMode === 'wholesale'
+                  ? 'bg-[#0B1F3B] text-amber-400 shadow-xs'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/50'
+              }`}
+            >
+              <Briefcase className="w-3.5 h-3.5" />
+              <span>WHOLESALE</span>
+            </button>
+
+            {onNavigateApps && (
+              <button
+                onClick={onNavigateApps}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-black text-indigo-700 hover:bg-indigo-50 transition-all"
+              >
+                <span>Download Apps</span>
+              </button>
+            )}
           </nav>
 
           {/* --- RIGHT: LOCATION, SEARCH, NOTIFICATIONS, CART, ACCOUNT --- */}

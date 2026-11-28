@@ -89,6 +89,17 @@ fun CustomerApp(viewModel: CustomerViewModel) {
                         )
                     )
                     NavigationBarItem(
+                        icon = { Icon(Icons.Default.Storefront, contentDescription = "Wholesale") },
+                        label = { Text("Wholesale") },
+                        selected = currentRoute == "wholesale",
+                        onClick = { navController.navigate("wholesale") },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = ForestGreen,
+                            selectedTextColor = ForestGreen,
+                            indicatorColor = ForestGreenLight
+                        )
+                    )
+                    NavigationBarItem(
                         icon = { Icon(Icons.Default.ReceiptLong, contentDescription = "Orders") },
                         label = { Text("Orders") },
                         selected = currentRoute == "orders",
@@ -145,6 +156,14 @@ fun CustomerApp(viewModel: CustomerViewModel) {
             }
             composable("orders") {
                 OrdersScreen(viewModel = viewModel)
+            }
+            composable("wholesale") {
+                val ctx = androidx.compose.ui.platform.LocalContext.current
+                val sessionMgr = remember { com.ayushp0021.everythinglocal.core.authentication.SessionManager(ctx) }
+                WholesaleBuyerScreen(
+                    tokenProvider = { kotlinx.coroutines.runBlocking { sessionMgr.getToken() } },
+                    apiBaseUrl = com.ayushp0021.everythinglocal.BuildConfig.API_BASE_URL
+                )
             }
             composable("profile") {
                 ProfileScreen(viewModel = viewModel)

@@ -13,7 +13,7 @@ model User {
   phone        String?           @unique
   name         String
   passwordHash String
-  role         String            @default("CUSTOMER") // CUSTOMER, MERCHANT, ADMIN
+  role         String            @default("CUSTOMER") // CUSTOMER, MERCHANT, WHOLESALER, ADMIN, PHARMACIST, PROVIDER
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 
@@ -38,6 +38,11 @@ model User {
   householdMemberships HouseholdMember[]
   loyaltyAccount   LoyaltyAccount?
   merchantApplications MerchantApplication[] @relation("UserMerchantApplications")
+
+  wholesalerProfile      WholesalerProfile?
+  wholesaleOrders        WholesaleOrder[]            @relation("BuyerWholesaleOrders")
+  wholesaleRfqRequests   WholesaleQuotationRequest[] @relation("BuyerRfqRequests")
+  wholesaleCartItems     WholesaleCartItem[]
 }
 
 model Store {
@@ -1509,3 +1514,339 @@ model MerchantOnboardingHistory {
 
 
 
+
+// ============================================================================
+// PART A & D: WHOLESALE MARKETPLACE MODELS
+// ============================================================================
+
+model WholesaleCategory {
+  id          String              @id @default(uuid())
+  name        String
+  slug        String              @unique
+  description String?
+  icon        String?
+  imageUrl    String?
+  parentId    String?
+  parent      WholesaleCategory?  @relation("WholesaleCatHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children    WholesaleCategory[] @relation("WholesaleCatHierarchy")
+  sortOrder   Int                 @default(0)
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  products    WholesaleProduct[]  @relation("WholesaleProdCat")
+  subProducts WholesaleProduct[]  @relation("WholesaleProdSubcat")
+
+  @@index([parentId])
+  @@index([isActive, sortOrder])
+}
+
+model WholesalerProfile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName       String
+  legalBusinessName  String
+  slug               String   @unique
+  businessType       String   @default("WHOLESALER") // MANUFACTURER, DISTRIBUTOR, IMPORTER, WHOLESALER, STOCKIST
+  hasGst             Boolean  @default(false)
+  gstin              String?
+  panNumber          String?
+  businessAddress    String
+  city               String   @default("Indore")
+  state              String   @default("Madhya Pradesh")
+  pincode            String
+  contactName        String
+  contactPhone       String
+  contactEmail       String
+  serviceableRegions String   @default("[]") // JSON array
+  paymentPreferences String   @default("[]") // JSON array
+  documentsJson      String   @default("[]") // JSON array of private KYC document keys/metadata
+  verificationStatus String   @default("PENDING") // PENDING, UNDER_REVIEW, APPROVED, REJECTED, SUSPENDED
+  isVerified         Boolean  @default(false)
+  rejectionReason    String?
+  adminNotes         String?
+  approvedBy         String?
+  approvedAt         DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  warehouses  WholesaleWarehouse[]
+  products    WholesaleProduct[]
+  orders      WholesaleOrder[]
+  rfqRequests WholesaleQuotationRequest[]
+  quotations  WholesaleQuotation[]
+
+  @@index([verificationStatus])
+  @@index([city])
+}
+
+model WholesaleWarehouse {
+  id           String            @id @default(uuid())
+  wholesalerId String
+  wholesaler   WholesalerProfile @relation(fields: [wholesalerId], references: [id], onDelete: Cascade)
+  name         String
+  addressLine  String
+  city         String
+  state        String
+  pincode      String
+  contactPhone String?
+  isDefault    Boolean           @default(false)
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  products     WholesaleProduct[]
+  inventories  WholesaleInventory[]
+
+  @@index([wholesalerId])
+}
+
+model WholesaleProduct {
+  id                  String              @id @default(uuid())
+  wholesalerId        String
+  wholesaler          WholesalerProfile   @relation(fields: [wholesalerId], references: [id], onDelete: Cascade)
+  categoryId          String
+  category            WholesaleCategory   @relation("WholesaleProdCat", fields: [categoryId], references: [id])
+  subcategoryId       String?
+  subcategory         WholesaleCategory?  @relation("WholesaleProdSubcat", fields: [subcategoryId], references: [id], onDelete: SetNull)
+  warehouseId         String?
+  warehouse           WholesaleWarehouse? @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
+  title               String
+  slug                String              @unique
+  brand               String?
+  description         String
+  mainImageUrl        String
+  galleryImagesJson   String              @default("[]")
+  specificationsJson  String              @default("{}")
+  sku                 String
+  hsnCode             String?
+  unitOfMeasurement   String              @default("pieces") // pieces, kg, units, cartons, boxes, litres, packs
+  packageSize         String?
+  moq                 Int                 @default(10)
+  basePricePaise      Int
+  listingType         String              @default("TIERED") // FIXED, TIERED, RFQ, NEGOTIABLE, MADE_TO_ORDER
+  dispatchTime        String              @default("24-48 Hours")
+  shippingRegionsJson String              @default("[]")
+  taxClassification   String              @default("GST_5") // GST_0, GST_5, GST_12, GST_18, GST_28, EXEMPT
+  status              String              @default("ACTIVE") // DRAFT, ACTIVE, INACTIVE, ARCHIVED
+  approvalStatus      String              @default("PENDING") // PENDING, APPROVED, REJECTED, MODERATED
+  moderationReason    String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  priceTiers  WholesalePriceTier[]
+  inventories WholesaleInventory[]
+  orderItems  WholesaleOrderItem[]
+  rfqRequests WholesaleQuotationRequest[]
+  cartItems   WholesaleCartItem[]
+
+  @@index([wholesalerId])
+  @@index([categoryId])
+  @@index([approvalStatus, status])
+}
+
+model WholesalePriceTier {
+  id         String           @id @default(uuid())
+  productId  String
+  product    WholesaleProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  minQty     Int
+  maxQty     Int?             // null means minQty+
+  pricePaise Int
+  createdAt  DateTime         @default(now())
+
+  @@index([productId, minQty])
+}
+
+model WholesaleInventory {
+  id                String              @id @default(uuid())
+  productId         String
+  product           WholesaleProduct    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  warehouseId       String?
+  warehouse         WholesaleWarehouse? @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
+  availableQty      Int                 @default(0)
+  reservedQty       Int                 @default(0)
+  lowStockThreshold Int                 @default(20)
+  updatedAt         DateTime            @updatedAt
+
+  @@unique([productId, warehouseId])
+  @@index([productId])
+}
+
+model WholesaleCartItem {
+  id        String           @id @default(uuid())
+  buyerId   String
+  buyer     User             @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  productId String
+  product   WholesaleProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([buyerId, productId])
+  @@index([buyerId])
+}
+
+model WholesaleOrder {
+  id                  String            @id @default(uuid())
+  orderNumber         String            @unique
+  buyerId             String
+  buyer               User              @relation("BuyerWholesaleOrders", fields: [buyerId], references: [id])
+  wholesalerId        String
+  wholesaler          WholesalerProfile @relation(fields: [wholesalerId], references: [id])
+  quotationId         String?
+  status              String            @default("PENDING_PAYMENT") // PENDING_PAYMENT, PAID, CONFIRMED, PROCESSING, READY_TO_DISPATCH, DISPATCHED, IN_TRANSIT, DELIVERED, CANCELLED, REFUNDED, DISPUTED
+  paymentStatus       String            @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  paymentMethod       String            @default("ONLINE") // ONLINE, BANK_TRANSFER, UPI, CREDIT_TERMS
+  fulfillmentMethod   String            @default("TRANSPORTER") // COURIER, TRANSPORTER, SELLER_ARRANGED, SELF_PICKUP
+  subtotalPaise       Int
+  taxPaise            Int               @default(0)
+  shippingPaise       Int               @default(0)
+  discountPaise       Int               @default(0)
+  totalPaise          Int
+  shippingAddressJson String
+  invoiceNumber       String?
+  notes               String?
+  cancellationReason  String?
+  auditHistoryJson    String            @default("[]")
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  items     WholesaleOrderItem[]
+  shipments WholesaleShipment[]
+
+  @@index([buyerId])
+  @@index([wholesalerId])
+  @@index([status])
+}
+
+model WholesaleOrderItem {
+  id                   String           @id @default(uuid())
+  orderId              String
+  order                WholesaleOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId            String
+  product              WholesaleProduct @relation(fields: [productId], references: [id])
+  productTitle         String
+  sku                  String
+  unitOfMeasurement    String
+  quantity             Int
+  agreedUnitPricePaise Int
+  tierAppliedJson      String?
+  taxRatePct           Float            @default(5.0)
+  taxPaise             Int              @default(0)
+  lineTotalPaise       Int
+
+  @@index([orderId])
+}
+
+model WholesaleQuotationRequest {
+  id                   String            @id @default(uuid())
+  rfqNumber            String            @unique
+  buyerId              String
+  buyer                User              @relation("BuyerRfqRequests", fields: [buyerId], references: [id])
+  wholesalerId         String
+  wholesaler           WholesalerProfile @relation(fields: [wholesalerId], references: [id])
+  productId            String
+  product              WholesaleProduct  @relation(fields: [productId], references: [id])
+  requestedQty         Int
+  deliveryCity         String
+  deliveryState        String
+  deliveryPincode      String
+  deliveryAddress      String
+  expectedDeliveryDate String?
+  requirements         String?
+  status               String            @default("OPEN") // OPEN, QUOTED, ACCEPTED, REJECTED, EXPIRED, CONVERTED_TO_ORDER
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  quotations WholesaleQuotation[]
+
+  @@index([buyerId])
+  @@index([wholesalerId])
+  @@index([status])
+}
+
+model WholesaleQuotation {
+  id                   String                    @id @default(uuid())
+  rfqId                String
+  rfq                  WholesaleQuotationRequest @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  wholesalerId         String
+  wholesaler           WholesalerProfile         @relation(fields: [wholesalerId], references: [id])
+  quotedUnitPricePaise Int
+  quotedQty            Int
+  deliveryChargePaise  Int                       @default(0)
+  taxPaise             Int                       @default(0)
+  totalPaise           Int
+  validUntil           DateTime
+  termsAndConditions   String?
+  notes                String?
+  status               String                    @default("SUBMITTED") // SUBMITTED, ACCEPTED, REJECTED, EXPIRED, CONVERTED
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+
+  @@index([rfqId])
+  @@index([wholesalerId])
+}
+
+model WholesaleShipment {
+  id                  String         @id @default(uuid())
+  orderId             String
+  order               WholesaleOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  fulfillmentMethod   String         @default("TRANSPORTER") // COURIER, TRANSPORTER, SELLER_ARRANGED
+  carrierName         String?
+  trackingNumber      String?
+  lrNumber            String?
+  vehicleDetails      String?
+  dispatchedAt        DateTime?
+  estimatedDeliveryAt DateTime?
+  deliveredAt         DateTime?
+  status              String         @default("PREPARING") // PREPARING, DISPATCHED, IN_TRANSIT, DELIVERED
+  notes               String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  @@index([orderId])
+}
+
+// ============================================================================
+// PART C: EVERYBAZAAR APP DOWNLOAD CENTRE & RELEASE MANAGEMENT
+// ============================================================================
+
+model AppRelease {
+  id                String             @id @default(uuid())
+  appType           String             // CUSTOMER, SELLER, DELIVERY_PARTNER, WHOLESALER
+  appName           String
+  versionName       String
+  versionCode       Int
+  releaseNotes      String
+  objectKey         String
+  fileSizeBytes     Int
+  sha256Checksum    String?
+  minAndroidVersion String?            @default("7.0 (API 24)")
+  status            String             @default("DRAFT") // DRAFT, PUBLISHED, UNPUBLISHED, ARCHIVED
+  isLatest          Boolean            @default(false)
+  visibility        String             @default("PUBLIC") // PUBLIC, INTERNAL
+  downloadCount     Int                @default(0)
+  publishedAt       DateTime?
+  uploadedBy        String
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  downloadEvents    AppDownloadEvent[]
+
+  @@unique([appType, versionCode])
+  @@index([appType, status, isLatest])
+}
+
+model AppDownloadEvent {
+  id           String     @id @default(uuid())
+  releaseId    String
+  release      AppRelease @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  appType      String
+  clientIpHash String?
+  userAgent    String?
+  downloadedAt DateTime   @default(now())
+
+  @@index([releaseId, downloadedAt])
+  @@index([appType, downloadedAt])
+}

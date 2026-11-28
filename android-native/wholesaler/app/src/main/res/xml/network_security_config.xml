@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Release default: Enforce strict TLS/HTTPS for all network traffic -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Production and Staging backend domains -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">everythinglocal.in</domain>
+        <domain includeSubdomains="true">api.everythinglocal.in</domain>
+        <domain includeSubdomains="true">staging-api.everythinglocal.in</domain>
+    </domain-config>
+</network-security-config>

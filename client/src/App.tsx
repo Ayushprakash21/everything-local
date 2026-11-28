@@ -30,6 +30,9 @@ import { RiderAppView } from './views/rider/RiderAppView';
 import { HouseholdView } from './views/customer/HouseholdView';
 import { CommunityDealsView } from './views/customer/CommunityDealsView';
 import { AboutUsView } from './views/about/AboutUsView';
+import { WholesaleMarketplaceView } from './views/wholesale/WholesaleMarketplaceView';
+import { WholesalerConsoleView } from './views/wholesale/WholesalerConsoleView';
+import { AppsPortalView } from './views/apps/AppsPortalView';
 import { AIAssistantModal } from './components/AIAssistantModal';
 import { BrandLogo } from './components/BrandLogo';
 import { Footer } from './components/layout/Footer';
@@ -55,8 +58,21 @@ function MainLayout() {
   const { user } = useAuth();
   const { selectedLocation, setIsLocationModalOpen } = useLocation();
 
-  // Primary Ecosystem Discovery Mode: 'shop' vs 'services' vs 'pharmacy' vs 'rider'
-  const [discoveryMode, setDiscoveryMode] = useState<'shop' | 'services' | 'pharmacy' | 'rider'>('shop');
+  // Primary Ecosystem Discovery Mode: 'shop' vs 'services' vs 'pharmacy' vs 'rider' vs 'wholesale'
+  const [discoveryMode, setDiscoveryMode] = useState<'shop' | 'services' | 'pharmacy' | 'rider' | 'wholesale'>(() => {
+    if (typeof window !== 'undefined' && window.location.pathname.toLowerCase().startsWith('/wholesale')) {
+      return 'wholesale';
+    }
+    return 'shop';
+  });
+  const [wholesaleViewMode, setWholesaleViewMode] = useState<'marketplace' | 'console' | 'onboarding'>(() => {
+    if (typeof window !== 'undefined') {
+      const p = window.location.pathname.toLowerCase();
+      if (p.includes('/wholesale/console')) return 'console';
+      if (p.includes('/wholesale/onboarding')) return 'onboarding';
+    }
+    return 'marketplace';
+  });
   const [customerSubView, setCustomerSubView] = useState<'home' | 'household' | 'community'>('home');
   const [isAIOpen, setIsAIOpen] = useState<boolean>(false);
 
@@ -88,10 +104,12 @@ function MainLayout() {
   const [isCategoriesSheetOpen, setIsCategoriesSheetOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Support real URL path routing (e.g. /about-us) & hash navigation
-  const [currentRoute, setCurrentRoute] = useState<'main' | 'about'>(() => {
+  // Support real URL path routing (e.g. /about-us, /wholesale, /apps) & hash navigation
+  const [currentRoute, setCurrentRoute] = useState<'main' | 'about' | 'apps'>(() => {
     if (typeof window !== 'undefined') {
-      return window.location.pathname.toLowerCase().startsWith('/about-us') ? 'about' : 'main';
+      const p = window.location.pathname.toLowerCase();
+      if (p.startsWith('/about-us')) return 'about';
+      if (p.startsWith('/apps')) return 'apps';
     }
     return 'main';
   });
@@ -115,6 +133,16 @@ function MainLayout() {
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
+    } else if (targetPath === '/apps' || targetPath.startsWith('/apps')) {
+      setCurrentRoute('apps');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (targetPath === '/wholesale' || targetPath.startsWith('/wholesale')) {
+      setCurrentRoute('main');
+      setDiscoveryMode('wholesale');
+      if (targetPath.includes('/console')) setWholesaleViewMode('console');
+      else if (targetPath.includes('/onboarding')) setWholesaleViewMode('onboarding');
+      else setWholesaleViewMode('marketplace');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       setCurrentRoute('main');
       if (hashPart) {
@@ -153,6 +181,14 @@ function MainLayout() {
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 80);
         }
+      } else if (pathname === '/apps' || pathname.startsWith('/apps')) {
+        setCurrentRoute('apps');
+      } else if (pathname === '/wholesale' || pathname.startsWith('/wholesale')) {
+        setCurrentRoute('main');
+        setDiscoveryMode('wholesale');
+        if (pathname.includes('/console')) setWholesaleViewMode('console');
+        else if (pathname.includes('/onboarding')) setWholesaleViewMode('onboarding');
+        else setWholesaleViewMode('marketplace');
       } else {
         setCurrentRoute('main');
         if (hash.includes('merchant')) {
@@ -254,6 +290,8 @@ function MainLayout() {
         }}
         onNavigateHome={() => navigateTo('/')}
         onNavigateAbout={() => navigateTo('/about-us')}
+        onNavigateApps={() => navigateTo('/apps')}
+        onNavigateWholesale={() => navigateTo('/wholesale')}
         searchQuery={searchQuery}
         setSearchQuery={(q) => {
           setSearchQuery(q);
@@ -273,6 +311,22 @@ function MainLayout() {
             onNavigateHome={() => navigateTo('/')}
             onNavigateMerchant={() => navigateTo('/#merchant')}
           />
+        ) : currentRoute === 'apps' ? (
+          <AppsPortalView onBackHome={() => navigateTo('/')} />
+        ) : discoveryMode === 'wholesale' ? (
+          wholesaleViewMode === 'marketplace' ? (
+            <WholesaleMarketplaceView
+              openAuth={() => setIsAuthOpen(true)}
+              onOpenConsole={() => navigateTo('/wholesale/console')}
+              onOpenOnboarding={() => navigateTo('/wholesale/onboarding')}
+            />
+          ) : (
+            <WholesalerConsoleView
+              openAuth={() => setIsAuthOpen(true)}
+              onBackToMarketplace={() => navigateTo('/wholesale')}
+              startInOnboarding={wholesaleViewMode === 'onboarding'}
+            />
+          )
         ) : (
           <>
             {/* ==================================================== */}

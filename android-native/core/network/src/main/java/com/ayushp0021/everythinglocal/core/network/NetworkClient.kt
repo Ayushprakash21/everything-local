@@ -29,8 +29,8 @@ class NetworkClient(
     companion object {
         // Fallback emulator URL for local testing
         const val DEFAULT_BASE_URL = "http://10.0.2.2:4000/api/"
-        const val PRODUCTION_BASE_URL = "https://api.everythinglocal.in/api/"
-        const val STAGING_BASE_URL = "https://staging-api.everythinglocal.in/api/"
+        const val PRODUCTION_BASE_URL = "https://everything-local-api.everything-local.workers.dev/api/"
+        const val STAGING_BASE_URL = "https://everybazaar-api-dev.everything-local.workers.dev/api/"
     }
 
     private val json = Json {

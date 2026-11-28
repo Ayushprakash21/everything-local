@@ -25,6 +25,7 @@ rootProject.name = "everything-local-native"
 include(":customer:app")
 include(":merchant:app")
 include(":delivery-partner:app")
+include(":wholesaler:app")
 include(":core:common")
 include(":core:models")
 include(":core:network")

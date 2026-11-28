@@ -373,3 +373,287 @@ data class DeliveryOnboardingResponse(
     val message: String,
     val profile: DeliveryPartnerProfile
 )
+
+// ============================================================================
+// WHOLESALE MARKETPLACE & WHOLESALER APP MODELS
+// ============================================================================
+
+@Serializable
+data class WholesaleCategoryDto(
+    val id: String,
+    val name: String,
+    val slug: String,
+    val description: String? = null,
+    val icon: String? = null
+)
+
+@Serializable
+data class WholesaleCategoriesResponse(
+    val categories: List<WholesaleCategoryDto> = emptyList()
+)
+
+@Serializable
+data class WholesalerSummaryDto(
+    val id: String,
+    val businessName: String,
+    val slug: String? = null,
+    val businessType: String = "WHOLESALER",
+    val city: String = "Indore",
+    val state: String = "Madhya Pradesh",
+    val isVerified: Boolean = false
+)
+
+@Serializable
+data class WholesalePriceTierDto(
+    val id: String = "",
+    val minQty: Int,
+    val maxQty: Int? = null,
+    val pricePaise: Int
+)
+
+@Serializable
+data class WholesaleInventoryDto(
+    val id: String = "",
+    val availableQty: Int = 0,
+    val reservedQty: Int = 0,
+    val lowStockThreshold: Int = 20
+)
+
+@Serializable
+data class WholesaleProductDto(
+    val id: String,
+    val wholesalerId: String = "",
+    val categoryId: String = "",
+    val title: String,
+    val slug: String = "",
+    val brand: String? = null,
+    val description: String = "",
+    val mainImageUrl: String = "",
+    val sku: String = "",
+    val hsnCode: String? = null,
+    val unitOfMeasurement: String = "pieces",
+    val packageSize: String? = null,
+    val moq: Int = 10,
+    val basePricePaise: Int = 0,
+    val listingType: String = "TIERED",
+    val dispatchTime: String = "24-48 Hours",
+    val taxClassification: String = "GST_5",
+    val approvalStatus: String = "APPROVED",
+    val category: WholesaleCategoryDto? = null,
+    val wholesaler: WholesalerSummaryDto? = null,
+    val priceTiers: List<WholesalePriceTierDto> = emptyList(),
+    val inventories: List<WholesaleInventoryDto> = emptyList()
+)
+
+@Serializable
+data class WholesaleProductsResponse(
+    val products: List<WholesaleProductDto> = emptyList()
+)
+
+@Serializable
+data class WholesaleWarehouseDto(
+    val id: String,
+    val name: String,
+    val addressLine: String,
+    val city: String,
+    val state: String,
+    val pincode: String,
+    val contactPhone: String? = null,
+    val isDefault: Boolean = false
+)
+
+@Serializable
+data class WholesalerProfileDto(
+    val id: String,
+    val userId: String,
+    val businessName: String,
+    val legalBusinessName: String,
+    val businessType: String = "WHOLESALER",
+    val hasGst: Boolean = false,
+    val gstin: String? = null,
+    val panNumber: String? = null,
+    val businessAddress: String = "",
+    val city: String = "Indore",
+    val state: String = "Madhya Pradesh",
+    val pincode: String = "",
+    val contactName: String = "",
+    val contactPhone: String = "",
+    val contactEmail: String = "",
+    val verificationStatus: String = "PENDING",
+    val isVerified: Boolean = false,
+    val warehouses: List<WholesaleWarehouseDto> = emptyList()
+)
+
+@Serializable
+data class WholesaleConsoleMetricsDto(
+    val totalOrders: Int = 0,
+    val totalGmvPaise: Int = 0,
+    val revenuePaise: Int = 0,
+    val pendingOrders: Int = 0,
+    val productsListed: Int = 0,
+    val lowStock: Int = 0,
+    val pendingRfqs: Int = 0,
+    val acceptedQuotations: Int = 0,
+    val averageOrderValuePaise: Int = 0
+)
+
+@Serializable
+data class WholesaleOrderItemDto(
+    val id: String = "",
+    val productId: String,
+    val productTitle: String,
+    val sku: String = "",
+    val unitOfMeasurement: String = "pieces",
+    val quantity: Int,
+    val agreedUnitPricePaise: Int,
+    val lineTotalPaise: Int
+)
+
+@Serializable
+data class WholesaleOrderDto(
+    val id: String,
+    val orderNumber: String,
+    val status: String,
+    val paymentStatus: String = "PENDING",
+    val paymentMethod: String = "ONLINE",
+    val fulfillmentMethod: String = "TRANSPORTER",
+    val subtotalPaise: Int = 0,
+    val taxPaise: Int = 0,
+    val totalPaise: Int = 0,
+    val invoiceNumber: String? = null,
+    val wholesaler: WholesalerSummaryDto? = null,
+    val items: List<WholesaleOrderItemDto> = emptyList(),
+    val createdAt: String = ""
+)
+
+@Serializable
+data class WholesaleOrdersResponse(
+    val orders: List<WholesaleOrderDto> = emptyList()
+)
+
+@Serializable
+data class WholesaleQuotationDto(
+    val id: String,
+    val quotedUnitPricePaise: Int,
+    val quotedQty: Int,
+    val deliveryChargePaise: Int = 0,
+    val taxPaise: Int = 0,
+    val totalPaise: Int,
+    val validUntil: String,
+    val termsAndConditions: String? = null,
+    val status: String
+)
+
+@Serializable
+data class WholesaleRfqDto(
+    val id: String,
+    val rfqNumber: String,
+    val requestedQty: Int,
+    val deliveryCity: String,
+    val deliveryPincode: String,
+    val status: String,
+    val requirements: String? = null,
+    val product: WholesaleProductDto? = null,
+    val wholesaler: WholesalerSummaryDto? = null,
+    val quotations: List<WholesaleQuotationDto> = emptyList()
+)
+
+@Serializable
+data class WholesaleRfqsResponse(
+    val rfqs: List<WholesaleRfqDto> = emptyList()
+)
+
+@Serializable
+data class WholesalerConsoleOverviewResponse(
+    val profile: WholesalerProfileDto,
+    val metrics: WholesaleConsoleMetricsDto,
+    val products: List<WholesaleProductDto> = emptyList(),
+    val orders: List<WholesaleOrderDto> = emptyList(),
+    val rfqs: List<WholesaleRfqDto> = emptyList()
+)
+
+@Serializable
+data class WholesaleCartSummaryDto(
+    val itemCount: Int = 0,
+    val subtotalPaise: Int = 0,
+    val taxPaise: Int = 0,
+    val totalPaise: Int = 0
+)
+
+@Serializable
+data class WholesaleCartItemDto(
+    val id: String,
+    val productId: String,
+    val quantity: Int,
+    val unitPricePaise: Int = 0,
+    val lineTotalPaise: Int = 0,
+    val product: WholesaleProductDto
+)
+
+@Serializable
+data class WholesaleCartResponse(
+    val items: List<WholesaleCartItemDto> = emptyList(),
+    val summary: WholesaleCartSummaryDto = WholesaleCartSummaryDto()
+)
+
+@Serializable
+data class WholesaleCartAddRequest(
+    val productId: String,
+    val quantity: Int
+)
+
+@Serializable
+data class WholesaleShippingAddressDto(
+    val addressLine: String,
+    val city: String,
+    val state: String = "Madhya Pradesh",
+    val pincode: String
+)
+
+@Serializable
+data class WholesaleCheckoutRequest(
+    val shippingAddress: WholesaleShippingAddressDto,
+    val paymentMethod: String = "ONLINE",
+    val fulfillmentMethod: String = "TRANSPORTER",
+    val notes: String? = null
+)
+
+@Serializable
+data class WholesaleRfqCreateRequest(
+    val productId: String,
+    val requestedQty: Int,
+    val deliveryCity: String,
+    val deliveryState: String = "Madhya Pradesh",
+    val deliveryPincode: String,
+    val deliveryAddress: String,
+    val requirements: String? = null
+)
+
+@Serializable
+data class WholesaleProductCreateRequest(
+    val categoryId: String,
+    val title: String,
+    val brand: String? = null,
+    val description: String,
+    val sku: String,
+    val unitOfMeasurement: String = "pieces",
+    val moq: Int = 10,
+    val basePricePaise: Int,
+    val listingType: String = "TIERED",
+    val initialStock: Int = 100,
+    val priceTiers: List<WholesalePriceTierDto> = emptyList()
+)
+
+@Serializable
+data class WholesaleQuoteCreateRequest(
+    val quotedUnitPricePaise: Int,
+    val quotedQty: Int,
+    val deliveryChargePaise: Int = 0,
+    val validDays: Int = 7,
+    val termsAndConditions: String? = null
+)
+
+@Serializable
+data class WholesaleActionResponse(
+    val message: String? = null
+)
